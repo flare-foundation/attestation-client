@@ -64,8 +64,8 @@ export class GlobalAttestationConfig implements IReflection<GlobalAttestationCon
    * @returns
    */
   public sourceAndTypeSupported(sourceId: string, attestationType: string): boolean {
-    const _sourceId = !/^0x[0-9a-fA-F]{64}$/i.test(sourceId) ? decodeAttestationName(sourceId) : sourceId;
-    const _attestationType = !/^0x[0-9a-fA-F]{64}$/i.test(attestationType) ? decodeAttestationName(attestationType) : attestationType;
+    const _sourceId = /^0x[0-9a-fA-F]{64}$/i.test(sourceId) ? decodeAttestationName(sourceId) : sourceId;
+    const _attestationType = /^0x[0-9a-fA-F]{64}$/i.test(attestationType) ? decodeAttestationName(attestationType) : attestationType;
     const config = this.sourcesMap.get(_sourceId);
     if (!config) return false;
     const typeConfig = config.attestationTypesMap.get(_attestationType);

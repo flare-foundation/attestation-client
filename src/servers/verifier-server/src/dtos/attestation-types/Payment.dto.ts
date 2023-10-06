@@ -223,11 +223,11 @@ export class Payment_ResponseBody {
     intendedReceivedAmount!: string;
 
     /**
-     * Identifier of the transaction as defined [here](/address-objects/paymentReference.md).
+     * Identifier of the transaction as defined [here](/specs/attestations/external-chains/standardPaymentReference.md).
      */
     @Validate(IsHash32)
     @ApiProperty({
-        description: `Identifier of the transaction as defined [here](/address-objects/paymentReference.md).`,
+        description: `Identifier of the transaction as defined [here](/specs/attestations/external-chains/standardPaymentReference.md).`,
         example: "0x0000000000000000000000000000000000000000000000000000000000000000",
     })
     standardPaymentReference!: string;
@@ -240,10 +240,13 @@ export class Payment_ResponseBody {
     oneToOne!: boolean;
 
     /**
-     * Status of the transaction as described [here](/address-objects/tx-status.md):
+     * Status of the transaction as described [here](/specs/attestations/external-chains/transactions.md#transaction-success-status):
      */
     @Validate(IsUnsignedIntLike)
-    @ApiProperty({ description: `Status of the transaction as described [here](/address-objects/tx-status.md):`, example: "123" })
+    @ApiProperty({
+        description: `Status of the transaction as described [here](/specs/attestations/external-chains/transactions.md#transaction-success-status):`,
+        example: "123",
+    })
     status!: string;
 }
 export class Payment_RequestBody {
@@ -285,21 +288,18 @@ export class Payment_Request {
     attestationType!: string;
 
     /**
-     * Data source id as defined [here](/attestation-objectsenums.md).
+     * Id of the data source.
      */
     @Validate(IsHash32)
-    @ApiProperty({
-        description: `Data source id as defined [here](/attestation-objectsenums.md).`,
-        example: "0x0000000000000000000000000000000000000000000000000000000000000000",
-    })
+    @ApiProperty({ description: `Id of the data source.`, example: "0x0000000000000000000000000000000000000000000000000000000000000000" })
     sourceId!: string;
 
     /**
-     * `MessageIntegrityCode` that is derived from the expected response as defined [here](/attestation-objects/MIC.md#message-integrity-code).
+     * `MessageIntegrityCode` that is derived from the expected response as defined [here](/specs/attestations/hash-MIC.md#message-integrity-code).
      */
     @Validate(IsHash32)
     @ApiProperty({
-        description: `'MessageIntegrityCode' that is derived from the expected response as defined [here](/attestation-objects/MIC.md#message-integrity-code).`,
+        description: `'MessageIntegrityCode' that is derived from the expected response as defined [here](/specs/attestations/hash-MIC.md#message-integrity-code).`,
         example: "0x0000000000000000000000000000000000000000000000000000000000000000",
     })
     messageIntegrityCode!: string;

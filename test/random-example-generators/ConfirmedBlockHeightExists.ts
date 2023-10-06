@@ -11,8 +11,8 @@ import { AttestationDefinitionStore } from "../../src/external-libs/AttestationD
 
 const ATTESTATION_TYPE_NAME = "ConfirmedBlockHeightExists";
 
-function randomProof(votingRound: number = 1234, sourceId?: string): ConfirmedBlockHeightExists_Proof {
-    const bodies = randomBodies();
+function randomProof(votingRound: number = 1234, sourceId?: string, fullRandom = false): ConfirmedBlockHeightExists_Proof {
+    const bodies = randomBodies(fullRandom);
     const response = {
         attestationType: encodeAttestationName(ATTESTATION_TYPE_NAME),
         sourceId: encodeAttestationName(sourceId ?? "BTC"),
@@ -29,24 +29,24 @@ function randomProof(votingRound: number = 1234, sourceId?: string): ConfirmedBl
     return proof;
 }
 
-function randomBodies() {
+function randomBodies(fullRandom = false) {
     const requestBody = {
-        blockNumber: randSol("uint64", "ConfirmedBlockHeightExists"),
-        queryWindow: randSol("uint64", "ConfirmedBlockHeightExists"),
+        blockNumber: randSol("uint64", "ConfirmedBlockHeightExists" + (fullRandom ? Math.random().toString() : "")),
+        queryWindow: randSol("uint64", "ConfirmedBlockHeightExists" + (fullRandom ? Math.random().toString() : "")),
     } as ConfirmedBlockHeightExists_RequestBody;
 
     const responseBody = {
-        blockTimestamp: randSol("uint64", "ConfirmedBlockHeightExists"),
-        numberOfConfirmations: randSol("uint64", "ConfirmedBlockHeightExists"),
-        lowestQueryWindowBlockNumber: randSol("uint64", "ConfirmedBlockHeightExists"),
-        lowestQueryWindowBlockTimestamp: randSol("uint64", "ConfirmedBlockHeightExists"),
+        blockTimestamp: randSol("uint64", "ConfirmedBlockHeightExists" + (fullRandom ? Math.random().toString() : "")),
+        numberOfConfirmations: randSol("uint64", "ConfirmedBlockHeightExists" + (fullRandom ? Math.random().toString() : "")),
+        lowestQueryWindowBlockNumber: randSol("uint64", "ConfirmedBlockHeightExists" + (fullRandom ? Math.random().toString() : "")),
+        lowestQueryWindowBlockTimestamp: randSol("uint64", "ConfirmedBlockHeightExists" + (fullRandom ? Math.random().toString() : "")),
     } as ConfirmedBlockHeightExists_ResponseBody;
     return { requestBody, responseBody };
 }
 
-export function randomExample(votingRound: number = 1234, sourceId?: string) {
-    const store = new AttestationDefinitionStore();
-    const proof = randomProof(votingRound, sourceId);
+export function randomExample(votingRound: number = 1234, sourceId?: string, fullRandom = false) {
+    const store = new AttestationDefinitionStore("configs/type-definitions");
+    const proof = randomProof(votingRound, sourceId, fullRandom);
     const requestNoMic = {
         attestationType: proof.data.attestationType,
         sourceId: proof.data.sourceId,
@@ -63,6 +63,6 @@ export function randomExample(votingRound: number = 1234, sourceId?: string) {
     return { requestNoMic, response, request, messageIntegrityCode, encodedRequestZeroMic, encodedRequest, proof };
 }
 
-export function randomConfirmedBlockHeightExistsExample(votingRound: number = 1234, sourceId?: string) {
-    return randomExample(votingRound, sourceId);
+export function randomConfirmedBlockHeightExistsExample(votingRound: number = 1234, sourceId?: string, fullRandom = false) {
+    return randomExample(votingRound, sourceId, fullRandom);
 }

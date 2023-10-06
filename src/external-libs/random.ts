@@ -1,7 +1,7 @@
 import { ethers } from "ethers";
 
 export function seededRandHex(n: number, seed = "0") {
-    return ethers.keccak256(ethers.toBeArray(seed)).slice(0, 2 + 2 * n);
+    return ethers.keccak256(ethers.toUtf8Bytes(seed)).slice(0, 2 + 2 * n);
 }
 
 /**
@@ -40,11 +40,11 @@ export function randSol(typeName: string, seed = "0"): string | boolean {
 
     match = typeName.match(/^uint(\d+)$/);
     if (match) {
-        return seededRandHex(parseInt(match[1]) / 8);
+        return seededRandHex(parseInt(match[1]) / 8, seed);
     }
     match = typeName.match(/^int(\d+)$/);
     if (match) {
-        const val = seededRandHex(parseInt(match[1]) / 8);
+        const val = seededRandHex(parseInt(match[1]) / 8, seed);
         return "0x0" + val.slice(3);
     }
     if (typeName.match(/^bool$/)) {
@@ -52,19 +52,19 @@ export function randSol(typeName: string, seed = "0"): string | boolean {
     }
     match = typeName.match(/^bytes(\d+)$/);
     if (match) {
-        return seededRandHex(parseInt(match[1]));
+        return seededRandHex(parseInt(match[1]), seed);
     }
     if (typeName.match(/^address$/)) {
-        return seededRandHex(20);
+        return seededRandHex(20, seed);
     }
     if (typeName.match(/^string$/)) {
         return "Random string";
     }
     if (typeName.match(/^byte$/)) {
-        return seededRandHex(1);
+        return seededRandHex(1, seed);
     }
     if (typeName.match(/^bytes$/)) {
-        return seededRandHex(37);
+        return seededRandHex(30, seed);
     }
     throw new Error(`Unsupported type ${typeName}`);
 }

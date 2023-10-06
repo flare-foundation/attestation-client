@@ -5,8 +5,17 @@
       "sourceId": "XRP",
       "routes": [
         {
-          "attestationTypes": ["Payment", "BalanceDecreasingTransaction"],
-          "url": "http://localhost:9601/query",
+          "attestationTypes": [
+            "Payment"
+          ],
+          "url": "http://localhost:9601/XRP/Payment",
+          "apiKey": "123456"
+        },
+        {
+          "attestationTypes": [
+            "BalanceDecreasingTransaction"
+          ],
+          "url": "http://localhost:9601/XRP/BalanceDecreasingTransaction",
           "apiKey": "123456"
         }
       ]
@@ -15,8 +24,25 @@
       "sourceId": "BTC",
       "routes": [
         {
-          "attestationTypes": ["Payment", "BalanceDecreasingTransaction", "ConfirmedBlockHeightExists"],
-          "url": "http://localhost:9600/query",
+          "attestationTypes": [
+            "Payment"
+          ],
+          "sourceId": "BTC",
+          "url": "http://localhost:9600/BTC/Payment",
+          "apiKey": "123456"
+        },
+        {
+          "attestationTypes": [
+            "BalanceDecreasingTransaction"
+          ],
+          "url": "http://localhost:9600/BTC/BalanceDecreasingTransaction",
+          "apiKey": "123456"
+        },
+        {
+          "attestationTypes": [
+            "ConfirmedBlockHeightExists"
+          ],
+          "url": "http://localhost:9600/BTC/ConfirmedBlockHeightExists",
           "apiKey": "123456"
         }
       ]
@@ -25,8 +51,17 @@
       "sourceId": "DOGE",
       "routes": [
         {
-          "attestationTypes": ["Payment", "BalanceDecreasingTransaction"],
-          "url": "http://localhost:9602/query",
+          "attestationTypes": [
+            "Payment"
+          ],
+          "url": "http://localhost:9602/DOGE/Payment",
+          "apiKey": "123456"
+        },
+        {
+          "attestationTypes": [
+            "BalanceDecreasingTransaction"
+          ],
+          "url": "http://localhost:9602/DOGE/BalanceDecreasingTransaction",
           "apiKey": "123456"
         }
       ]

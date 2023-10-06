@@ -11,8 +11,8 @@ import { AttestationDefinitionStore } from "../../src/external-libs/AttestationD
 
 const ATTESTATION_TYPE_NAME = "ReferencedPaymentNonexistence";
 
-function randomProof(votingRound: number = 1234, sourceId?: string): ReferencedPaymentNonexistence_Proof {
-    const bodies = randomBodies();
+function randomProof(votingRound: number = 1234, sourceId?: string, fullRandom = false): ReferencedPaymentNonexistence_Proof {
+    const bodies = randomBodies(fullRandom);
     const response = {
         attestationType: encodeAttestationName(ATTESTATION_TYPE_NAME),
         sourceId: encodeAttestationName(sourceId ?? "BTC"),
@@ -29,27 +29,27 @@ function randomProof(votingRound: number = 1234, sourceId?: string): ReferencedP
     return proof;
 }
 
-function randomBodies() {
+function randomBodies(fullRandom = false) {
     const requestBody = {
-        minimalBlockNumber: randSol("uint64", "ReferencedPaymentNonexistence"),
-        deadlineBlockNumber: randSol("uint64", "ReferencedPaymentNonexistence"),
-        deadlineTimestamp: randSol("uint64", "ReferencedPaymentNonexistence"),
-        destinationAddressHash: randSol("bytes32", "ReferencedPaymentNonexistence"),
-        amount: randSol("uint256", "ReferencedPaymentNonexistence"),
-        standardPaymentReference: randSol("bytes32", "ReferencedPaymentNonexistence"),
+        minimalBlockNumber: randSol("uint64", "ReferencedPaymentNonexistence" + (fullRandom ? Math.random().toString() : "")),
+        deadlineBlockNumber: randSol("uint64", "ReferencedPaymentNonexistence" + (fullRandom ? Math.random().toString() : "")),
+        deadlineTimestamp: randSol("uint64", "ReferencedPaymentNonexistence" + (fullRandom ? Math.random().toString() : "")),
+        destinationAddressHash: randSol("bytes32", "ReferencedPaymentNonexistence" + (fullRandom ? Math.random().toString() : "")),
+        amount: randSol("uint256", "ReferencedPaymentNonexistence" + (fullRandom ? Math.random().toString() : "")),
+        standardPaymentReference: randSol("bytes32", "ReferencedPaymentNonexistence" + (fullRandom ? Math.random().toString() : "")),
     } as ReferencedPaymentNonexistence_RequestBody;
 
     const responseBody = {
-        minimalBlockTimestamp: randSol("uint64", "ReferencedPaymentNonexistence"),
-        firstOverflowBlockNumber: randSol("uint64", "ReferencedPaymentNonexistence"),
-        firstOverflowBlockTimestamp: randSol("uint64", "ReferencedPaymentNonexistence"),
+        minimalBlockTimestamp: randSol("uint64", "ReferencedPaymentNonexistence" + (fullRandom ? Math.random().toString() : "")),
+        firstOverflowBlockNumber: randSol("uint64", "ReferencedPaymentNonexistence" + (fullRandom ? Math.random().toString() : "")),
+        firstOverflowBlockTimestamp: randSol("uint64", "ReferencedPaymentNonexistence" + (fullRandom ? Math.random().toString() : "")),
     } as ReferencedPaymentNonexistence_ResponseBody;
     return { requestBody, responseBody };
 }
 
-export function randomExample(votingRound: number = 1234, sourceId?: string) {
-    const store = new AttestationDefinitionStore();
-    const proof = randomProof(votingRound, sourceId);
+export function randomExample(votingRound: number = 1234, sourceId?: string, fullRandom = false) {
+    const store = new AttestationDefinitionStore("configs/type-definitions");
+    const proof = randomProof(votingRound, sourceId, fullRandom);
     const requestNoMic = {
         attestationType: proof.data.attestationType,
         sourceId: proof.data.sourceId,
@@ -66,6 +66,6 @@ export function randomExample(votingRound: number = 1234, sourceId?: string) {
     return { requestNoMic, response, request, messageIntegrityCode, encodedRequestZeroMic, encodedRequest, proof };
 }
 
-export function randomReferencedPaymentNonexistenceExample(votingRound: number = 1234, sourceId?: string) {
-    return randomExample(votingRound, sourceId);
+export function randomReferencedPaymentNonexistenceExample(votingRound: number = 1234, sourceId?: string, fullRandom = false) {
+    return randomExample(votingRound, sourceId, fullRandom);
 }

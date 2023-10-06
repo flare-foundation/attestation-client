@@ -34,7 +34,7 @@ export interface TypeRecord extends ABIDefinitions {
     description: string;
     /**
      * Comma separated list of supported sources for the attestation type. The strings defining types are community defined.
-     * Currently, the following are supported: BTC, DOGE, XRPL, ETH
+     * Currently, the following are supported: BTC, DOGE, XRP, ETH
      */
     supported: string;
     /**

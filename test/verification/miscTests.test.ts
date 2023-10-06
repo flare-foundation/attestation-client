@@ -73,8 +73,8 @@ describe(`Misc verifier utils, (${getTestFile(__filename)})`,  function () {
     it(`Should check that two randomly generated requests equal type and sourceId are different`, function () {
       for (let attestationType of ATTESTATION_TYPES) {
         for (let sourceId of SOURCES) {
-          const res1 = RANDOM_GENERATOR[attestationType](VOTING_ROUND, sourceId).request;
-          const res2 = RANDOM_GENERATOR[attestationType](VOTING_ROUND, sourceId).request;
+          const res1 = RANDOM_GENERATOR[attestationType](VOTING_ROUND, sourceId, true).request;
+          const res2 = RANDOM_GENERATOR[attestationType](VOTING_ROUND, sourceId, true).request;
           const res = defStore.equalsRequest(res1, res2);
           assert(!res, `${attestationType}, ${sourceId}`);
         }

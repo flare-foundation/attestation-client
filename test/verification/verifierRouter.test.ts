@@ -98,13 +98,13 @@ describe(`VerifierRouter tests (${getTestFile(__filename)})`, () => {
     let respXRP = await verifierRouter.verifyAttestation(attestationXRP);
 
     assert(respXRP.status === AttestationResponseStatus.VALID, "Wrong server response");
-    assert(respXRP.response.transactionHash === prefix0x(setup.XRP.selectedTransaction.transactionId), "Wrong transaction id");
+    assert(respXRP.response.requestBody.transactionId === prefix0x(setup.XRP.selectedTransaction.transactionId), "Wrong transaction id");
 
     let respBTC = await verifierRouter.verifyAttestation(attestationBTC);
     // console.log("XRP", attestationXRP.data.request, requestXRP)
     // console.log("BTC", attestationBTC.data.request, requestBTC)
     assert(respBTC.status === AttestationResponseStatus.VALID, "Wrong server response");
-    assert(respBTC.response.transactionHash === prefix0x(setup.BTC.selectedTransaction.transactionId), "Wrong transaction id");
+    assert(respBTC.response.requestBody.transactionId === prefix0x(setup.BTC.selectedTransaction.transactionId), "Wrong transaction id");
   });
 
   it(`Should not verify corrupt attestation payment`, async function () {
@@ -159,9 +159,8 @@ describe(`VerifierRouter tests (${getTestFile(__filename)})`, () => {
     let respDogeFail = await verifierRouter.verifyAttestation(attestationDogeFail);
 
     assert(respDoge.status === AttestationResponseStatus.VALID, "Wrong server response");
-    assert(respDoge.response.transactionHash === prefix0x(setup.Doge.selectedTransaction.transactionId), "Wrong transaction id");
-
-    assert(respDogeFail.status === AttestationResponseStatus.INDETERMINATE, "Wrong server response");
+    assert(respDoge.response.requestBody.transactionId === prefix0x(setup.Doge.selectedTransaction.transactionId), "Wrong transaction id");
+    assert(respDogeFail.status === AttestationResponseStatus.INVALID, "Wrong server response");
   });
 
   it("Should verify attestation confirmed block height", async function () {

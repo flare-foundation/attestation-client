@@ -1,9 +1,9 @@
 {
   "name": "AddressValidity",
-  "fullComment": " @custom:name AddressValidity\n @custom:id 0x05\n @custom:supported BTC, DOGE, XRPL, ETH\n @author Flare\n @notice The purpose of this type is to assert that the string represents a valid address on an external chain.\n @custom:verification The address is checked against all validity criteria of the chain with `sourceId`.\n Validity criteria for each supported chain:\n - [BTC](attestation-objects/verification-rules/00005/BTC.md)\n - [DOGE](attestation-objects/verification-rules/00005/DOGE.md)\n - [XRPL](attestation-objects/verification-rules/00005/XRP.md)\n - [Ethereum](attestation-objects/verification-rules/00005/ETH.md)\n @custom:lut $2^{64}-1$",
+  "fullComment": " @custom:name AddressValidity\n @custom:id 0x05\n @custom:supported BTC, DOGE, XRP, ETH\n @author Flare\n @notice The purpose of this type is to assert that the string represents a valid address on an external chain.\n @custom:verification The address is checked against all validity criteria of the chain with `sourceId`.\n Validity criteria for each supported chain:\n - [BTC](/specs/attestations/external-chains/address-validity/BTC.md)\n - [DOGE](/specs/attestations/external-chains/address-validity/DOGE.md)\n - [XRPL](/specs/attestations/external-chains/address-validity/XRPL.md)\n - [Ethereum](/specs/attestations/external-chains/address-validity/ETH.md)\n @custom:lut $2^{64}-1$",
   "description": "The purpose of this type is to assert that the string represents a valid address on an external chain.",
-  "supported": "BTC, DOGE, XRPL, ETH",
-  "verification": "The address is checked against all validity criteria of the chain with `sourceId`.\n Validity criteria for each supported chain:\n - [BTC](attestation-objects/verification-rules/00005/BTC.md)\n - [DOGE](attestation-objects/verification-rules/00005/DOGE.md)\n - [XRPL](attestation-objects/verification-rules/00005/XRP.md)\n - [Ethereum](attestation-objects/verification-rules/00005/ETH.md)",
+  "supported": "BTC, DOGE, XRP, ETH",
+  "verification": "The address is checked against all validity criteria of the chain with `sourceId`.\n Validity criteria for each supported chain:\n - [BTC](/specs/attestations/external-chains/address-validity/BTC.md)\n - [DOGE](/specs/attestations/external-chains/address-validity/DOGE.md)\n - [XRPL](/specs/attestations/external-chains/address-validity/XRPL.md)\n - [Ethereum](/specs/attestations/external-chains/address-validity/ETH.md)",
   "lut": "$2^{64}-1$",
   "proof": {
     "name": "Proof",
@@ -31,7 +31,7 @@
     "description": "Toplevel request",
     "above": "",
     "below": "",
-    "fullComment": " @notice Toplevel request\n @param attestationType Attestation type id as defined for each attestation type on [this repo](https://gitlab.com/flarenetwork/state-connector-protocol/)\n @param sourceId Data source id as defined [here](/attestation-objects/enums.md).\n @param messageIntegrityCode `MessageIntegrityCode` that is derived from the expected response as defined [here](/attestation-objects/MIC.md#message-integrity-code).\n @param requestBody Data defining the request. Type (struct) and interpretation is determined by the `attestationType`.",
+    "fullComment": " @notice Toplevel request\n @param attestationType Attestation type id as defined for each attestation type on [this repo](https://gitlab.com/flarenetwork/state-connector-protocol/)\n @param sourceId Id of the data source.\n @param messageIntegrityCode `MessageIntegrityCode` that is derived from the expected response as defined [here](/specs/attestations/hash-MIC.md#message-integrity-code).\n @param requestBody Data defining the request. Type (struct) and interpretation is determined by the `attestationType`.",
     "params": [
       {
         "name": "attestationType",
@@ -43,13 +43,13 @@
         "name": "sourceId",
         "type": "bytes32",
         "typeSimple": "bytes32",
-        "comment": "Data source id as defined [here](/attestation-objects/enums.md)."
+        "comment": "Id of the data source."
       },
       {
         "name": "messageIntegrityCode",
         "type": "bytes32",
         "typeSimple": "bytes32",
-        "comment": "`MessageIntegrityCode` that is derived from the expected response as defined [here](/attestation-objects/MIC.md#message-integrity-code)."
+        "comment": "`MessageIntegrityCode` that is derived from the expected response as defined [here](/specs/attestations/hash-MIC.md#message-integrity-code)."
       },
       {
         "name": "requestBody",

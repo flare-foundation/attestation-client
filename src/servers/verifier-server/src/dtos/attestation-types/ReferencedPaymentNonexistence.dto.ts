@@ -237,21 +237,18 @@ export class ReferencedPaymentNonexistence_Request {
     attestationType!: string;
 
     /**
-     * The data source id as defined [here](/attestation-objects/enums.md).
+     * Id of the data source.
      */
     @Validate(IsHash32)
-    @ApiProperty({
-        description: `The data source id as defined [here](/attestation-objects/enums.md).`,
-        example: "0x0000000000000000000000000000000000000000000000000000000000000000",
-    })
+    @ApiProperty({ description: `Id of the data source.`, example: "0x0000000000000000000000000000000000000000000000000000000000000000" })
     sourceId!: string;
 
     /**
-     * `MessageIntegrityCode` that is derived from the expected response as defined [here](/attestation-objects/MIC.md#message-integrity-code).
+     * `MessageIntegrityCode` that is derived from the expected response as defined [here](/specs/attestations/hash-MIC.md#message-integrity-code).
      */
     @Validate(IsHash32)
     @ApiProperty({
-        description: `'MessageIntegrityCode' that is derived from the expected response as defined [here](/attestation-objects/MIC.md#message-integrity-code).`,
+        description: `'MessageIntegrityCode' that is derived from the expected response as defined [here](/specs/attestations/hash-MIC.md#message-integrity-code).`,
         example: "0x0000000000000000000000000000000000000000000000000000000000000000",
     })
     messageIntegrityCode!: string;

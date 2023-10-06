@@ -11,8 +11,8 @@ import { AttestationDefinitionStore } from "../../src/external-libs/AttestationD
 
 const ATTESTATION_TYPE_NAME = "BalanceDecreasingTransaction";
 
-function randomProof(votingRound: number = 1234, sourceId?: string): BalanceDecreasingTransaction_Proof {
-    const bodies = randomBodies();
+function randomProof(votingRound: number = 1234, sourceId?: string, fullRandom = false): BalanceDecreasingTransaction_Proof {
+    const bodies = randomBodies(fullRandom);
     const response = {
         attestationType: encodeAttestationName(ATTESTATION_TYPE_NAME),
         sourceId: encodeAttestationName(sourceId ?? "BTC"),
@@ -29,25 +29,25 @@ function randomProof(votingRound: number = 1234, sourceId?: string): BalanceDecr
     return proof;
 }
 
-function randomBodies() {
+function randomBodies(fullRandom = false) {
     const requestBody = {
-        transactionId: randSol("bytes32", "BalanceDecreasingTransaction"),
-        sourceAddressIndicator: randSol("bytes32", "BalanceDecreasingTransaction"),
+        transactionId: randSol("bytes32", "BalanceDecreasingTransaction" + (fullRandom ? Math.random().toString() : "")),
+        sourceAddressIndicator: randSol("bytes32", "BalanceDecreasingTransaction" + (fullRandom ? Math.random().toString() : "")),
     } as BalanceDecreasingTransaction_RequestBody;
 
     const responseBody = {
-        blockNumber: randSol("uint64", "BalanceDecreasingTransaction"),
-        blockTimestamp: randSol("uint64", "BalanceDecreasingTransaction"),
-        sourceAddressHash: randSol("bytes32", "BalanceDecreasingTransaction"),
-        spentAmount: randSol("int256", "BalanceDecreasingTransaction"),
-        standardPaymentReference: randSol("bytes32", "BalanceDecreasingTransaction"),
+        blockNumber: randSol("uint64", "BalanceDecreasingTransaction" + (fullRandom ? Math.random().toString() : "")),
+        blockTimestamp: randSol("uint64", "BalanceDecreasingTransaction" + (fullRandom ? Math.random().toString() : "")),
+        sourceAddressHash: randSol("bytes32", "BalanceDecreasingTransaction" + (fullRandom ? Math.random().toString() : "")),
+        spentAmount: randSol("int256", "BalanceDecreasingTransaction" + (fullRandom ? Math.random().toString() : "")),
+        standardPaymentReference: randSol("bytes32", "BalanceDecreasingTransaction" + (fullRandom ? Math.random().toString() : "")),
     } as BalanceDecreasingTransaction_ResponseBody;
     return { requestBody, responseBody };
 }
 
-export function randomExample(votingRound: number = 1234, sourceId?: string) {
-    const store = new AttestationDefinitionStore();
-    const proof = randomProof(votingRound, sourceId);
+export function randomExample(votingRound: number = 1234, sourceId?: string, fullRandom = false) {
+    const store = new AttestationDefinitionStore("configs/type-definitions");
+    const proof = randomProof(votingRound, sourceId, fullRandom);
     const requestNoMic = {
         attestationType: proof.data.attestationType,
         sourceId: proof.data.sourceId,
@@ -64,6 +64,6 @@ export function randomExample(votingRound: number = 1234, sourceId?: string) {
     return { requestNoMic, response, request, messageIntegrityCode, encodedRequestZeroMic, encodedRequest, proof };
 }
 
-export function randomBalanceDecreasingTransactionExample(votingRound: number = 1234, sourceId?: string) {
-    return randomExample(votingRound, sourceId);
+export function randomBalanceDecreasingTransactionExample(votingRound: number = 1234, sourceId?: string, fullRandom = false) {
+    return randomExample(votingRound, sourceId, fullRandom);
 }

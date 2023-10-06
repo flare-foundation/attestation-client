@@ -47,9 +47,9 @@ export function createBlankAtRequestEvent(
           minimalBlockNumber: "2",
           deadlineBlockNumber: "5",
           deadlineTimestamp: "5312",
-          destinationAddressHash: "0xFakeAdress",
+          destinationAddressHash: ethers.zeroPadBytes("0x123456", 32),
           amount: "100",
-          standardPaymentReference: "0xfakeref",
+          standardPaymentReference: ethers.zeroPadBytes("0x222222", 32),
         }
       };
       reqData = defStore.encodeRequest(arRef);
@@ -107,7 +107,7 @@ export function createAttestationVerificationPair(defStore: AttestationDefinitio
   const arPayment: Payment_Request = {
     attestationType: encodeAttestationName("Payment"),
     sourceId: encodeAttestationName("XRP"),
-    messageIntegrityCode: "",
+    messageIntegrityCode: ZERO_BYTES_32,
     requestBody: {
       transactionId: reqId,
       inUtxo: "0",

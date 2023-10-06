@@ -1,6 +1,7 @@
 // yarn test test/attestationClient/attestationRound.test-slow.ts
 
 import { assert, expect } from "chai";
+import { ethers } from "ethers";
 import sinon from "sinon";
 import { Attestation } from "../../src/attester/Attestation";
 import { AttestationRound } from "../../src/attester/AttestationRound";
@@ -132,19 +133,20 @@ describe(`Attestation round slow, (${getTestFile(__filename)})`, function () {
       const pairsVer = new Map<string, AttestationResponse<any>>();
       const pariAtt = new Map<string, Attestation>();
 
-      const pairOk = createAttestationVerificationPair(defStore, "11", 161, 1, true, AttestationResponseStatus.VALID);
+      const pairOk = createAttestationVerificationPair(defStore, ethers.zeroPadBytes("0x11", 32), 161, 1, true, AttestationResponseStatus.VALID);
       pairsVer.set(pairOk.attestation.data.getId(), pairOk.verification);
       pariAtt.set(pairOk.attestation.data.getId(), pairOk.attestation);
-      const pairMICFail = createAttestationVerificationPair(defStore, "12", 161, 2, false, AttestationResponseStatus.VALID);
+      const pairMICFail = createAttestationVerificationPair(defStore, ethers.zeroPadBytes("0x12", 32), 161, 2, false, AttestationResponseStatus.VALID);
       pairsVer.set(pairMICFail.attestation.data.getId(), pairMICFail.verification);
       pariAtt.set(pairMICFail.attestation.data.getId(), pairMICFail.attestation);
-      const pairVerFail = createAttestationVerificationPair(defStore, "13", 161, 3, false, AttestationResponseStatus.INVALID);
+      const pairVerFail = createAttestationVerificationPair(defStore, ethers.zeroPadBytes("0x13", 32), 161, 3, false, AttestationResponseStatus.INVALID);
       pairsVer.set(pairVerFail.attestation.data.getId(), pairVerFail.verification);
       pariAtt.set(pairVerFail.attestation.data.getId(), pairVerFail.attestation);
-      const pairOk2 = createAttestationVerificationPair(defStore, "14", 161, 4, true, AttestationResponseStatus.VALID);
+      const pairOk2 = createAttestationVerificationPair(defStore, ethers.zeroPadBytes("0x14", 32), 161, 4, true, AttestationResponseStatus.VALID);
       pairsVer.set(pairOk2.attestation.data.getId(), pairOk2.verification);
       pariAtt.set(pairOk2.attestation.data.getId(), pairOk2.attestation);
 
+      
       // const stub = sinon.stub(round.activeGlobalConfig.verifierRouter, "verifyAttestation").callsFake(setAssignVerification(pairsVer));
       const verifierRouter = globalConfigManager.getVerifierRouter(round.roundId);
       const stub = sinon.stub(verifierRouter, "verifyAttestation").callsFake(setAssignVerification(pairsVer));
@@ -152,8 +154,7 @@ describe(`Attestation round slow, (${getTestFile(__filename)})`, function () {
         round.addAttestation(att);
       }
       round.addAttestation(pairOk.attestation);
-
-      const pairInvalid = createAttestationVerificationPair(defStore, "15", 161, 5, false, AttestationResponseStatus.INDETERMINATE);
+      const pairInvalid = createAttestationVerificationPair(defStore, ethers.zeroPadBytes("0x15", 32), 161, 5, false, AttestationResponseStatus.INDETERMINATE);
       pairInvalid.attestation.status = AttestationStatus.failed;
 
       round.addAttestation(pairInvalid.attestation);
@@ -176,10 +177,10 @@ describe(`Attestation round slow, (${getTestFile(__filename)})`, function () {
 
       round.sourceLimiters.get("XRP").config.maxTotalRoundWeight = 5;
 
-      const pair1 = createAttestationVerificationPair(defStore, "16", 161, 6, true, AttestationResponseStatus.VALID);
-      const pair2 = createAttestationVerificationPair(defStore, "17", 161, 7, true, AttestationResponseStatus.VALID);
-      const pair3 = createAttestationVerificationPair(defStore, "18", 161, 8, true, AttestationResponseStatus.VALID);
-      const pair4 = createAttestationVerificationPair(defStore, "19", 161, 9, true, AttestationResponseStatus.VALID);
+      const pair1 = createAttestationVerificationPair(defStore, ethers.zeroPadBytes("0x16", 32), 161, 6, true, AttestationResponseStatus.VALID);
+      const pair2 = createAttestationVerificationPair(defStore, ethers.zeroPadBytes("0x17", 32), 161, 7, true, AttestationResponseStatus.VALID);
+      const pair3 = createAttestationVerificationPair(defStore, ethers.zeroPadBytes("0x18", 32), 161, 8, true, AttestationResponseStatus.VALID);
+      const pair4 = createAttestationVerificationPair(defStore, ethers.zeroPadBytes("0x19", 32), 161, 9, true, AttestationResponseStatus.VALID);
       const pairsVer = new Map<string, AttestationResponse<any>>();
       pairsVer.set(pair2.attestation.data.getId(), pair2.verification);
       pairsVer.set(pair3.attestation.data.getId(), pair3.verification);
@@ -206,7 +207,7 @@ describe(`Attestation round slow, (${getTestFile(__filename)})`, function () {
 
       round.sourceLimiters.get("XRP").config.maxTotalRoundWeight = 200;
 
-      const pair = createAttestationVerificationPair(defStore, "20", 161, 10, true, AttestationResponseStatus.VALID);
+      const pair = createAttestationVerificationPair(defStore, ethers.zeroPadBytes("0x20", 32), 161, 10, true, AttestationResponseStatus.VALID);
 
       round.addAttestation(pair.attestation);
 

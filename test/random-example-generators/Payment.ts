@@ -11,8 +11,8 @@ import { AttestationDefinitionStore } from "../../src/external-libs/AttestationD
 
 const ATTESTATION_TYPE_NAME = "Payment";
 
-function randomProof(votingRound: number = 1234, sourceId?: string): Payment_Proof {
-    const bodies = randomBodies();
+function randomProof(votingRound: number = 1234, sourceId?: string, fullRandom = false): Payment_Proof {
+    const bodies = randomBodies(fullRandom);
     const response = {
         attestationType: encodeAttestationName(ATTESTATION_TYPE_NAME),
         sourceId: encodeAttestationName(sourceId ?? "BTC"),
@@ -29,33 +29,33 @@ function randomProof(votingRound: number = 1234, sourceId?: string): Payment_Pro
     return proof;
 }
 
-function randomBodies() {
+function randomBodies(fullRandom = false) {
     const requestBody = {
-        transactionId: randSol("bytes32", "Payment"),
-        inUtxo: randSol("uint256", "Payment"),
-        utxo: randSol("uint16", "Payment"),
+        transactionId: randSol("bytes32", "Payment" + (fullRandom ? Math.random().toString() : "")),
+        inUtxo: randSol("uint256", "Payment" + (fullRandom ? Math.random().toString() : "")),
+        utxo: randSol("uint16", "Payment" + (fullRandom ? Math.random().toString() : "")),
     } as Payment_RequestBody;
 
     const responseBody = {
-        blockNumber: randSol("uint64", "Payment"),
-        blockTimestamp: randSol("uint64", "Payment"),
-        sourceAddressHash: randSol("bytes32", "Payment"),
-        receivingAddressHash: randSol("bytes32", "Payment"),
-        intendedReceivingAddressHash: randSol("bytes32", "Payment"),
-        spentAmount: randSol("int256", "Payment"),
-        intendedSpentAmount: randSol("int256", "Payment"),
-        receivedAmount: randSol("int256", "Payment"),
-        intendedReceivedAmount: randSol("int256", "Payment"),
-        standardPaymentReference: randSol("bytes32", "Payment"),
-        oneToOne: randSol("bool", "Payment"),
-        status: randSol("uint8", "Payment"),
+        blockNumber: randSol("uint64", "Payment" + (fullRandom ? Math.random().toString() : "")),
+        blockTimestamp: randSol("uint64", "Payment" + (fullRandom ? Math.random().toString() : "")),
+        sourceAddressHash: randSol("bytes32", "Payment" + (fullRandom ? Math.random().toString() : "")),
+        receivingAddressHash: randSol("bytes32", "Payment" + (fullRandom ? Math.random().toString() : "")),
+        intendedReceivingAddressHash: randSol("bytes32", "Payment" + (fullRandom ? Math.random().toString() : "")),
+        spentAmount: randSol("int256", "Payment" + (fullRandom ? Math.random().toString() : "")),
+        intendedSpentAmount: randSol("int256", "Payment" + (fullRandom ? Math.random().toString() : "")),
+        receivedAmount: randSol("int256", "Payment" + (fullRandom ? Math.random().toString() : "")),
+        intendedReceivedAmount: randSol("int256", "Payment" + (fullRandom ? Math.random().toString() : "")),
+        standardPaymentReference: randSol("bytes32", "Payment" + (fullRandom ? Math.random().toString() : "")),
+        oneToOne: randSol("bool", "Payment" + (fullRandom ? Math.random().toString() : "")),
+        status: randSol("uint8", "Payment" + (fullRandom ? Math.random().toString() : "")),
     } as Payment_ResponseBody;
     return { requestBody, responseBody };
 }
 
-export function randomExample(votingRound: number = 1234, sourceId?: string) {
-    const store = new AttestationDefinitionStore();
-    const proof = randomProof(votingRound, sourceId);
+export function randomExample(votingRound: number = 1234, sourceId?: string, fullRandom = false) {
+    const store = new AttestationDefinitionStore("configs/type-definitions");
+    const proof = randomProof(votingRound, sourceId, fullRandom);
     const requestNoMic = {
         attestationType: proof.data.attestationType,
         sourceId: proof.data.sourceId,
@@ -72,6 +72,6 @@ export function randomExample(votingRound: number = 1234, sourceId?: string) {
     return { requestNoMic, response, request, messageIntegrityCode, encodedRequestZeroMic, encodedRequest, proof };
 }
 
-export function randomPaymentExample(votingRound: number = 1234, sourceId?: string) {
-    return randomExample(votingRound, sourceId);
+export function randomPaymentExample(votingRound: number = 1234, sourceId?: string, fullRandom = false) {
+    return randomExample(votingRound, sourceId, fullRandom);
 }

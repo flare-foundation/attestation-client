@@ -7,12 +7,30 @@
          "routes": [
             {
                "attestationTypes": [
-                  "Payment",
-                  "BalanceDecreasingTransaction",
-                  "ConfirmedBlockHeightExists",
+                  "Payment"
+               ],
+               "url": "$(BTCVerifierRouterClientUrl)/Payment",
+               "apiKey": "$(BTCVerifierRouterClientApiKey)"
+            },
+            {
+               "attestationTypes": [
+                  "BalanceDecreasingTransaction"
+               ],
+               "url": "$(BTCVerifierRouterClientUrl)/BalanceDecreasingTransaction",
+               "apiKey": "$(BTCVerifierRouterClientApiKey)"
+            },
+            {
+               "attestationTypes": [
+                  "ConfirmedBlockHeightExists"
+               ],
+               "url": "$(BTCVerifierRouterClientUrl)/ConfirmedBlockHeightExists",
+               "apiKey": "$(BTCVerifierRouterClientApiKey)"
+            },
+            {
+               "attestationTypes": [
                   "ReferencedPaymentNonexistence"
                ],
-               "url": "$(BTCVerifierRouterClientUrl)",
+               "url": "$(BTCVerifierRouterClientUrl)/ReferencedPaymentNonexistence",
                "apiKey": "$(BTCVerifierRouterClientApiKey)"
             }
          ]
@@ -22,12 +40,30 @@
          "routes": [
             {
                "attestationTypes": [
-                  "Payment",
-                  "BalanceDecreasingTransaction",
-                  "ConfirmedBlockHeightExists",
+                  "Payment"
+               ],
+               "url": "$(DOGEVerifierRouterClientUrl)/Payment",
+               "apiKey": "$(DOGEVerifierRouterClientApiKey)"
+            },
+            {
+               "attestationTypes": [
+                  "BalanceDecreasingTransaction"
+               ],
+               "url": "$(DOGEVerifierRouterClientUrl)/BalanceDecreasingTransaction",
+               "apiKey": "$(DOGEVerifierRouterClientApiKey)"
+            },
+            {
+               "attestationTypes": [
+                  "ConfirmedBlockHeightExists"
+               ],
+               "url": "$(DOGEVerifierRouterClientUrl)/ConfirmedBlockHeightExists",
+               "apiKey": "$(DOGEVerifierRouterClientApiKey)"
+            },
+            {
+               "attestationTypes": [
                   "ReferencedPaymentNonexistence"
                ],
-               "url": "$(DOGEVerifierRouterClientUrl)",
+               "url": "$(DOGEVerifierRouterClientUrl)/ReferencedPaymentNonexistence",
                "apiKey": "$(DOGEVerifierRouterClientApiKey)"
             }
          ]
@@ -37,12 +73,30 @@
          "routes": [
             {
                "attestationTypes": [
-                  "Payment",
-                  "BalanceDecreasingTransaction",
-                  "ConfirmedBlockHeightExists",
+                  "Payment"
+               ],
+               "url": "$(XRPVerifierRouterClientUrl)/Payment",
+               "apiKey": "$(XRPVerifierRouterClientApiKey)"
+            },
+            {
+               "attestationTypes": [
+                  "BalanceDecreasingTransaction"
+               ],
+               "url": "$(XRPVerifierRouterClientUrl)/BalanceDecreasingTransaction",
+               "apiKey": "$(XRPVerifierRouterClientApiKey)"
+            },
+            {
+               "attestationTypes": [
+                  "ConfirmedBlockHeightExists"
+               ],
+               "url": "$(XRPVerifierRouterClientUrl)/ConfirmedBlockHeightExists",
+               "apiKey": "$(XRPVerifierRouterClientApiKey)"
+            },
+            {
+               "attestationTypes": [
                   "ReferencedPaymentNonexistence"
                ],
-               "url": "$(XRPVerifierRouterClientUrl)",
+               "url": "$(XRPVerifierRouterClientUrl)/ReferencedPaymentNonexistence",
                "apiKey": "$(XRPVerifierRouterClientApiKey)"
             }
          ]

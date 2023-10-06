@@ -11,8 +11,8 @@ import { AttestationDefinitionStore } from "../../src/external-libs/AttestationD
 
 const ATTESTATION_TYPE_NAME = "AddressValidity";
 
-function randomProof(votingRound: number = 1234, sourceId?: string): AddressValidity_Proof {
-    const bodies = randomBodies();
+function randomProof(votingRound: number = 1234, sourceId?: string, fullRandom = false): AddressValidity_Proof {
+    const bodies = randomBodies(fullRandom);
     const response = {
         attestationType: encodeAttestationName(ATTESTATION_TYPE_NAME),
         sourceId: encodeAttestationName(sourceId ?? "BTC"),
@@ -29,21 +29,21 @@ function randomProof(votingRound: number = 1234, sourceId?: string): AddressVali
     return proof;
 }
 
-function randomBodies() {
+function randomBodies(fullRandom = false) {
     const requestBody = {
-        addressStr: randSol("string", "AddressValidity"),
+        addressStr: randSol("string", "AddressValidity" + (fullRandom ? Math.random().toString() : "")),
     } as AddressValidity_RequestBody;
 
     const responseBody = {
-        standardAddress: randSol("string", "AddressValidity"),
-        standardAddressHash: randSol("bytes32", "AddressValidity"),
+        standardAddress: randSol("string", "AddressValidity" + (fullRandom ? Math.random().toString() : "")),
+        standardAddressHash: randSol("bytes32", "AddressValidity" + (fullRandom ? Math.random().toString() : "")),
     } as AddressValidity_ResponseBody;
     return { requestBody, responseBody };
 }
 
-export function randomExample(votingRound: number = 1234, sourceId?: string) {
-    const store = new AttestationDefinitionStore();
-    const proof = randomProof(votingRound, sourceId);
+export function randomExample(votingRound: number = 1234, sourceId?: string, fullRandom = false) {
+    const store = new AttestationDefinitionStore("configs/type-definitions");
+    const proof = randomProof(votingRound, sourceId, fullRandom);
     const requestNoMic = {
         attestationType: proof.data.attestationType,
         sourceId: proof.data.sourceId,
@@ -60,6 +60,6 @@ export function randomExample(votingRound: number = 1234, sourceId?: string) {
     return { requestNoMic, response, request, messageIntegrityCode, encodedRequestZeroMic, encodedRequest, proof };
 }
 
-export function randomAddressValidityExample(votingRound: number = 1234, sourceId?: string) {
-    return randomExample(votingRound, sourceId);
+export function randomAddressValidityExample(votingRound: number = 1234, sourceId?: string, fullRandom = false) {
+    return randomExample(votingRound, sourceId, fullRandom);
 }

@@ -7,6 +7,7 @@ import { AttLogger, getGlobalLogger } from "../../utils/logging/logger";
 import { VerifierAttestationTypeRouteConfig } from "./configs/VerifierAttestationTypeRouteConfig";
 import { VerifierRouteConfig } from "./configs/VerifierRouteConfig";
 import { EncodedRequestBody } from "../../servers/verifier-server/src/dtos/generic/generic.dto";
+import { sleepMs } from "@flarenetwork/mcc";
 const VERIFIER_TIMEOUT = 10000;
 export class VerifierRoute {
   url?: string;
@@ -108,7 +109,7 @@ export class VerifierRouter {
     this.logger = logger ?? getGlobalLogger();
     this.config = config;
     if (!this.config) {
-      throw new Error(`Missing configuration`);
+      throw  new Error(`Missing configuration`);
     }
 
     this.routeMap = new Map<string, Map<string, VerifierAttestationTypeRouteConfig>>(); //different type as promised

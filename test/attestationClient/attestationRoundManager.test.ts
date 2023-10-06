@@ -126,7 +126,7 @@ describe(`Attestation Round Manager (${getTestFile(__filename)})`, function () {
     const time = TEST_START_TIME * 1000 + 1;
     const clock = sinon.useFakeTimers({ now: time, shouldAdvanceTime: true });
 
-    const pair = createAttestationVerificationPair(defStore, "11", 161, 1, true, AttestationResponseStatus.VALID);
+    const pair = createAttestationVerificationPair(defStore, ethers.zeroPadBytes("0x11", 32), 161, 1, true, AttestationResponseStatus.VALID);
     const data = pair.attestation.data;
 
     data.timeStamp = toBN(TEST_START_TIME);
@@ -148,7 +148,7 @@ describe(`Attestation Round Manager (${getTestFile(__filename)})`, function () {
     const time = TEST_START_TIME * 1000 + 1;
     const clock = sinon.useFakeTimers({ now: time, shouldAdvanceTime: true });
 
-    const pair = createAttestationVerificationPair(defStore, "11", 161, 0, true, AttestationResponseStatus.VALID);
+    const pair = createAttestationVerificationPair(defStore, ethers.zeroPadBytes("0x11", 32), 161, 0, true, AttestationResponseStatus.VALID);
     const data = pair.attestation.data;
     data.timeStamp = toBN(123);
 

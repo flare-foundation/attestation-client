@@ -46,9 +46,9 @@ describe(`SourceLimiter (${getTestFile(__filename)})`, function () {
       minimalBlockNumber: "2",
       deadlineBlockNumber: "5",
       deadlineTimestamp: "5312",
-      destinationAddressHash: "0xFakeAdress",
+      destinationAddressHash: ethers.zeroPadBytes("0x123456", 32),
       amount: "100",
-      standardPaymentReference: "0xfakeref",
+      standardPaymentReference: ethers.zeroPadBytes("0x222222", 32)
     }
   };
 

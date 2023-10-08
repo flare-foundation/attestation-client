@@ -1,10 +1,10 @@
-import { round, unPrefix0x } from "@flarenetwork/mcc";
+import { unPrefix0x } from "@flarenetwork/mcc";
 import { Inject, Injectable } from "@nestjs/common";
 import { InjectEntityManager } from "@nestjs/typeorm";
 import { EntityManager } from "typeorm";
 import { DBAttestationRequest } from "../../../../entity/attester/dbAttestationRequest";
 import { DBVotingRoundResult } from "../../../../entity/attester/dbVotingRoundResult";
-import { MerkleTree } from "../../../../utils/data-structures/MerkleTree";
+import { MerkleTree } from "../../../../external-libs/MerkleTree";
 import { SystemStatus } from "../dtos/SystemStatus.dto";
 import { VotingRoundRequest } from "../dtos/VotingRoundRequest.dto";
 import { VotingRoundResult } from "../dtos/VotingRoundResult.dto";

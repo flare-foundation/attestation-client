@@ -30,18 +30,6 @@ export function verifyWorkflowForTransaction(result: ConfirmedTransactionQueryRe
   }
 }
 
-export function verifyWorkflowForBlockAvailability(result: ConfirmedBlockQueryResponse): VerificationStatus {
-  switch (result.status) {
-    case "OK":
-      return VerificationStatus.NEEDS_MORE_CHECKS;
-    case "NOT_EXIST":
-      return VerificationStatus.DATA_AVAILABILITY_ISSUE;
-    default:
-      // exhaustive switch guard: if a compile time error appears here, you have forgotten one of the cases
-      ((_: never): void => {})(result.status);
-  }
-}
-
 export function verifyWorkflowForBlock(result: ConfirmedBlockQueryResponse): VerificationStatus {
   switch (result.status) {
     case "OK":

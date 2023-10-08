@@ -28,6 +28,11 @@ import {
   verifyWorkflowForTransaction
 } from "./verification-utils";
 
+/**
+ * Serialize bigints to strings recursively.
+ * @param obj 
+ * @returns 
+ */
 function serializeBigInts(obj: any) {
   return JSON.parse(JSON.stringify(obj, (key, value) =>
     typeof value === 'bigint'
@@ -120,16 +125,6 @@ export async function verifyPayment<T extends TransactionBase>(
   iqm: IndexedQueryManager,
   client?: MccClient
 ): Promise<VerificationResponse<Payment_Response>> {
-  // // Check data availability
-  // const confirmedBlockQueryResult = await iqm.getConfirmedBlock({
-  //   blockNumber: toBN(request.blockNumber).toNumber(),
-  // });
-
-  // let status = verifyWorkflowForBlockAvailability(confirmedBlockQueryResult);
-  // if (status !== VerificationStatus.NEEDS_MORE_CHECKS) {
-  //   return { status };
-  // }
-
   // Check for transaction
   const confirmedTransactionResult = await iqm.getConfirmedTransaction({
     txId: unPrefix0x(request.requestBody.transactionId),
@@ -140,16 +135,12 @@ export async function verifyPayment<T extends TransactionBase>(
     return { status };
   }
 
-  // if (confirmedTransactionResult.transaction.blockNumber !== confirmedBlockQueryResult.block.blockNumber) {
-  //   return { status: VerificationStatus.NON_EXISTENT_TRANSACTION };
-  // }
-
   const dbTransaction = confirmedTransactionResult.transaction;
   return await responsePayment(dbTransaction, TransactionClass, request, client);
 }
 
 /**
- * Auxillary function for assembling attestation response for 'BlanceDecreasingTransaction' attestation type.
+ * Auxillary function for assembling attestation response for 'BalanceDecreasingTransaction' attestation type.
  * @param dbTransaction
  * @param TransactionClass
  * @param sourceAddressIndicator
@@ -219,15 +210,6 @@ export async function verifyBalanceDecreasingTransaction<T extends TransactionBa
   iqm: IndexedQueryManager,
   client?: MccClient
 ): Promise<VerificationResponse<BalanceDecreasingTransaction_Response>> {
-  // // Check data availability
-  // const confirmedBlockQueryResult = await iqm.getConfirmedBlock({
-  //   blockNumber: toBN(request.blockNumber).toNumber(),
-  // });
-
-  // let status = verifyWorkflowForBlockAvailability(confirmedBlockQueryResult);
-  // if (status !== VerificationStatus.NEEDS_MORE_CHECKS) {
-  //   return { status };
-  // }
 
   // Check for transaction
   const confirmedTransactionResult = await iqm.getConfirmedTransaction({
@@ -238,12 +220,6 @@ export async function verifyBalanceDecreasingTransaction<T extends TransactionBa
   if (status !== VerificationStatus.NEEDS_MORE_CHECKS) {
     return { status };
   }
-
-  // if (confirmedTransactionResult.transaction.blockNumber !== confirmedBlockQueryResult.block.blockNumber) {
-  //   return {
-  //     status: VerificationStatus.NON_EXISTENT_TRANSACTION,
-  //   };
-  // }
 
   const dbTransaction = confirmedTransactionResult.transaction;
   return await responseBalanceDecreasingTransaction(dbTransaction, TransactionClass, request, client);
@@ -335,11 +311,6 @@ export async function responseReferencedPaymentNonExistence<T extends Transactio
   firstOverflowBlock: DBBlockBase,
   lowerBoundaryBlock: DBBlockBase,
   request: ReferencedPaymentNonexistence_Request
-  // deadlineBlockNumber: NumberLike,
-  // deadlineTimestamp: NumberLike,
-  // destinationAddressHash: string,
-  // paymentReference: string,
-  // amount: NumberLike
 ) {
   // Check transactions for a matching
   for (const dbTransaction of dbTransactions) {

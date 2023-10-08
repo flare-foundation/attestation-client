@@ -64,38 +64,36 @@ export function sortedHashPair(x: string, y: string) {
  */
 export class MerkleTree {
     _tree: string[] = [];
-    initialHash = false;
 
-    constructor(values: string[], initialHash = false) {
-        this.initialHash = initialHash;
+    constructor(values: string[]) {
         this.build(values);
     }
 
     /**
      * Merkle root
      */
-    get root() {
-        return this._tree.length === 0 ? null : this._tree[0];
+    public get root() {
+        return this._tree.length === 0 ? undefined : this._tree[0];
     }
 
     /**
      * The array representing full tree (length is `2*hashCount - 1`)
      */
-    get tree(): string[] {
+    public get tree(): string[] {
         return [...this._tree];
     }
 
     /**
      * Number of leaves in the Merkle tree
      */
-    get hashCount() {
+    public get hashCount() {
         return this._tree.length ? (this._tree.length + 1) / 2 : 0;
     }
 
     /**
      * Returns leaves in array of the length `hashCount` sorted as `0x`-prefixed 32-byte hex strings.
      */
-    get sortedHashes() {
+    public get sortedHashes() {
         return this._tree.slice(this.hashCount - 1);
     }
 
@@ -104,7 +102,7 @@ export class MerkleTree {
      * @param i index of a node in the Merkle tree
      * @returns parent index
      */
-    parent(i: number) {
+    public parent(i: number) {
         return Math.floor((i - 1) / 2);
     }
 
@@ -112,18 +110,20 @@ export class MerkleTree {
      * Given an array of leave hashes (`0x`-prefixed 32-byte hex strings) it builds the Merkle tree.
      * @param values
      */
-    build(values: string[]) {
+    private build(values: string[]) {
+        values.forEach((x) => {
+            if (!/^0x[0-9a-f]{64}$/i.test(x)) {
+                throw new Error(`Invalid hash '${x}'`);
+            }
+        });
         const sorted = values.map((x) => x);
         sorted.sort();
 
-        let hashes = [];
+        const hashes = [];
         for (let i = 0; i < sorted.length; i++) {
             if (i == 0 || sorted[i] !== sorted[i - 1]) {
                 hashes.push(sorted[i]);
             }
-        }
-        if (this.initialHash) {
-            hashes = hashes.map((x) => singleHash(x));
         }
         const n = hashes.length;
         this._tree = [...new Array(Math.max(n - 1, 0)).fill(0), ...hashes];
@@ -137,9 +137,9 @@ export class MerkleTree {
      * @param i
      * @returns
      */
-    getHash(i: number) {
+    public getHash(i: number): string | undefined {
         if (this.hashCount === 0 || i < 0 || i >= this.hashCount) {
-            return null;
+            return undefined;
         }
         const pos = this._tree.length - this.hashCount + i;
         return this._tree[pos];
@@ -148,10 +148,10 @@ export class MerkleTree {
     /** Binary search
      * Famously prone to subtle bugs, so over-documented with proof
      */
-    binarySearch(hash: string): number | null {
+    private binarySearch(hash: string): number | undefined {
         let [low, high] = [0, this.hashCount];
         let count = high;
-        if (count == 0) return null;
+        if (count == 0) return undefined;
         while (count > 1) {
             // Invariants: low < high, 2 <= count == high - low == [low .. high].length
             const mid = low + Math.floor(count / 2); // low < mid < high _strictly_
@@ -159,25 +159,40 @@ export class MerkleTree {
             count = high - low; // preserves invariant
         }
         const i = low; // Only element left: count == 1, since 0 != count <= 1
-        if (hash != this.sortedHashes[i]) return null;
+        if (hash != this.sortedHashes[i]) return undefined;
         return i;
     }
 
     /**
      * Extracts the Merkle proof for the given hash, if it is in the tree
-     * @param hash the hash whose proof to return
+     * @param hashOrIndex the hash whose proof to return
      * @returns the Merkle proof - a list of `0x`-prefixed 32-byte hex strings
      */
-    getProof(hash: string | null): string[] | null {
-        if (hash == null) return null;
-        const i = this.binarySearch(hash);
-        if (i == null) return null;
+    public getProof(hashOrIndex: string | number): string[] | undefined {
+        if (this.hashCount === 0) {
+            return undefined;
+        }
+        if (hashOrIndex === undefined) return undefined;
+        let i: number | undefined;
+        if (typeof hashOrIndex === "number") {
+            i = hashOrIndex;
+        } else if (typeof hashOrIndex === "string") {
+            if(/^0x[0-9a-f]{64}$/i.test(hashOrIndex)) {
+                i = this.binarySearch(hashOrIndex);
+            } else {
+                return undefined;
+            }
+        }
+        if (i === undefined) return undefined;
+        if (i < 0 || i >= this.hashCount) {
+            return undefined;
+        }
 
         const proof: string[] = [];
         let pos = this._tree.length - this.hashCount + i;
         while (pos > 0) {
             proof.push(
-                this._tree[pos + 2 * (pos % 2) - 1], // if pos even, take left sibiling at pos - 1, else the right sibiling at pos + 1
+                this._tree[pos + 2 * (pos % 2) - 1], // if pos even, take left sibling at pos - 1, else the right sibling at pos + 1
             );
             pos = this.parent(pos);
         }

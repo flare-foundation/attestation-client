@@ -1,4 +1,4 @@
-import { ChainType } from "@flarenetwork/mcc";
+ import { ChainType } from "@flarenetwork/mcc";
 import { EntityManager } from "typeorm";
 import { DBBlockBase } from "../entity/indexer/dbBlock";
 import { DBTransactionBase } from "../entity/indexer/dbTransaction";

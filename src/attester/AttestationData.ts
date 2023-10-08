@@ -30,6 +30,7 @@ export class AttestationData {
 
 
     // values are parsed. Note that these may not be valid attestation types
+    // in case of parsing problem, exception is thrown
     this.type = decodeAttestationName(attestationType);
     this.sourceId = decodeAttestationName(sourceId);
 

@@ -17,8 +17,9 @@
     ]
   },
   "engines": {
-    "node": ">=12.0.0"
+    "node": ">=16.0.0"
   },
+  "engineStrict": true,
   "scripts": {
     "prebuild": "rimraf dist",
     "original_build": "yarn tsc",

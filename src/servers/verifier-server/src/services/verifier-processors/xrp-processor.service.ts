@@ -3,10 +3,11 @@ import { EntityManager } from "typeorm";
 import { IndexedQueryManager } from "../../../../../indexed-query-manager/IndexedQueryManager";
 import { IndexedQueryManagerOptions } from "../../../../../indexed-query-manager/indexed-query-manager-types";
 import { VerifierConfigurationService } from "../verifier-configuration.service";
+import { IIndexedQueryManager } from "../../../../../indexed-query-manager/IIndexedQueryManager";
 
 export class XRPProcessorService {
   client: MCC.XRP;
-  indexedQueryManager: IndexedQueryManager;
+  indexedQueryManager: IIndexedQueryManager;
 
   constructor(private config: VerifierConfigurationService, private manager: EntityManager) {
     this.client = new MCC.XRP(this.config.config.chainConfiguration.mccCreate as XrpMccCreate);

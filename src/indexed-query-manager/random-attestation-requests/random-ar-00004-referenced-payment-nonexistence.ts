@@ -8,7 +8,7 @@ import { verifyReferencedPaymentNonExistence } from "../../servers/verifier-serv
 import { AttLogger } from "../../utils/logging/logger";
 import { WeightedRandomChoice } from "../../verification/attestation-types/attestation-types";
 import { randomWeightedChoice } from "../../verification/attestation-types/attestation-types-helpers";
-import { IndexedQueryManager } from "../IndexedQueryManager";
+import { IIndexedQueryManager } from "../IIndexedQueryManager";
 
 /////////////////////////////////////////////////////////////////
 // Specific random attestation request generators for
@@ -26,7 +26,7 @@ const RANDOM_OPTIONS_REFERENCED_PAYMENT_NONEXISTENCE = [
 export async function prepareRandomizedRequestReferencedPaymentNonexistence(
   defStore: AttestationDefinitionStore,
   logger: AttLogger,
-  indexedQueryManager: IndexedQueryManager,
+  indexedQueryManager: IIndexedQueryManager,
   randomTransaction: DBTransactionBase,
   sourceId: string,
   TransactionClass: new (...args: any[]) => any,
@@ -68,15 +68,6 @@ export async function prepareRandomizedRequestReferencedPaymentNonexistence(
       confirmed: true,
     });
   }
-
-  // const confirmationBlockQueryResult = await indexedQueryManager.queryBlock({
-  //   blockNumber: overflowBlockNum + indexedQueryManager.settings.numberOfConfirmations(),
-  // });
-
-  // if (!confirmationBlockQueryResult.result) {
-  //   console.log("No confirmation block");
-  //   return null;
-  // }
 
   const deadlineBlockNumber = toBN(prevBlockQueryResult.result.blockNumber);
   const deadlineTimestamp = toBN(prevBlockQueryResult.result.timestamp);

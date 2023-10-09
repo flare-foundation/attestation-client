@@ -84,30 +84,15 @@ describe(`Indexed query manager (${getTestFile(__filename)})`, () => {
     assert(response.height === LAST_BLOCK);
   });
 
-  it("Should get the correct block greater or equal to timestamp", async () => {
-    const timestamp = selectedBlock.timestamp - 20;
-    let tmpBlock = await indexedQueryManager.getFirstConfirmedBlockAfterTime(timestamp);
-    let currentBlockNumber = tmpBlock.blockNumber;
-    while (currentBlockNumber < selectedBlock.blockNumber) {
-      const tmpBlockQueryResult = await indexedQueryManager.queryBlock({
-        blockNumber: currentBlockNumber,
-        confirmed: true,
-      });
-      tmpBlock = tmpBlockQueryResult.result;
-      assert(tmpBlock.timestamp < selectedBlock.timestamp);
-      currentBlockNumber++;
-    }
-  });
-
   it("Should get the correct block overflow block", async () => {
     const timestamp = selectedBlock.timestamp;
-    const tmpBlock = await indexedQueryManager.getFirstConfirmedOverflowBlock(timestamp, selectedBlock.blockNumber);
+    const tmpBlock = await (indexedQueryManager as any).getFirstConfirmedOverflowBlock(timestamp, selectedBlock.blockNumber);
     assert((tmpBlock.blockNumber = selectedBlock.blockNumber + 1));
-    const tmpBlock2 = await indexedQueryManager.getFirstConfirmedOverflowBlock(timestamp, selectedBlock.blockNumber + 2);
+    const tmpBlock2 = await (indexedQueryManager as any).getFirstConfirmedOverflowBlock(timestamp, selectedBlock.blockNumber + 2);
     assert((tmpBlock2.blockNumber = selectedBlock.blockNumber + 3));
 
     const targetTime = timestamp + 20;
-    const tmpBlock3 = await indexedQueryManager.getFirstConfirmedOverflowBlock(targetTime, selectedBlock.blockNumber);
+    const tmpBlock3 = await (indexedQueryManager as any).getFirstConfirmedOverflowBlock(targetTime, selectedBlock.blockNumber);
     let currentBlockNumber = selectedBlock.blockNumber + 1;
     assert(tmpBlock3.blockNumber > selectedBlock.blockNumber && tmpBlock3.timestamp > targetTime);
     let currentBlockQueryResult = await indexedQueryManager.queryBlock({

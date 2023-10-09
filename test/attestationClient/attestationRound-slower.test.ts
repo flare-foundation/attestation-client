@@ -113,7 +113,7 @@ describe(`Attestation round slow, (${getTestFile(__filename)})`, function () {
   describe("verification", function () {
     function setAssignVerification(pairs: Map<string, AttestationResponse<any>>) {
       return async (attestation: Attestation) => {
-        const verification = pairs.get(attestation.data.getId());
+        const verification = pairs.get(attestation.data.request);
 
         if (verification) {
           return verification;
@@ -134,17 +134,17 @@ describe(`Attestation round slow, (${getTestFile(__filename)})`, function () {
       const pariAtt = new Map<string, Attestation>();
 
       const pairOk = createAttestationVerificationPair(defStore, ethers.zeroPadBytes("0x11", 32), 161, 1, true, AttestationResponseStatus.VALID);
-      pairsVer.set(pairOk.attestation.data.getId(), pairOk.verification);
-      pariAtt.set(pairOk.attestation.data.getId(), pairOk.attestation);
+      pairsVer.set(pairOk.attestation.data.request, pairOk.verification);
+      pariAtt.set(pairOk.attestation.data.request, pairOk.attestation);
       const pairMICFail = createAttestationVerificationPair(defStore, ethers.zeroPadBytes("0x12", 32), 161, 2, false, AttestationResponseStatus.VALID);
-      pairsVer.set(pairMICFail.attestation.data.getId(), pairMICFail.verification);
-      pariAtt.set(pairMICFail.attestation.data.getId(), pairMICFail.attestation);
+      pairsVer.set(pairMICFail.attestation.data.request, pairMICFail.verification);
+      pariAtt.set(pairMICFail.attestation.data.request, pairMICFail.attestation);
       const pairVerFail = createAttestationVerificationPair(defStore, ethers.zeroPadBytes("0x13", 32), 161, 3, false, AttestationResponseStatus.INVALID);
-      pairsVer.set(pairVerFail.attestation.data.getId(), pairVerFail.verification);
-      pariAtt.set(pairVerFail.attestation.data.getId(), pairVerFail.attestation);
+      pairsVer.set(pairVerFail.attestation.data.request, pairVerFail.verification);
+      pariAtt.set(pairVerFail.attestation.data.request, pairVerFail.attestation);
       const pairOk2 = createAttestationVerificationPair(defStore, ethers.zeroPadBytes("0x14", 32), 161, 4, true, AttestationResponseStatus.VALID);
-      pairsVer.set(pairOk2.attestation.data.getId(), pairOk2.verification);
-      pariAtt.set(pairOk2.attestation.data.getId(), pairOk2.attestation);
+      pairsVer.set(pairOk2.attestation.data.request, pairOk2.verification);
+      pariAtt.set(pairOk2.attestation.data.request, pairOk2.attestation);
 
       
       // const stub = sinon.stub(round.activeGlobalConfig.verifierRouter, "verifyAttestation").callsFake(setAssignVerification(pairsVer));
@@ -182,9 +182,9 @@ describe(`Attestation round slow, (${getTestFile(__filename)})`, function () {
       const pair3 = createAttestationVerificationPair(defStore, ethers.zeroPadBytes("0x18", 32), 161, 8, true, AttestationResponseStatus.VALID);
       const pair4 = createAttestationVerificationPair(defStore, ethers.zeroPadBytes("0x19", 32), 161, 9, true, AttestationResponseStatus.VALID);
       const pairsVer = new Map<string, AttestationResponse<any>>();
-      pairsVer.set(pair2.attestation.data.getId(), pair2.verification);
-      pairsVer.set(pair3.attestation.data.getId(), pair3.verification);
-      pairsVer.set(pair4.attestation.data.getId(), pair4.verification);
+      pairsVer.set(pair2.attestation.data.request, pair2.verification);
+      pairsVer.set(pair3.attestation.data.request, pair3.verification);
+      pairsVer.set(pair4.attestation.data.request, pair4.verification);
       // const stub = sinon.stub(round.activeGlobalConfig.verifierRouter, "verifyAttestation").callsFake(setAssignVerification(pairsVer));
       const verifierRouter = globalConfigManager.getVerifierRouter(round.roundId);
       const stub = sinon.stub(verifierRouter, "verifyAttestation").callsFake(setAssignVerification(pairsVer));

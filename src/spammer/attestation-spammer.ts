@@ -19,6 +19,7 @@ import { getTimeMs } from "../utils/helpers/internetTime";
 import { getWeb3, getWeb3StateConnectorContract } from "../utils/helpers/web3-utils";
 import { getGlobalLogger, logException, setGlobalLoggerLabel, setLoggerName } from "../utils/logging/logger";
 import { SpammerCredentials } from "./SpammerConfiguration";
+import { IIndexedQueryManager } from "../indexed-query-manager/IIndexedQueryManager";
 
 const args = yargs
   .option("chain", { alias: "c", type: "string", description: "Chain (XRP, BTC, LTC, DOGE)", default: "BTC" })
@@ -41,7 +42,7 @@ class AttestationSpammer {
   web3Functions_2!: Web3Functions;
   logEvents: boolean;
 
-  indexedQueryManager: IndexedQueryManager;
+  indexedQueryManager: IIndexedQueryManager;
   // attestationRoundManager: AttestationRoundManager;
   spammerCredentials: SpammerCredentials;
 

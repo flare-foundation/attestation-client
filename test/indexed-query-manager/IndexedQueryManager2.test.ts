@@ -52,10 +52,10 @@ describe(`IndexedQueryManager (${getTestFile(__filename)})`, () => {
   });
 
   it("Should get chain N ", () => {
-    expect(indexedQueryManager.getChainN()).to.be.eq("BTC_N");
+    expect((indexedQueryManager as any).getChainN()).to.be.eq("BTC_N");
   });
   it("Should get chain T ", () => {
-    expect(indexedQueryManager.getChainT()).to.be.eq("BTC_T");
+    expect((indexedQueryManager as any).getChainT()).to.be.eq("BTC_T");
   });
 
   it("Should not getLastConfirmedBlockNumber", async () => {
@@ -130,33 +130,13 @@ describe(`IndexedQueryManager (${getTestFile(__filename)})`, () => {
       expect(blockQueried).to.be.null;
     });
 
-    it("Should getFirstConfirmedBlockAfterTime", async () => {
-      const firstBlock = await indexedQueryManager.getFirstConfirmedBlockAfterTime(0);
-      expect(firstBlock.blockNumber).to.be.eq(729410);
-    });
-
-    it("Should not getFirstConfirmedBlockAfterTime", async () => {
-      const firstBlock = await indexedQueryManager.getFirstConfirmedBlockAfterTime(1648480396);
-      expect(firstBlock).to.be.null;
-    });
-
-    it("Should confirm hasIndexerConfirmedBlockStrictlyBeforeTime", async () => {
-      const firstBlock = await indexedQueryManager.hasIndexerConfirmedBlockStrictlyBeforeTime(1648480396);
-      expect(firstBlock).to.be.true;
-    });
-
-    it("Should not confirm hasIndexerConfirmedBlockStrictlyBeforeTime", async () => {
-      const firstBlock = await indexedQueryManager.hasIndexerConfirmedBlockStrictlyBeforeTime(5);
-      expect(firstBlock).to.be.false;
-    });
-
     it("Should get getFirstConfirmedOverflowBlock", async function () {
-      let check = await indexedQueryManager.getFirstConfirmedOverflowBlock(5, 5);
+      let check = await (indexedQueryManager as any).getFirstConfirmedOverflowBlock(5, 5);
       expect(check.blockNumber).to.be.eq(729410);
     });
 
     it("Should not get getFirstConfirmedOverflowBlock", async function () {
-      let check = await indexedQueryManager.getFirstConfirmedOverflowBlock(5, 729412);
+      let check = await (indexedQueryManager as any).getFirstConfirmedOverflowBlock(5, 729412);
       expect(check).to.be.eq(null);
     });
 

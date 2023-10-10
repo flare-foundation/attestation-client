@@ -19,6 +19,7 @@ enum DOGETestAddressTypes {
 
 const DOGE_BASE_58_DICT = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
 const DOGE_BASE_58_DICT_regex = /[^123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]/;
+const BTC_BASE_58_DICT_regex = /[^123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]/;
 
 const dogeBase58 = base(DOGE_BASE_58_DICT);
 
@@ -43,11 +44,12 @@ export function verifyAddressDOGE(address: string, testnet = process.env.TESTNET
     validPrefix = ["D", "A", "9"];
   }
 
-  const len = 25 > address.length || address.length > 34;
-  const char = DOGE_BASE_58_DICT_regex.test(address);
+  const shortLen = 25 > address.length || address.length > 34;
+
+  const invalidChar = BTC_BASE_58_DICT_regex.test(address);
   const checksum = dogeBase58Checksum(address);
   const prefix = validPrefix.includes(address[0]);
-  if (len && char && checksum && prefix) {
+  if (!shortLen && !invalidChar && checksum && prefix) {
     const response = {
       standardAddress: address,
       standardAddressHash: standardAddressHash(address),

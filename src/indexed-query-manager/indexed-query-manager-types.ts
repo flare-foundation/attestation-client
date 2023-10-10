@@ -80,3 +80,11 @@ export interface ReferencedTransactionsQueryResponse {
   firstOverflowBlock?: DBBlockBase;
   minimalBlock?: DBBlockBase;
 }
+
+export interface RandomTransactionOptions {
+  mustBeNativePayment?: boolean;
+  mustNotBeNativePayment?: boolean;
+  mustHavePaymentReference?: boolean;
+  mustNotHavePaymentReference?: boolean;
+  startTime?: number;
+}

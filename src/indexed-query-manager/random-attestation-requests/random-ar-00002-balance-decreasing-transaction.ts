@@ -8,7 +8,7 @@ import { verifyBalanceDecreasingTransaction } from "../../servers/verifier-serve
 import { AttLogger } from "../../utils/logging/logger";
 import { VerificationStatus, WeightedRandomChoice } from "../../verification/attestation-types/attestation-types";
 import { randomWeightedChoice } from "../../verification/attestation-types/attestation-types-helpers";
-import { IndexedQueryManager } from "../IndexedQueryManager";
+import { IIndexedQueryManager } from "../IIndexedQueryManager";
 
 /////////////////////////////////////////////////////////////////
 // Specific random attestation request generators for
@@ -26,7 +26,7 @@ const RANDOM_OPTIONS_BALANCE_DECREASING_TRANSACTION = [
 export async function prepareRandomizedRequestBalanceDecreasingTransaction(
   defStore: AttestationDefinitionStore,
   logger: AttLogger,
-  indexedQueryManager: IndexedQueryManager,
+  indexedQueryManager: IIndexedQueryManager,
   randomTransaction: DBTransactionBase,
   sourceId: string,
   TransactionClass: new (...args: any[]) => any,

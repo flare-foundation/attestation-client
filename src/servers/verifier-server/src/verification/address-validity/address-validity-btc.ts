@@ -4,6 +4,7 @@ import base from "base-x";
 import { VerificationStatus } from "../../../../../verification/attestation-types/attestation-types";
 import { AddressValidity_ResponseBody } from "../../dtos/attestation-types/AddressValidity.dto";
 import { ChainType, standardAddressHash } from "@flarenetwork/mcc";
+import { base58Checksum } from "./utils";
 
 enum BTCAddressTypes {
   P2PKH = "P2PKH",
@@ -49,15 +50,6 @@ function typeBTC(address: string) {
 }
 
 ////// Base58
-
-function btcBase58Checksum(address: string): boolean {
-  let decoded = btcBase58Decode(address);
-  const preChecksum = decoded.subarray(-4);
-  const hash1 = createHash("sha256").update(decoded.subarray(0, -4)).digest();
-  const hash2 = createHash("sha256").update(hash1).digest();
-  const newChecksum = hash2.subarray(0, 4);
-  return preChecksum.equals(newChecksum);
-}
 
 function btcBase58Decode(input: string): Buffer {
   return btcBase58.decode(input);
@@ -291,10 +283,18 @@ export function verifyAddressBTC(address: string, testnet = process.env.TESTNET)
         else if (BTC_BASE_58_DICT_regex.test(address)) {
           return { status: VerificationStatus.NOT_CONFIRMED };
         }
+
+        // Regex ensures that address can be decoded
+        const decodedAddress = btcBase58.decode(address);
+
+        // invalid length
+        if (decodedAddress.length != 25) return { status: VerificationStatus.NOT_CONFIRMED };
         // checksum fails
-        else if (!btcBase58Checksum(address)) {
+        else if (!base58Checksum(decodedAddress)) {
           return { status: VerificationStatus.NOT_CONFIRMED };
-        } else {
+          // wrong prefix
+        } else if (!(decodedAddress[0] == 0 || decodedAddress[0] == 5)) return { status: VerificationStatus.NOT_CONFIRMED };
+        else {
           const response = {
             standardAddress: address,
             standardAddressHash: standardAddressHash(address),

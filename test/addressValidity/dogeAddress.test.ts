@@ -12,11 +12,27 @@ describe(`Address validity doge, ${getTestFile(__filename)}`, function () {
     expect(resp.status).to.eq(VerificationStatus.OK);
   });
 
-  it("should confirm valid p2sh address", function () {
+  it("should confirm valid p2sh address 1", function () {
     const address = "ADNbM5fBujCRBW1vqezNeAWmnsLp19ki3n";
 
     const resp = verifyAddressDOGE(address);
 
     expect(resp.status).to.eq(VerificationStatus.OK);
+  });
+
+  it("should confirm valid p2sh address 1", function () {
+    const address = "9vtqCtAkxNM516GXbiLpMePpizZEisT8pN";
+
+    const resp = verifyAddressDOGE(address);
+
+    expect(resp.status).to.eq(VerificationStatus.OK);
+  });
+
+  it("should not confirm invalid p2sh address 1", function () {
+    const address = "9vtcCtAkxNM516GXbiLpMePpizZEisT8pN";
+
+    const resp = verifyAddressDOGE(address);
+
+    expect(resp.status).to.eq(VerificationStatus.NOT_CONFIRMED);
   });
 });

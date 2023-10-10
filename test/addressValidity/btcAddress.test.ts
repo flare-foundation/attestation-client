@@ -1,9 +1,7 @@
-import { getFileInfo } from "prettier";
 import { getTestFile } from "../test-utils/test-utils";
 import { verifyAddressBTC } from "../../src/servers/verifier-server/src/verification/address-validity/address-validity-btc";
-import { assert, expect } from "chai";
+import { expect } from "chai";
 import { VerificationStatus } from "../../src/verification/attestation-types/attestation-types";
-import { add } from "winston";
 
 describe(`Address validity btc, ${getTestFile(__filename)}`, function () {
   it("should confirm valid p2pkh address", function () {

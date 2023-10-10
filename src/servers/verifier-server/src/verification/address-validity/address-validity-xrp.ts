@@ -4,10 +4,12 @@ import { VerificationStatus } from "../../../../../verification/attestation-type
 import { VerificationResponse } from "../verification-utils";
 import { AddressValidity_ResponseBody } from "../../dtos/attestation-types/AddressValidity.dto";
 import { standardAddressHash } from "@flarenetwork/mcc";
+import { add } from "winston";
 
 const R_B58_DICT = "rpshnaf39wBUDNEGHJKLM4PQRST7VWXYZ2bcdeCg65jkm8oFqi1tuvAxyz";
 const base58 = base(R_B58_DICT);
 const classicAddressRegex = /r[rpshnaf39wBUDNEGHJKLM4PQRST7VWXYZ2bcdeCg65jkm8oFqi1tuvAxyz]{27,35}/;
+const invalidCharacters = /[^rpshnaf39wBUDNEGHJKLM4PQRST7VWXYZ2bcdeCg65jkm8oFqi1tuvAxyz]/;
 
 function XRPisChecksumValid(address): boolean {
   const dec = base58.decode(this.privateData);
@@ -18,8 +20,8 @@ function XRPisChecksumValid(address): boolean {
   return checksum_computed.equals(checksum_read);
 }
 
-function validCharacters(address: string): boolean {
-  return classicAddressRegex.test(address);
+export function validCharacters(address: string): boolean {
+  return classicAddressRegex.test(address) && !invalidCharacters.test(address);
 }
 
 export function verifyAddressXRP(address: string, testnet = process.env.TESTNET): VerificationResponse<AddressValidity_ResponseBody> {

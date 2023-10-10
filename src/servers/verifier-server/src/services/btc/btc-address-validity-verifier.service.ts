@@ -5,8 +5,8 @@ import { AttestationResponse, AttestationResponseStatus } from "../../../../../e
 import { ExampleData } from "../../../../../external-libs/interfaces";
 import { MIC_SALT, ZERO_BYTES_32 } from "../../../../../external-libs/utils";
 import { AddressValidity_Request, AddressValidity_RequestNoMic, AddressValidity_Response } from "../../dtos/attestation-types/AddressValidity.dto";
-import { ChainType } from "@flarenetwork/mcc";
-import { verifyAddress } from "../../verification/address-validity";
+import { verifyAddressBTC } from "../../verification/address-validity/address-validity-btc";
+import { getAttestationStatus } from "../../../../../verification/attestation-types/attestation-types";
 
 @Injectable()
 export class BTCAddressValidityVerifierService {
@@ -20,18 +20,27 @@ export class BTCAddressValidityVerifierService {
     this.exampleData = JSON.parse(readFileSync("src/servers/verifier-server/src/example-data/AddressValidity.json", "utf8"));
   }
 
-  private async verifyRequest(request: AddressValidity_RequestNoMic | AddressValidity_Request): Promise<AttestationResponse<AddressValidity_Response>> {
+  private verifyRequest(request: AddressValidity_RequestNoMic | AddressValidity_Request): AttestationResponse<AddressValidity_Response> {
     let fixedRequest = {
       ...request,
     } as AddressValidity_Request;
     if (!fixedRequest.messageIntegrityCode) {
       fixedRequest.messageIntegrityCode = ZERO_BYTES_32;
     }
+    const result = verifyAddressBTC(request.requestBody.addressStr);
 
-    const result = verifyAddress(ChainType.BTC, fixedRequest.requestBody.addressStr);
+    const status = getAttestationStatus(result.status);
+    if (status != AttestationResponseStatus.VALID) return { status };
 
-if (result.)
-
+    const response: AddressValidity_Response = {
+      attestationType: request.attestationType,
+      sourceId: request.sourceId,
+      votingRound: "0",
+      lowestUsedTimestamp: "0xffffffffffffffff",
+      requestBody: request.requestBody,
+      responseBody: result.response,
+    };
+    return { status, response } as AttestationResponse<AddressValidity_Response>;
   }
 
   //-$$$<end-constructor> End of custom code section. Do not change this comment.

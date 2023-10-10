@@ -28,6 +28,30 @@ describe(`Address validity doge, ${getTestFile(__filename)}`, function () {
     expect(resp.status).to.eq(VerificationStatus.OK);
   });
 
+  it("should not confirm random string", function () {
+    const address = "afasfasfg";
+
+    const resp = verifyAddressDOGE(address);
+
+    expect(resp.status).to.eq(VerificationStatus.NOT_CONFIRMED);
+  });
+
+  it("should not confirm address with invalid character", function () {
+    const address = "njrpt4uw8ApfaHVwwxWWPigqTx5XxN7axV";
+
+    const resp = verifyAddressDOGE(address);
+
+    expect(resp.status).to.eq(VerificationStatus.NOT_CONFIRMED);
+  });
+
+  it("should not confirm valid testnet address string", function () {
+    const address = "9vtqCtAkxNM516GXbILpMePpizZEisT8pN";
+
+    const resp = verifyAddressDOGE(address);
+
+    expect(resp.status).to.eq(VerificationStatus.NOT_CONFIRMED);
+  });
+
   it("should not confirm invalid p2sh address 1", function () {
     const address = "9vtcCtAkxNM516GXbiLpMePpizZEisT8pN";
 

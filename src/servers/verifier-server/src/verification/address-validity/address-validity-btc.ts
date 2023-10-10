@@ -39,7 +39,7 @@ function typeBTC(address: string) {
     case "3":
       return BTCAddressTypes.P2SH;
     case "b":
-      if (this.privateData.slice(0, 3).toLowerCase() == "bc1") {
+      if (address.slice(0, 3).toLowerCase() == "bc1") {
         return BTCAddressTypes.SEGWIT;
       }
       return BTCAddressTypes.INVALID;
@@ -323,6 +323,9 @@ export function verifyAddressBTC(address: string, testnet = process.env.TESTNET)
         }
         // invalid address / unsupported version
         else return { status: VerificationStatus.NOT_CONFIRMED };
+      }
+      case BTCAddressTypes.INVALID: {
+        return { status: VerificationStatus.NOT_CONFIRMED };
       }
     }
   }

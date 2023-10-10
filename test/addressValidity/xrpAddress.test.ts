@@ -1,7 +1,7 @@
 import { getTestFile } from "../test-utils/test-utils";
 import { expect } from "chai";
 import { VerificationStatus } from "../../src/verification/attestation-types/attestation-types";
-import { validCharacters, verifyAddressXRP } from "../../src/servers/verifier-server/src/verification/address-validity/address-validity-xrp";
+import { verifyAddressXRP } from "../../src/servers/verifier-server/src/verification/address-validity/address-validity-xrp";
 
 describe(`Address validity xrp, ${getTestFile(__filename)}`, function () {
   it("should confirm a valid address", function () {
@@ -20,11 +20,8 @@ describe(`Address validity xrp, ${getTestFile(__filename)}`, function () {
     expect(resp.status).to.eq(VerificationStatus.OK);
   });
 
-  it.only("should confirm a valid address", function () {
+  it("should confirm a valid address", function () {
     const address = "rrrrrrrrrrrrrrrrrrrrBZbvji";
-
-    console.log(address.length);
-    validCharacters(address);
 
     const resp = verifyAddressXRP(address);
 

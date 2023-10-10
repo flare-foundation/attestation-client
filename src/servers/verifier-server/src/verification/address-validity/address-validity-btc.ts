@@ -1,9 +1,8 @@
 import { VerificationResponse } from "../verification-utils";
-import { createHash } from "crypto";
 import base from "base-x";
 import { VerificationStatus } from "../../../../../verification/attestation-types/attestation-types";
 import { AddressValidity_ResponseBody } from "../../dtos/attestation-types/AddressValidity.dto";
-import { ChainType, standardAddressHash } from "@flarenetwork/mcc";
+import { standardAddressHash } from "@flarenetwork/mcc";
 import { base58Checksum } from "./utils";
 
 enum BTCAddressTypes {
@@ -16,10 +15,7 @@ enum BTCAddressTypes {
 enum BTCTestAddressTypes {
   TEST_P2PKH = "TEST_P2PKH",
   TEST_P2SH = "TEST_P2SH",
-  TEST_P2WPKH = "TEST_P2WPKH",
-  TEST_P2WSH = "TEST_P2WSH",
-  TEST_P2TR = "TEST_P2TR",
-  TEST_HIGHER_VERSION = "TEST_HIGHER_VERSION",
+  TEST_SEGWIT = "TEST_SEGWIT",
   INVALID = "INVALID",
 }
 
@@ -49,10 +45,26 @@ function typeBTC(address: string) {
   }
 }
 
-////// Base58
-
-function btcBase58Decode(input: string): Buffer {
-  return btcBase58.decode(input);
+/**
+ * Computes address type of a testnet @param address inferred from the first few characters
+ * @returns
+ */
+function typeBTCtestnet(address: string) {
+  const prefix = address[0].toLowerCase();
+  switch (prefix) {
+    case "n":
+    case "m":
+      return BTCTestAddressTypes.TEST_P2PKH;
+    case "2":
+      return BTCTestAddressTypes.TEST_P2SH;
+    case "t":
+      if (address.slice(0, 3).toLowerCase() == "tb1") {
+        return BTCTestAddressTypes.TEST_SEGWIT;
+      }
+      return BTCAddressTypes.INVALID;
+    default:
+      return BTCAddressTypes.INVALID;
+  }
 }
 
 ////// bech32
@@ -109,30 +121,6 @@ function verifyChecksum(hrp: hrp, data: number[], enc: encoding) {
   return polyMod(hrpExpand(hrp).concat(data)) === getEncodingConst(enc);
 }
 
-function createChecksum(hrp: hrp, data: number[], enc: encoding) {
-  const values = hrpExpand(hrp).concat(data).concat([0, 0, 0, 0, 0, 0]);
-  const encConst = getEncodingConst(enc);
-  if (!encConst) return null;
-  const mod = polyMod(values) ^ encConst;
-  const ret = [];
-  for (let p = 0; p < 6; ++p) {
-    ret.push((mod >> (5 * (5 - p))) & 31);
-  }
-  return ret;
-}
-
-export function bech32_encode(hrp: hrp, data: number[], enc: encoding) {
-  const checksum = createChecksum(hrp, data, enc);
-  if (!checksum) return null;
-  const combined = data.concat(checksum);
-  let ret = hrp + "1";
-  for (let p = 0; p < combined.length; ++p) {
-    ret += CHARSET.charAt(combined[p]);
-  }
-  return ret;
-}
-
-//without checksum
 export function bech32_decode(bechString: string, enc: encoding) {
   let p;
   let has_lower = false;
@@ -170,45 +158,6 @@ export function bech32_decode(bechString: string, enc: encoding) {
     return null;
   }
   return { hrp: hrp, data: data.slice(0, data.length - 6) };
-}
-
-export function bech32_decodeWithCheckSum(bechString: string, enc: encoding) {
-  let p;
-  let has_lower = false;
-  let has_upper = false;
-  for (p = 0; p < bechString.length; ++p) {
-    if (bechString.charCodeAt(p) < 33 || bechString.charCodeAt(p) > 126) {
-      return null;
-    }
-    if (bechString.charCodeAt(p) >= 97 && bechString.charCodeAt(p) <= 122) {
-      has_lower = true;
-    }
-    if (bechString.charCodeAt(p) >= 65 && bechString.charCodeAt(p) <= 90) {
-      has_upper = true;
-    }
-  }
-  if (has_lower && has_upper) {
-    return null;
-  }
-  bechString = bechString.toLowerCase();
-  const pos = bechString.lastIndexOf("1");
-  if (pos < 1 || pos + 7 > bechString.length || bechString.length > 90) {
-    return null;
-  }
-  const hrp = bechString.substring(0, pos);
-  if (!isHrp(hrp)) return null;
-  const data = [];
-  for (p = pos + 1; p < bechString.length; ++p) {
-    const d = CHARSET.indexOf(bechString.charAt(p));
-    if (d === -1) {
-      return null;
-    }
-    data.push(d);
-  }
-  if (!verifyChecksum(hrp, data, enc)) {
-    return null;
-  }
-  return { hrp: hrp, data: data.slice(0, data.length) };
 }
 
 export function convertBits(data: number[], fromBits: number, toBits: number, pad: boolean) {
@@ -267,8 +216,71 @@ export function bech32Decode(addr: string) {
   return { version: dec.data[0], program: res };
 }
 
+/**
+ * Verifies that @param address given as a string represents a valid address on Bitcoin.
+ * If @param testnet is truthy, checks whether address is valid on testnet.
+ * @returns
+ */
 export function verifyAddressBTC(address: string, testnet = process.env.TESTNET): VerificationResponse<AddressValidity_ResponseBody> {
   if (testnet) {
+    const type = typeBTCtestnet(address);
+
+    switch (type) {
+      case BTCTestAddressTypes.TEST_P2PKH:
+      case BTCTestAddressTypes.TEST_P2SH: {
+        //invalid length
+        if (25 > address.length || address.length > 34) {
+          return { status: VerificationStatus.NOT_CONFIRMED };
+        }
+        // contains invalid characters
+        else if (BTC_BASE_58_DICT_regex.test(address)) {
+          return { status: VerificationStatus.NOT_CONFIRMED };
+        }
+
+        // Regex ensures that address can be decoded
+        const decodedAddress = btcBase58.decode(address);
+
+        // invalid length
+        if (decodedAddress.length != 25) return { status: VerificationStatus.NOT_CONFIRMED };
+        // checksum fails
+        else if (!base58Checksum(decodedAddress)) {
+          return { status: VerificationStatus.NOT_CONFIRMED };
+          // wrong prefix
+        } else if (!(decodedAddress[0] == 111 || decodedAddress[0] == 196)) return { status: VerificationStatus.NOT_CONFIRMED };
+        else {
+          const response = {
+            standardAddress: address,
+            standardAddressHash: standardAddressHash(address),
+          };
+          return { status: VerificationStatus.OK, response };
+        }
+      }
+      case BTCTestAddressTypes.TEST_SEGWIT: {
+        const version = bech32Decode(address)?.version;
+        if (version == 0) {
+          // P2WPKH or P2WSH
+          if (address.length == 42 || address.length == 62) {
+            const response = {
+              standardAddress: address.toLowerCase(),
+              standardAddressHash: standardAddressHash(address.toLowerCase()),
+            };
+            return { status: VerificationStatus.OK, response };
+          } else return { status: VerificationStatus.NOT_CONFIRMED };
+          //P2TR
+        } else if (version == 1) {
+          const response = {
+            standardAddress: address.toLowerCase(),
+            standardAddressHash: standardAddressHash(address.toLowerCase()),
+          };
+          return { status: VerificationStatus.OK, response };
+        }
+        // invalid address / unsupported version
+        else return { status: VerificationStatus.NOT_CONFIRMED };
+      }
+      case BTCAddressTypes.INVALID: {
+        return { status: VerificationStatus.NOT_CONFIRMED };
+      }
+    }
   } else {
     const type = typeBTC(address);
 

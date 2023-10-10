@@ -16,6 +16,11 @@ function validCharacters(address: string): boolean {
   return classicAddressRegex.test(address) && !invalidCharacters.test(address);
 }
 
+/**
+ * Verifies that @param address given as a string represents a valid address on XRPL.
+ * If @param testnet is truthy, checks whether address is valid on testnet.
+ * @returns
+ */
 export function verifyAddressXRP(address: string, testnet = process.env.TESTNET): VerificationResponse<AddressValidity_ResponseBody> {
   const char = validCharacters(address);
 

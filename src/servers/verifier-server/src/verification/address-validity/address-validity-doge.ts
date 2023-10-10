@@ -2,7 +2,6 @@ import { createHash } from "crypto";
 import base from "base-x";
 import { VerificationResponse } from "../verification-utils";
 import { VerificationStatus } from "../../../../../verification/attestation-types/attestation-types";
-import { add } from "winston";
 import { standardAddressHash } from "@flarenetwork/mcc";
 import { AddressValidity_ResponseBody } from "../../dtos/attestation-types/AddressValidity.dto";
 

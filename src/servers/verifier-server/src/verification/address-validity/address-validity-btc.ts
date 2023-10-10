@@ -1,17 +1,16 @@
 import { VerificationResponse } from "../verification-utils";
-import { AddressValidity_Response, AddressValidity_ResponseBody } from "../../dtos/attestation-types/AddressValidity.dto";
 import { createHash } from "crypto";
 import base from "base-x";
 import { VerificationStatus } from "../../../../../verification/attestation-types/attestation-types";
 
-export enum BTCAddressTypes {
+enum BTCAddressTypes {
   P2PKH = "P2PKH",
   P2SH = "P2SH",
   SEGWIT = "SEGWIT",
   INVALID = "INVALID",
 }
 
-export enum BTCTestAddressTypes {
+enum BTCTestAddressTypes {
   TEST_P2PKH = "TEST_P2PKH",
   TEST_P2SH = "TEST_P2SH",
   TEST_P2WPKH = "TEST_P2WPKH",
@@ -287,7 +286,7 @@ export function verifyAddressBTC(address: string, testnet): VerificationResponse
           return { status: VerificationStatus.NOT_CONFIRMED };
         }
         // contains invalid characters
-        else if (BTC_BASE_58_DICT_regex.test(this.privateData)) {
+        else if (BTC_BASE_58_DICT_regex.test(address)) {
           return { status: VerificationStatus.NOT_CONFIRMED };
         }
         // checksum fails
@@ -308,15 +307,11 @@ export function verifyAddressBTC(address: string, testnet): VerificationResponse
           else if (address.length == 62) {
             return { status: VerificationStatus.OK, response: address.toLowerCase() };
           } else return { status: VerificationStatus.NOT_CONFIRMED };
-          //higher versions
-        } else if (!version) return { status: VerificationStatus.OK, response: address.toLowerCase() };
-        // invalid address
+          //P2TR
+        } else if (version == 1) return { status: VerificationStatus.OK, response: address.toLowerCase() };
+        // invalid address / unsupported version
         else return { status: VerificationStatus.NOT_CONFIRMED };
       }
     }
   }
 }
-
-function verifyAddressDOGE(address: string, testnet) {}
-
-function verifyAddressXRP(address: string, testnet) {}

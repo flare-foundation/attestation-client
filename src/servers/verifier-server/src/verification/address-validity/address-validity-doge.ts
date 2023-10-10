@@ -1,10 +1,8 @@
-import { createHash } from "crypto";
 import base from "base-x";
 import { VerificationResponse } from "../verification-utils";
 import { VerificationStatus } from "../../../../../verification/attestation-types/attestation-types";
 import { standardAddressHash } from "@flarenetwork/mcc";
 import { AddressValidity_ResponseBody } from "../../dtos/attestation-types/AddressValidity.dto";
-import { add } from "winston";
 import { base58Checksum } from "./utils";
 
 const DOGE_BASE_58_DICT = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";

@@ -1,10 +1,8 @@
 import base from "base-x";
-import { createHash } from "crypto";
 import { VerificationStatus } from "../../../../../verification/attestation-types/attestation-types";
 import { VerificationResponse } from "../verification-utils";
 import { AddressValidity_ResponseBody } from "../../dtos/attestation-types/AddressValidity.dto";
 import { standardAddressHash } from "@flarenetwork/mcc";
-import { add } from "winston";
 import { base58Checksum } from "./utils";
 
 const R_B58_DICT = "rpshnaf39wBUDNEGHJKLM4PQRST7VWXYZ2bcdeCg65jkm8oFqi1tuvAxyz";

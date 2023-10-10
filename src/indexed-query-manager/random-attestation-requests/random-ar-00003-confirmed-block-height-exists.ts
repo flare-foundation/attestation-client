@@ -7,7 +7,7 @@ import { verifyConfirmedBlockHeightExists } from "../../servers/verifier-server/
 import { AttLogger } from "../../utils/logging/logger";
 import { WeightedRandomChoice } from "../../verification/attestation-types/attestation-types";
 import { randomWeightedChoice } from "../../verification/attestation-types/attestation-types-helpers";
-import { IndexedQueryManager } from "../IndexedQueryManager";
+import { IIndexedQueryManager } from "../IIndexedQueryManager";
 
 /////////////////////////////////////////////////////////////////
 // Specific random attestation request generators for
@@ -24,7 +24,7 @@ const RANDOM_OPTIONS_CONFIRMED_BLOCK_HEIGHT_EXISTS = [
 export async function prepareRandomizedRequestConfirmedBlockHeightExists(
   defStore: AttestationDefinitionStore,
   logger: AttLogger,
-  indexedQueryManager: IndexedQueryManager,
+  indexedQueryManager: IIndexedQueryManager,
   randomBlock: DBBlockBase,
   sourceId: string,
   TransactionClass: new (...args: any[]) => any,

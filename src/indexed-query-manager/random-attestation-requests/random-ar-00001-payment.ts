@@ -8,7 +8,7 @@ import { verifyPayment } from "../../servers/verifier-server/src/verification/ge
 import { AttLogger } from "../../utils/logging/logger";
 import { WeightedRandomChoice } from "../../verification/attestation-types/attestation-types";
 import { randomWeightedChoice } from "../../verification/attestation-types/attestation-types-helpers";
-import { IndexedQueryManager } from "../IndexedQueryManager";
+import { IIndexedQueryManager } from "../IIndexedQueryManager";
 
 /////////////////////////////////////////////////////////////////
 // Specific random attestation request generators for
@@ -25,7 +25,7 @@ const RANDOM_OPTIONS_PAYMENT = [
 export async function prepareRandomizedRequestPayment(
   defStore: AttestationDefinitionStore,
   logger: AttLogger,
-  indexedQueryManager: IndexedQueryManager,
+  indexedQueryManager: IIndexedQueryManager,
   randomTransaction: DBTransactionBase,
   sourceId: string,
   TransactionClass: new (...args: any[]) => any,

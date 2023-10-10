@@ -113,7 +113,7 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
   });
 
   it(`Should verify Payment attestation`, async function () {
-    let inUtxo = firstAddressVin(selectedTransaction);
+    let inUtxo = firstAddressVin(selectedTransaction);    
     let utxo = firstAddressVout(selectedTransaction);
     let request = await testPaymentRequest(defStore, selectedTransaction, TX_CLASS, CHAIN_TYPE, inUtxo, utxo);
 

@@ -13,7 +13,7 @@ import {
 import Web3 from "web3";
 import { DBBlockBase } from "../../../../entity/indexer/dbBlock";
 import { DBTransactionBase } from "../../../../entity/indexer/dbTransaction";
-import { IndexedQueryManager } from "../../../../indexed-query-manager/IndexedQueryManager";
+import { IIndexedQueryManager } from "../../../../indexed-query-manager/IIndexedQueryManager";
 import { retry } from "../../../../utils/helpers/promiseTimeout";
 import { logException } from "../../../../utils/logging/logger";
 import { VerificationStatus } from "../../../../verification/attestation-types/attestation-types";
@@ -122,7 +122,7 @@ export async function responsePayment<T extends TransactionBase>(
 export async function verifyPayment<T extends TransactionBase>(
   TransactionClass: new (...args: any[]) => T,
   request: Payment_Request,
-  iqm: IndexedQueryManager,
+  iqm: IIndexedQueryManager,
   client?: MccClient
 ): Promise<VerificationResponse<Payment_Response>> {
   // Check for transaction
@@ -207,7 +207,7 @@ export async function responseBalanceDecreasingTransaction<T extends Transaction
 export async function verifyBalanceDecreasingTransaction<T extends TransactionBase>(
   TransactionClass: new (...args: any[]) => T,
   request: BalanceDecreasingTransaction_Request,
-  iqm: IndexedQueryManager,
+  iqm: IIndexedQueryManager,
   client?: MccClient
 ): Promise<VerificationResponse<BalanceDecreasingTransaction_Response>> {
 
@@ -268,7 +268,7 @@ export async function responseConfirmedBlockHeightExists(
  */
 export async function verifyConfirmedBlockHeightExists(
   request: ConfirmedBlockHeightExists_Request,
-  iqm: IndexedQueryManager
+  iqm: IIndexedQueryManager
 ): Promise<VerificationResponse<ConfirmedBlockHeightExists_Response>> {
   const confirmedBlockQueryResult = await iqm.getConfirmedBlock({
     blockNumber: parseInt(BigInt(request.requestBody.blockNumber).toString()),
@@ -289,7 +289,7 @@ export async function verifyConfirmedBlockHeightExists(
       status: VerificationStatus.DATA_AVAILABILITY_ISSUE,
     };
   }
-  return await responseConfirmedBlockHeightExists(dbBlock, lowerQueryWindowBlock, iqm.settings.numberOfConfirmations(), request);
+  return await responseConfirmedBlockHeightExists(dbBlock, lowerQueryWindowBlock, iqm.numberOfConfirmations(), request);
 }
 
 /**
@@ -381,7 +381,7 @@ export async function responseReferencedPaymentNonExistence<T extends Transactio
 export async function verifyReferencedPaymentNonExistence<T extends TransactionBase>(
   TransactionClass: new (...args: any[]) => T,
   request: ReferencedPaymentNonexistence_Request,
-  iqm: IndexedQueryManager
+  iqm: IIndexedQueryManager
 ): Promise<VerificationResponse<ReferencedPaymentNonexistence_Response>> {
   // TODO: check if anything needs to be done with: startBlock >= overflowBlock
   // DANGER: How to handle this if there are a lot of transactions with same payment reference in the interval?

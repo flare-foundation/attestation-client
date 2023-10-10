@@ -4,12 +4,12 @@ import { DBTransactionBase } from "../../entity/indexer/dbTransaction";
 import { AttestationDefinitionStore } from "../../external-libs/AttestationDefinitionStore";
 import { getUnixEpochTimestamp } from "../../utils/helpers/utils";
 import { AttLogger } from "../../utils/logging/logger";
-import { IndexedQueryManager } from "../IndexedQueryManager";
+import { IIndexedQueryManager } from "../IIndexedQueryManager";
 import { prepareRandomizedRequestPayment } from "./random-ar-00001-payment";
 import { prepareRandomizedRequestBalanceDecreasingTransaction } from "./random-ar-00002-balance-decreasing-transaction";
 import { prepareRandomizedRequestConfirmedBlockHeightExists } from "./random-ar-00003-confirmed-block-height-exists";
 import { prepareRandomizedRequestReferencedPaymentNonexistence } from "./random-ar-00004-referenced-payment-nonexistence";
-import { RandomDBIterator, fetchRandomConfirmedBlocks, fetchRandomTransactions } from "./random-query";
+import { RandomDBIterator } from "./random-query";
 
 /////////////////////////////////////////////////////////////////
 // Helper functions for generating random attestation requests
@@ -20,7 +20,7 @@ export async function getRandomAttestationRequest(
   defStore: AttestationDefinitionStore,
   logger: AttLogger,
   randomGenerators: Map<TxOrBlockGeneratorType, RandomDBIterator<DBTransactionBase | DBBlockBase>>,
-  indexedQueryManager: IndexedQueryManager,
+  indexedQueryManager: IIndexedQueryManager,
   sourceId: string,
   client?: MccClient
 ) {
@@ -86,7 +86,7 @@ export enum TxOrBlockGeneratorType {
 
 export function prepareGenerator(
   type: TxOrBlockGeneratorType,
-  iqm: IndexedQueryManager,
+  iqm: IIndexedQueryManager,
   batchSize = 100,
   topUpThreshold = 0.25
 ): RandomDBIterator<DBTransactionBase | DBBlockBase> {
@@ -95,7 +95,7 @@ export function prepareGenerator(
     case TxOrBlockGeneratorType.TxNativePayment:
       return new RandomDBIterator<DBTransactionBase>(
         iqm,
-        () => fetchRandomTransactions(iqm, batchSize, { mustBeNativePayment: true, startTime }),
+        () => iqm.fetchRandomTransactions(batchSize, { mustBeNativePayment: true, startTime }),
         batchSize,
         topUpThreshold,
         TxOrBlockGeneratorType[type]
@@ -103,7 +103,7 @@ export function prepareGenerator(
     case TxOrBlockGeneratorType.TxNativeReferencedPayment:
       return new RandomDBIterator<DBTransactionBase>(
         iqm,
-        () => fetchRandomTransactions(iqm, batchSize, { mustBeNativePayment: true, mustHavePaymentReference: true, startTime }),
+        () => iqm.fetchRandomTransactions(batchSize, { mustBeNativePayment: true, mustHavePaymentReference: true, startTime }),
         batchSize,
         topUpThreshold,
         TxOrBlockGeneratorType[type]
@@ -111,7 +111,7 @@ export function prepareGenerator(
     case TxOrBlockGeneratorType.TxReferenced:
       return new RandomDBIterator<DBTransactionBase>(
         iqm,
-        () => fetchRandomTransactions(iqm, batchSize, { mustBeNativePayment: true, mustHavePaymentReference: true, startTime }),
+        () => iqm.fetchRandomTransactions(batchSize, { mustBeNativePayment: true, mustHavePaymentReference: true, startTime }),
         batchSize,
         topUpThreshold,
         TxOrBlockGeneratorType[type]
@@ -119,7 +119,7 @@ export function prepareGenerator(
     case TxOrBlockGeneratorType.TxGeneral:
       return new RandomDBIterator<DBTransactionBase>(
         iqm,
-        () => fetchRandomTransactions(iqm, batchSize, { startTime }),
+        () => iqm.fetchRandomTransactions(batchSize, { startTime }),
         batchSize,
         topUpThreshold,
         TxOrBlockGeneratorType[type]
@@ -127,7 +127,7 @@ export function prepareGenerator(
     case TxOrBlockGeneratorType.BlockConfirmed:
       return new RandomDBIterator<DBBlockBase>(
         iqm,
-        () => fetchRandomConfirmedBlocks(iqm, batchSize, startTime),
+        () => iqm.fetchRandomConfirmedBlocks(batchSize, startTime),
         batchSize,
         topUpThreshold,
         TxOrBlockGeneratorType[type]
@@ -138,7 +138,7 @@ export function prepareGenerator(
   }
 }
 
-export async function prepareRandomGenerators(iqm: IndexedQueryManager, batchSize = 100, topUpThreshold = 0.25) {
+export async function prepareRandomGenerators(iqm: IIndexedQueryManager, batchSize = 100, topUpThreshold = 0.25) {
   const mp = new Map<TxOrBlockGeneratorType, RandomDBIterator<DBTransactionBase | DBBlockBase>>();
   const generators = Object.keys(TxOrBlockGeneratorType)
     .filter((x) => isNaN(x as any))

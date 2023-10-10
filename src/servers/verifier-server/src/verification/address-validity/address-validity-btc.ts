@@ -2,6 +2,8 @@ import { VerificationResponse } from "../verification-utils";
 import { createHash } from "crypto";
 import base from "base-x";
 import { VerificationStatus } from "../../../../../verification/attestation-types/attestation-types";
+import { AddressValidity_ResponseBody } from "../../dtos/attestation-types/AddressValidity.dto";
+import { ChainType, standardAddressHash } from "@flarenetwork/mcc";
 
 enum BTCAddressTypes {
   P2PKH = "P2PKH",
@@ -273,7 +275,7 @@ export function bech32Decode(addr: string) {
   return { version: dec.data[0], program: res };
 }
 
-export function verifyAddressBTC(address: string, testnet): VerificationResponse<string> {
+export function verifyAddressBTC(address: string, testnet = process.env.TESTNET): VerificationResponse<AddressValidity_ResponseBody> {
   if (testnet) {
   } else {
     const type = typeBTC(address);
@@ -293,22 +295,32 @@ export function verifyAddressBTC(address: string, testnet): VerificationResponse
         else if (!btcBase58Checksum(address)) {
           return { status: VerificationStatus.NOT_CONFIRMED };
         } else {
-          return { status: VerificationStatus.OK, response: address };
+          const response = {
+            standardAddress: address,
+            standardAddressHash: standardAddressHash(address),
+          };
+          return { status: VerificationStatus.OK, response };
         }
       }
       case BTCAddressTypes.SEGWIT: {
         const version = bech32Decode(address)?.version;
         if (version == 0) {
-          // P2WPKH
-          if (address.length == 42) {
-            return { status: VerificationStatus.OK, response: address.toLowerCase() };
-          }
-          //P2WSH
-          else if (address.length == 62) {
-            return { status: VerificationStatus.OK, response: address.toLowerCase() };
+          // P2WPKH or P2WSH
+          if (address.length == 42 || address.length == 62) {
+            const response = {
+              standardAddress: address.toLowerCase(),
+              standardAddressHash: standardAddressHash(address.toLowerCase()),
+            };
+            return { status: VerificationStatus.OK, response };
           } else return { status: VerificationStatus.NOT_CONFIRMED };
           //P2TR
-        } else if (version == 1) return { status: VerificationStatus.OK, response: address.toLowerCase() };
+        } else if (version == 1) {
+          const response = {
+            standardAddress: address.toLowerCase(),
+            standardAddressHash: standardAddressHash(address.toLowerCase()),
+          };
+          return { status: VerificationStatus.OK, response };
+        }
         // invalid address / unsupported version
         else return { status: VerificationStatus.NOT_CONFIRMED };
       }

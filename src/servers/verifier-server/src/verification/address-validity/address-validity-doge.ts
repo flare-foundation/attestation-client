@@ -3,6 +3,8 @@ import base from "base-x";
 import { VerificationResponse } from "../verification-utils";
 import { VerificationStatus } from "../../../../../verification/attestation-types/attestation-types";
 import { add } from "winston";
+import { standardAddressHash } from "@flarenetwork/mcc";
+import { AddressValidity_ResponseBody } from "../../dtos/attestation-types/AddressValidity.dto";
 
 enum DOGEAddressTypes {
   P2PKH = "P2PKH",
@@ -34,7 +36,7 @@ function dogeBase58Checksum(address: string): boolean {
   return preChecksum.equals(newChecksum);
 }
 
-export function verifyAddressDOGE(address: string, testnet): VerificationResponse<string> {
+export function verifyAddressDOGE(address: string, testnet = process.env.TESTNET): VerificationResponse<AddressValidity_ResponseBody> {
   let validPrefix: string[];
   if (testnet) {
     validPrefix = ["n", "m", "2"];
@@ -46,6 +48,11 @@ export function verifyAddressDOGE(address: string, testnet): VerificationRespons
   const char = DOGE_BASE_58_DICT_regex.test(address);
   const checksum = dogeBase58Checksum(address);
   const prefix = validPrefix.includes(address[0]);
-  if (len && char && checksum && prefix) return { status: VerificationStatus.OK, response: address };
-  else return { status: VerificationStatus.NOT_CONFIRMED };
+  if (len && char && checksum && prefix) {
+    const response = {
+      standardAddress: address,
+      standardAddressHash: standardAddressHash(address),
+    };
+    return { status: VerificationStatus.OK, response };
+  } else return { status: VerificationStatus.NOT_CONFIRMED };
 }

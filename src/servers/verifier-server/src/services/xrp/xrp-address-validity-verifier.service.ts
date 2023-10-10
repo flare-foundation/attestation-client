@@ -3,103 +3,129 @@ import { readFileSync } from "fs";
 import { AttestationDefinitionStore } from "../../../../../external-libs/AttestationDefinitionStore";
 import { AttestationResponse, AttestationResponseStatus } from "../../../../../external-libs/AttestationResponse";
 import { ExampleData } from "../../../../../external-libs/interfaces";
-import { MIC_SALT } from "../../../../../external-libs/utils";
+import { MIC_SALT, ZERO_BYTES_32 } from "../../../../../external-libs/utils";
 import { AddressValidity_Request, AddressValidity_RequestNoMic, AddressValidity_Response } from "../../dtos/attestation-types/AddressValidity.dto";
+import { verifyAddressXRP } from "../../verification/address-validity/address-validity-xrp";
+import { VerificationStatus, getAttestationStatus } from "../../../../../verification/attestation-types/attestation-types";
 
 @Injectable()
 export class XRPAddressValidityVerifierService {
-    store!: AttestationDefinitionStore;
-    exampleData!: ExampleData<AddressValidity_RequestNoMic, AddressValidity_Request, AddressValidity_Response>;
+  store!: AttestationDefinitionStore;
+  exampleData!: ExampleData<AddressValidity_RequestNoMic, AddressValidity_Request, AddressValidity_Response>;
 
-    //-$$$<start-constructor> Start of custom code section. Do not change this comment.
+  //-$$$<start-constructor> Start of custom code section. Do not change this comment.
 
-    constructor() {
-        this.store = new AttestationDefinitionStore("configs/type-definitions");
-        this.exampleData = JSON.parse(readFileSync("src/servers/verifier-server/src/example-data/AddressValidity.json", "utf8"));
+  constructor() {
+    this.store = new AttestationDefinitionStore("configs/type-definitions");
+    this.exampleData = JSON.parse(readFileSync("src/servers/verifier-server/src/example-data/AddressValidity.json", "utf8"));
+  }
+
+  private verifyRequest(request: AddressValidity_RequestNoMic | AddressValidity_Request): AttestationResponse<AddressValidity_Response> {
+    let fixedRequest = {
+      ...request,
+    } as AddressValidity_Request;
+    if (!fixedRequest.messageIntegrityCode) {
+      fixedRequest.messageIntegrityCode = ZERO_BYTES_32;
     }
+    const result = verifyAddressXRP(request.requestBody.addressStr);
 
-    //-$$$<end-constructor> End of custom code section. Do not change this comment.
+    const status = getAttestationStatus(result.status);
+    if (status != AttestationResponseStatus.VALID) return { status };
 
-    public async verifyEncodedRequest(abiEncodedRequest: string): Promise<AttestationResponse<AddressValidity_Response>> {
-        const requestJSON = this.store.parseRequest<AddressValidity_Request>(abiEncodedRequest);
-        console.dir(requestJSON, { depth: null });
+    const response: AddressValidity_Response = {
+      attestationType: request.attestationType,
+      sourceId: request.sourceId,
+      votingRound: "0",
+      lowestUsedTimestamp: "0xffffffffffffffff",
+      requestBody: request.requestBody,
+      responseBody: result.response,
+    };
 
-        //-$$$<start-verifyEncodedRequest> Start of custom code section. Do not change this comment.
+    return { status, response } as AttestationResponse<AddressValidity_Response>;
+  }
 
-        // PUT YOUR CUSTOM CODE HERE
+  //-$$$<end-constructor> End of custom code section. Do not change this comment.
 
-        //-$$$<end-verifyEncodedRequest> End of custom code section. Do not change this comment.
+  public async verifyEncodedRequest(abiEncodedRequest: string): Promise<AttestationResponse<AddressValidity_Response>> {
+    const requestJSON = this.store.parseRequest<AddressValidity_Request>(abiEncodedRequest);
+    console.dir(requestJSON, { depth: null });
 
-        // Example of response body. Delete this example and provide value for variable 'response' in the custom code section above.
-        const response: AttestationResponse<AddressValidity_Response> = {
-            status: AttestationResponseStatus.VALID,
-            response: this.exampleData.response,
-        };
+    //-$$$<start-verifyEncodedRequest> Start of custom code section. Do not change this comment.
 
-        return response;
-    }
+    // PUT YOUR CUSTOM CODE HERE
 
-    public async prepareResponse(request: AddressValidity_RequestNoMic): Promise<AttestationResponse<AddressValidity_Response>> {
-        console.dir(request, { depth: null });
+    //-$$$<end-verifyEncodedRequest> End of custom code section. Do not change this comment.
 
-        //-$$$<start-prepareResponse> Start of custom code section. Do not change this comment.
+    // Example of response body. Delete this example and provide value for variable 'response' in the custom code section above.
+    const response: AttestationResponse<AddressValidity_Response> = {
+      status: AttestationResponseStatus.VALID,
+      response: this.exampleData.response,
+    };
 
-        // PUT YOUR CUSTOM CODE HERE
+    return response;
+  }
 
-        //-$$$<end-prepareResponse> End of custom code section. Do not change this comment.
+  public async prepareResponse(request: AddressValidity_RequestNoMic): Promise<AttestationResponse<AddressValidity_Response>> {
+    console.dir(request, { depth: null });
 
-        // Example of response body. Delete this example and provide value for variable 'response' in the custom code section above.
-        const response: AttestationResponse<AddressValidity_Response> = {
-            status: AttestationResponseStatus.VALID,
-            response: {
-                ...this.exampleData.response,
-                ...request,
-            } as AddressValidity_Response,
-        };
+    //-$$$<start-prepareResponse> Start of custom code section. Do not change this comment.
 
-        return response;
-    }
+    // PUT YOUR CUSTOM CODE HERE
 
-    public async mic(request: AddressValidity_RequestNoMic): Promise<string | undefined> {
-        console.dir(request, { depth: null });
+    //-$$$<end-prepareResponse> End of custom code section. Do not change this comment.
 
-        //-$$$<start-mic> Start of custom code section. Do not change this comment.
+    // Example of response body. Delete this example and provide value for variable 'response' in the custom code section above.
+    const response: AttestationResponse<AddressValidity_Response> = {
+      status: AttestationResponseStatus.VALID,
+      response: {
+        ...this.exampleData.response,
+        ...request,
+      } as AddressValidity_Response,
+    };
 
-        // PUT YOUR CUSTOM CODE HERE
+    return response;
+  }
 
-        //-$$$<end-mic> End of custom code section. Do not change this comment.
+  public async mic(request: AddressValidity_RequestNoMic): Promise<string | undefined> {
+    console.dir(request, { depth: null });
 
-        // Example of response body. Delete this example and provide value for variable 'response' in the custom code section above.
-        const response: AddressValidity_Response = {
-            ...this.exampleData.response,
-            ...request,
-        };
+    //-$$$<start-mic> Start of custom code section. Do not change this comment.
 
-        if (!response) return undefined;
-        return this.store.attestationResponseHash<AddressValidity_Response>(response, MIC_SALT)!;
-    }
+    // PUT YOUR CUSTOM CODE HERE
 
-    public async prepareRequest(request: AddressValidity_RequestNoMic): Promise<string | undefined> {
-        console.dir(request, { depth: null });
+    //-$$$<end-mic> End of custom code section. Do not change this comment.
 
-        //-$$$<start-prepareRequest> Start of custom code section. Do not change this comment.
+    // Example of response body. Delete this example and provide value for variable 'response' in the custom code section above.
+    const response: AddressValidity_Response = {
+      ...this.exampleData.response,
+      ...request,
+    };
 
-        // PUT YOUR CUSTOM CODE HERE
+    if (!response) return undefined;
+    return this.store.attestationResponseHash<AddressValidity_Response>(response, MIC_SALT)!;
+  }
 
-        //-$$$<end-prepareRequest> End of custom code section. Do not change this comment.
+  public async prepareRequest(request: AddressValidity_RequestNoMic): Promise<string | undefined> {
+    console.dir(request, { depth: null });
 
-        // Example of response body. Delete this example and provide value for variable 'response' in the custom code section above.
-        const response: AddressValidity_Response = {
-            ...this.exampleData.response,
-            ...request,
-        };
+    //-$$$<start-prepareRequest> Start of custom code section. Do not change this comment.
 
-        if (!response) return undefined;
-        const newRequest = {
-            ...request,
-            messageIntegrityCode: this.store.attestationResponseHash<AddressValidity_Response>(response, MIC_SALT)!,
-        } as AddressValidity_Request;
+    // PUT YOUR CUSTOM CODE HERE
 
-        return this.store.encodeRequest(newRequest);
-    }
+    //-$$$<end-prepareRequest> End of custom code section. Do not change this comment.
+
+    // Example of response body. Delete this example and provide value for variable 'response' in the custom code section above.
+    const response: AddressValidity_Response = {
+      ...this.exampleData.response,
+      ...request,
+    };
+
+    if (!response) return undefined;
+    const newRequest = {
+      ...request,
+      messageIntegrityCode: this.store.attestationResponseHash<AddressValidity_Response>(response, MIC_SALT)!,
+    } as AddressValidity_Request;
+
+    return this.store.encodeRequest(newRequest);
+  }
 }

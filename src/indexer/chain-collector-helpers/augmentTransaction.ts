@@ -9,7 +9,7 @@ import {
   XrpTransaction,
 } from "@flarenetwork/mcc";
 import { stringify } from "safe-stable-stringify";
-import { DBTransactionALGO0, DBTransactionBase, DBTransactionXRP0, IDBTransactionBase } from "../../entity/indexer/dbTransaction";
+import { DBTransactionBase, DBTransactionXRP0, IDBTransactionBase } from "../../entity/indexer/dbTransaction";
 import { compressBin } from "../../utils/compression/compression";
 import { prepareString } from "../../utils/helpers/utils";
 

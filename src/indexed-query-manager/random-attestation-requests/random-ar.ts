@@ -1,10 +1,9 @@
 import { BtcTransaction, DogeTransaction, MccClient, XrpTransaction } from "@flarenetwork/mcc";
-import { DBBlockBase } from "../../entity/indexer/dbBlock";
-import { DBTransactionBase } from "../../entity/indexer/dbTransaction";
 import { AttestationDefinitionStore } from "../../external-libs/AttestationDefinitionStore";
 import { getUnixEpochTimestamp } from "../../utils/helpers/utils";
 import { AttLogger } from "../../utils/logging/logger";
 import { IIndexedQueryManager } from "../IIndexedQueryManager";
+import { BlockResult, TransactionResult } from "../indexed-query-manager-types";
 import { prepareRandomizedRequestPayment } from "./random-ar-00001-payment";
 import { prepareRandomizedRequestBalanceDecreasingTransaction } from "./random-ar-00002-balance-decreasing-transaction";
 import { prepareRandomizedRequestConfirmedBlockHeightExists } from "./random-ar-00003-confirmed-block-height-exists";
@@ -19,7 +18,7 @@ import { RandomDBIterator } from "./random-query";
 export async function getRandomAttestationRequest(
   defStore: AttestationDefinitionStore,
   logger: AttLogger,
-  randomGenerators: Map<TxOrBlockGeneratorType, RandomDBIterator<DBTransactionBase | DBBlockBase>>,
+  randomGenerators: Map<TxOrBlockGeneratorType, RandomDBIterator<TransactionResult | BlockResult>>,
   indexedQueryManager: IIndexedQueryManager,
   sourceId: string,
   client?: MccClient
@@ -49,13 +48,13 @@ export async function getRandomAttestationRequest(
 
   switch (attestationType) {
     case "Payment":
-      return prepareRandomizedRequestPayment(defStore, logger, indexedQueryManager, txOrBlock as DBTransactionBase, sourceId, TransactionClass, undefined, client);
+      return prepareRandomizedRequestPayment(defStore, logger, indexedQueryManager, txOrBlock as TransactionResult, sourceId, TransactionClass, undefined, client);
     case "BalanceDecreasingTransaction":
-      return prepareRandomizedRequestBalanceDecreasingTransaction(defStore, logger, indexedQueryManager, txOrBlock as DBTransactionBase, sourceId, TransactionClass, undefined, client);
+      return prepareRandomizedRequestBalanceDecreasingTransaction(defStore, logger, indexedQueryManager, txOrBlock as TransactionResult, sourceId, TransactionClass, undefined, client);
     case "ConfirmedBlockHeightExists":
-      return prepareRandomizedRequestConfirmedBlockHeightExists(defStore, logger, indexedQueryManager, txOrBlock as DBBlockBase, sourceId, TransactionClass, undefined, client);
+      return prepareRandomizedRequestConfirmedBlockHeightExists(defStore, logger, indexedQueryManager, txOrBlock as BlockResult, sourceId, TransactionClass, undefined, client);
     case "ReferencedPaymentNonexistence":
-      return prepareRandomizedRequestReferencedPaymentNonexistence(defStore, logger, indexedQueryManager, txOrBlock as DBTransactionBase, sourceId, TransactionClass, undefined, client);
+      return prepareRandomizedRequestReferencedPaymentNonexistence(defStore, logger, indexedQueryManager, txOrBlock as TransactionResult, sourceId, TransactionClass, undefined, client);
     default:
       throw new Error("Invalid attestation type");
   }
@@ -89,11 +88,11 @@ export function prepareGenerator(
   iqm: IIndexedQueryManager,
   batchSize = 100,
   topUpThreshold = 0.25
-): RandomDBIterator<DBTransactionBase | DBBlockBase> {
+): RandomDBIterator<TransactionResult | BlockResult> {
   const startTime = getUnixEpochTimestamp() - 5 * 60 * 60;
   switch (type) {
     case TxOrBlockGeneratorType.TxNativePayment:
-      return new RandomDBIterator<DBTransactionBase>(
+      return new RandomDBIterator<TransactionResult>(
         iqm,
         () => iqm.fetchRandomTransactions(batchSize, { mustBeNativePayment: true, startTime }),
         batchSize,
@@ -101,7 +100,7 @@ export function prepareGenerator(
         TxOrBlockGeneratorType[type]
       );
     case TxOrBlockGeneratorType.TxNativeReferencedPayment:
-      return new RandomDBIterator<DBTransactionBase>(
+      return new RandomDBIterator<TransactionResult>(
         iqm,
         () => iqm.fetchRandomTransactions(batchSize, { mustBeNativePayment: true, mustHavePaymentReference: true, startTime }),
         batchSize,
@@ -109,7 +108,7 @@ export function prepareGenerator(
         TxOrBlockGeneratorType[type]
       );
     case TxOrBlockGeneratorType.TxReferenced:
-      return new RandomDBIterator<DBTransactionBase>(
+      return new RandomDBIterator<TransactionResult>(
         iqm,
         () => iqm.fetchRandomTransactions(batchSize, { mustBeNativePayment: true, mustHavePaymentReference: true, startTime }),
         batchSize,
@@ -117,7 +116,7 @@ export function prepareGenerator(
         TxOrBlockGeneratorType[type]
       );
     case TxOrBlockGeneratorType.TxGeneral:
-      return new RandomDBIterator<DBTransactionBase>(
+      return new RandomDBIterator<TransactionResult>(
         iqm,
         () => iqm.fetchRandomTransactions(batchSize, { startTime }),
         batchSize,
@@ -125,7 +124,7 @@ export function prepareGenerator(
         TxOrBlockGeneratorType[type]
       );
     case TxOrBlockGeneratorType.BlockConfirmed:
-      return new RandomDBIterator<DBBlockBase>(
+      return new RandomDBIterator<BlockResult>(
         iqm,
         () => iqm.fetchRandomConfirmedBlocks(batchSize, startTime),
         batchSize,
@@ -139,7 +138,7 @@ export function prepareGenerator(
 }
 
 export async function prepareRandomGenerators(iqm: IIndexedQueryManager, batchSize = 100, topUpThreshold = 0.25) {
-  const mp = new Map<TxOrBlockGeneratorType, RandomDBIterator<DBTransactionBase | DBBlockBase>>();
+  const mp = new Map<TxOrBlockGeneratorType, RandomDBIterator<TransactionResult | BlockResult>>();
   const generators = Object.keys(TxOrBlockGeneratorType)
     .filter((x) => isNaN(x as any))
     .map((type) => {
@@ -177,14 +176,14 @@ export const GENERATORS_FOR_ATTESTATION_TYPES = [
 
 export function randomGeneratorTypeForAttestationType(
   attestationType: string,
-  mp: Map<TxOrBlockGeneratorType, RandomDBIterator<DBTransactionBase | DBBlockBase>>
+  mp: Map<TxOrBlockGeneratorType, RandomDBIterator<TransactionResult | BlockResult>>
 ) {
   const genTypes = GENERATORS_FOR_ATTESTATION_TYPES.find((type) => type.type === attestationType).generatorTypes;
   const genType = genTypes[Math.floor(Math.random() * genTypes.length)];
   return mp.get(genType);
 }
 
-export function randomGeneratorChoiceWithAttestationType(mp: Map<TxOrBlockGeneratorType, RandomDBIterator<DBTransactionBase | DBBlockBase>>) {
+export function randomGeneratorChoiceWithAttestationType(mp: Map<TxOrBlockGeneratorType, RandomDBIterator<TransactionResult | BlockResult>>) {
   const selection = GENERATORS_FOR_ATTESTATION_TYPES[Math.floor(Math.random() * GENERATORS_FOR_ATTESTATION_TYPES.length)];
   const attestationType = selection.type;
   const generatorType = selection.generatorTypes[Math.floor(Math.random() * selection.generatorTypes.length)];

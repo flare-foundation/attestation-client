@@ -4,9 +4,9 @@ import { ChainType, MCC } from "@flarenetwork/mcc";
 import { assert } from "chai";
 import { DataSource, DataSourceOptions } from "typeorm";
 import { DBBlockBase, DBBlockXRP } from "../../src/entity/indexer/dbBlock";
-import { DBTransactionBase, DBTransactionXRP0 } from "../../src/entity/indexer/dbTransaction";
+import { DBTransactionXRP0 } from "../../src/entity/indexer/dbTransaction";
 import { IndexedQueryManager } from "../../src/indexed-query-manager/IndexedQueryManager";
-import { IndexedQueryManagerOptions } from "../../src/indexed-query-manager/indexed-query-manager-types";
+import { BlockResult, IndexedQueryManagerOptions, TransactionResult } from "../../src/indexed-query-manager/indexed-query-manager-types";
 import { TxOrBlockGeneratorType, prepareGenerator, prepareRandomGenerators } from "../../src/indexed-query-manager/random-attestation-requests/random-ar";
 import { RandomDBIterator } from "../../src/indexed-query-manager/random-attestation-requests/random-query";
 import { createTypeOrmOptions } from "../../src/servers/verifier-server/src/utils/db-config";
@@ -29,7 +29,7 @@ process.env.TEST_CREDENTIALS = "1";
 
 describe("Indexed query manager", () => {
   let indexedQueryManager: IndexedQueryManager;
-  let randomGenerators: Map<TxOrBlockGeneratorType, RandomDBIterator<DBTransactionBase | DBBlockBase>>;
+  let randomGenerators: Map<TxOrBlockGeneratorType, RandomDBIterator<TransactionResult | BlockResult>>;
 
   before(async () => {
     let dbOptions = await createTypeOrmOptions("test");
@@ -74,8 +74,8 @@ describe("Indexed query manager", () => {
     let maxReps = 5;
     // Checking for two transactions to verify "randomness"
     while (true) {
-      const randomTransaction1 = (await randomGenerators.get(TxOrBlockGeneratorType.TxReferenced).next()) as DBTransactionBase;
-      const randomTransaction2 = (await randomGenerators.get(TxOrBlockGeneratorType.TxReferenced).next()) as DBTransactionBase;
+      const randomTransaction1 = (await randomGenerators.get(TxOrBlockGeneratorType.TxReferenced).next()) as TransactionResult;
+      const randomTransaction2 = (await randomGenerators.get(TxOrBlockGeneratorType.TxReferenced).next()) as TransactionResult;
 
       if (!randomTransaction1 || !randomTransaction1) {
         console.log("Probably empty tables of transactions. Run indexer.");
@@ -95,7 +95,7 @@ describe("Indexed query manager", () => {
   });
 
   it("Should get random native payment transaction with reference", async () => {
-    const randomTransaction = (await randomGenerators.get(TxOrBlockGeneratorType.TxReferenced).next()) as DBTransactionBase;
+    const randomTransaction = (await randomGenerators.get(TxOrBlockGeneratorType.TxReferenced).next()) as TransactionResult;
     if (randomTransaction) {
       assert(randomTransaction.isNativePayment, "Not native payment");
       assert(randomTransaction.paymentReference.length > 0, "Should have payment reference");

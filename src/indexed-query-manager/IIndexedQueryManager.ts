@@ -1,9 +1,8 @@
- import { DBBlockBase } from "../entity/indexer/dbBlock";
-import { DBTransactionBase } from "../entity/indexer/dbTransaction";
 import {
   BlockHeightSample,
   BlockQueryParams,
   BlockQueryResult,
+  BlockResult,
   ConfirmedBlockQueryRequest,
   ConfirmedBlockQueryResponse,
   ConfirmedTransactionQueryRequest,
@@ -12,7 +11,8 @@ import {
   ReferencedTransactionsQueryRequest,
   ReferencedTransactionsQueryResponse,
   TransactionQueryParams,
-  TransactionQueryResult
+  TransactionQueryResult,
+  TransactionResult
 } from "./indexed-query-manager-types";
 
 ////////////////////////////////////////////////////////
@@ -22,7 +22,16 @@ import {
 ////////////////////////////////////////////////////////
 
 /**
- * A class used to carry out queries on the indexer database such that the upper and lower bounds are synchronized.
+ * A class used to carry out specific queries on the indexer database.
+ * Assumption for the database are:
+ * - limited history of blocks and transactions is stored in the database
+ * - the database holds the state table, which contains the data about:
+ *   - bottom block number (denoted `B`) and its timestamp
+ *   - last confimed block number (denoted `N`) and its timestamp
+ *   - highest registered block number (denoted `T`) and the timestamp of its checking
+ * - the indexer ensures, that the all blocks and transactions for block in the range [`B`, `N`] are in the database, without repetitions, no gaps. 
+ * - Queries are carried out in for transactions in the block range [`B`, `N`].
+ * 
  */
 export interface IIndexedQueryManager {
 
@@ -32,7 +41,7 @@ export interface IIndexedQueryManager {
 
 
   /**
-   * Returns the last confirmed block height (`N`) for which all transactions are in database
+   * Returns the last confirmed block height (denoted `N`) in the indexer database for which all transactions are in database
    * @returns
    */
   getLastConfirmedBlockNumber(): Promise<number>;
@@ -43,6 +52,9 @@ export interface IIndexedQueryManager {
    */
   getLatestBlockTimestamp(): Promise<BlockHeightSample | null>;
 
+  /**
+   * Returns the number of confirmations required for a transaction and block to be considered confirmed by the indexer.
+   */
   numberOfConfirmations(): number;
   ////////////////////////////////////////////////////////////
   // General confirm transaction and block queries
@@ -67,9 +79,9 @@ export interface IIndexedQueryManager {
   /**
    * Gets a block for a given hash
    * @param hash
-   * @returns the block with given hash, if exists, `null` otherwise
+   * @returns the block with given hash, if exists in the indexer database, `undefined` otherwise
    */
-  getBlockByHash(hash: string): Promise<DBBlockBase | null>;
+  getBlockByHash(hash: string): Promise<BlockResult | undefined>;
 
   ////////////////////////////////////////////////////////////
   // Confirmed blocks query
@@ -117,8 +129,19 @@ export interface IIndexedQueryManager {
    * @param timestamp
    * @returns the block, if exists, otherwise `null`
    */
-  getLastConfirmedBlockStrictlyBeforeTime(timestamp: number): Promise<DBBlockBase | null>;
+  getLastConfirmedBlockStrictlyBeforeTime(timestamp: number): Promise<BlockResult | undefined>;
 
-  fetchRandomTransactions(batchSize, options: RandomTransactionOptions): Promise<DBTransactionBase[]>;
-  fetchRandomConfirmedBlocks(batchSize, startTime?: number): Promise<DBBlockBase[]>;
+  /**
+   * Fetches random transactions selection from the indexer database in a batch, generated according to options.
+   * @param batchSize 
+   * @param options 
+   */
+  fetchRandomTransactions(batchSize, options: RandomTransactionOptions): Promise<TransactionResult[]>;
+
+  /**
+   * Random block selection from the indexer database in a batch.
+   * @param batchSize 
+   * @param startTime selection is done for blocks after this timestamp
+   */
+  fetchRandomConfirmedBlocks(batchSize, startTime?: number): Promise<BlockResult[]>;
 }

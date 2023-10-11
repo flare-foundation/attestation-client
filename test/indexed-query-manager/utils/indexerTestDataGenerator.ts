@@ -21,6 +21,7 @@ import { MccTransactionType } from "../../../src/servers/verifier-server/src/ver
 import { compressBin } from "../../../src/utils/compression/compression";
 import { getUnixEpochTimestamp } from "../../../src/utils/helpers/utils";
 import { toHex } from "../../../src/verification/attestation-types/attestation-types-helpers";
+import { TransactionResult } from "../../../src/indexed-query-manager/indexed-query-manager-types";
 
 const TEST_DATA_PATH = "test/indexed-query-manager/test-data";
 
@@ -66,7 +67,7 @@ function setFirstOPReturn(vouts: any, value: string) {
   throw new Error("No OP_RETURN found");
 }
 
-function addBtcTransactionResponse(transaction: DBTransactionBase, transactionIndex: number) {
+function addBtcTransactionResponse(transaction: TransactionResult, transactionIndex: number) {
   let index = parseInt(transaction.transactionId.slice(-1), 16) % BTC_TYPES_COUNT;
   let txStr = "";
   let paymentReference = null;
@@ -99,7 +100,7 @@ function addBtcTransactionResponse(transaction: DBTransactionBase, transactionIn
   return JSON.stringify(json);
 }
 
-function addXrpTransactionResponse(transaction: DBTransactionBase, transactionIndex: number) {
+function addXrpTransactionResponse(transaction: TransactionResult, transactionIndex: number) {
   let index = parseInt(transaction.transactionId.slice(-1), 16) % XRP_TYPES_COUNT;
   let txStr = "";
   let paymentReference = null;
@@ -133,7 +134,7 @@ function addXrpTransactionResponse(transaction: DBTransactionBase, transactionIn
   return JSON.stringify(json);
 }
 
-function addDogeTransactionResponse(transaction: DBTransactionBase, transactionIndex: number) {
+function addDogeTransactionResponse(transaction: TransactionResult, transactionIndex: number) {
   let index = parseInt(transaction.transactionId.slice(-1), 16) % DOGE_TYPES_COUNT;
   let txStr = "";
   let paymentReference = null;
@@ -165,7 +166,7 @@ function addDogeTransactionResponse(transaction: DBTransactionBase, transactionI
   return JSON.stringify(json);
 }
 
-function addTransactionResponse(transaction: DBTransactionBase, transactionIndex: number) {
+function addTransactionResponse(transaction: TransactionResult, transactionIndex: number) {
   switch (transaction.chainType) {
     case ChainType.BTC:
       return addBtcTransactionResponse(transaction, transactionIndex);

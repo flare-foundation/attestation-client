@@ -1,6 +1,5 @@
 import { MccClient, prefix0x, toBN } from "@flarenetwork/mcc";
 import Web3 from "web3";
-import { DBTransactionBase } from "../../entity/indexer/dbTransaction";
 import { AttestationDefinitionStore } from "../../external-libs/AttestationDefinitionStore";
 import { MIC_SALT, ZERO_BYTES_32, encodeAttestationName } from "../../external-libs/utils";
 import { ReferencedPaymentNonexistence_Request } from "../../servers/verifier-server/src/dtos/attestation-types/ReferencedPaymentNonexistence.dto";
@@ -9,6 +8,7 @@ import { AttLogger } from "../../utils/logging/logger";
 import { WeightedRandomChoice } from "../../verification/attestation-types/attestation-types";
 import { randomWeightedChoice } from "../../verification/attestation-types/attestation-types-helpers";
 import { IIndexedQueryManager } from "../IIndexedQueryManager";
+import { TransactionResult } from "../indexed-query-manager-types";
 
 /////////////////////////////////////////////////////////////////
 // Specific random attestation request generators for
@@ -27,7 +27,7 @@ export async function prepareRandomizedRequestReferencedPaymentNonexistence(
   defStore: AttestationDefinitionStore,
   logger: AttLogger,
   indexedQueryManager: IIndexedQueryManager,
-  randomTransaction: DBTransactionBase,
+  randomTransaction: TransactionResult,
   sourceId: string,
   TransactionClass: new (...args: any[]) => any,
   enforcedChoice?: RandomReferencedPaymentNonexistenceChoiceType,

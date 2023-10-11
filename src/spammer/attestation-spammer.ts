@@ -3,12 +3,11 @@ import Web3 from "web3";
 import * as yargs from "yargs";
 import { StateConnector } from "../../typechain-web3-v1/StateConnector";
 import { StateConnectorTempTran } from "../../typechain-web3-v1/StateConnectorTempTran";
-import { DBBlockBase } from "../entity/indexer/dbBlock";
-import { DBTransactionBase } from "../entity/indexer/dbTransaction";
 import { AttestationDefinitionStore } from "../external-libs/AttestationDefinitionStore";
 import { ARBase } from "../external-libs/interfaces";
+import { IIndexedQueryManager } from "../indexed-query-manager/IIndexedQueryManager";
 import { IndexedQueryManager } from "../indexed-query-manager/IndexedQueryManager";
-import { IndexedQueryManagerOptions } from "../indexed-query-manager/indexed-query-manager-types";
+import { BlockResult, IndexedQueryManagerOptions, TransactionResult } from "../indexed-query-manager/indexed-query-manager-types";
 import { TxOrBlockGeneratorType, getRandomAttestationRequest, prepareRandomGenerators } from "../indexed-query-manager/random-attestation-requests/random-ar";
 import { RandomDBIterator } from "../indexed-query-manager/random-attestation-requests/random-query";
 import { readSecureConfig } from "../utils/config/configSecure";
@@ -19,7 +18,6 @@ import { getTimeMs } from "../utils/helpers/internetTime";
 import { getWeb3, getWeb3StateConnectorContract } from "../utils/helpers/web3-utils";
 import { getGlobalLogger, logException, setGlobalLoggerLabel, setLoggerName } from "../utils/logging/logger";
 import { SpammerCredentials } from "./SpammerConfiguration";
-import { IIndexedQueryManager } from "../indexed-query-manager/IIndexedQueryManager";
 
 const args = yargs
   .option("chain", { alias: "c", type: "string", description: "Chain (XRP, BTC, LTC, DOGE)", default: "BTC" })
@@ -61,7 +59,7 @@ class AttestationSpammer {
 
   id: string;
 
-  randomGenerators: Map<TxOrBlockGeneratorType, RandomDBIterator<DBTransactionBase | DBBlockBase>>;
+  randomGenerators: Map<TxOrBlockGeneratorType, RandomDBIterator<TransactionResult | BlockResult>>;
 
   constructor() {
     this.id = "default";

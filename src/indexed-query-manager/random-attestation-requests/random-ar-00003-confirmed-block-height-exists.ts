@@ -1,5 +1,4 @@
 import { MccClient, toBN } from "@flarenetwork/mcc";
-import { DBBlockBase } from "../../entity/indexer/dbBlock";
 import { AttestationDefinitionStore } from "../../external-libs/AttestationDefinitionStore";
 import { MIC_SALT, ZERO_BYTES_32, encodeAttestationName } from "../../external-libs/utils";
 import { ConfirmedBlockHeightExists_Request } from "../../servers/verifier-server/src/dtos/attestation-types/ConfirmedBlockHeightExists.dto";
@@ -8,6 +7,7 @@ import { AttLogger } from "../../utils/logging/logger";
 import { WeightedRandomChoice } from "../../verification/attestation-types/attestation-types";
 import { randomWeightedChoice } from "../../verification/attestation-types/attestation-types-helpers";
 import { IIndexedQueryManager } from "../IIndexedQueryManager";
+import { BlockResult } from "../indexed-query-manager-types";
 
 /////////////////////////////////////////////////////////////////
 // Specific random attestation request generators for
@@ -25,7 +25,7 @@ export async function prepareRandomizedRequestConfirmedBlockHeightExists(
   defStore: AttestationDefinitionStore,
   logger: AttLogger,
   indexedQueryManager: IIndexedQueryManager,
-  randomBlock: DBBlockBase,
+  randomBlock: BlockResult,
   sourceId: string,
   TransactionClass: new (...args: any[]) => any,
   enforcedChoice?: RandomConfirmedBlockHeightExistsChoiceType,

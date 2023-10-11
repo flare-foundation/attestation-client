@@ -11,6 +11,35 @@ export async function createTypeOrmOptions(loggerLabel: string): Promise<TypeOrm
 
   const config = await readSecureConfig(new VerifierServerConfig(), `verifier-server/${verifierType}-verifier`);
 
+  // connecting to external postgres db
+  console.log()
+  console.log()
+  console.log("HERE I AM")
+  console.log()
+  console.log()
+  console.log(process.env.EXTERNAL)
+
+  if (
+    process.env.NODE_ENV === "development" &&
+    process.env.EXTERNAL === "django"
+  ) {
+    console.log("External")
+    return {
+      name: "db",
+      type: "postgres",
+      host: "127.0.0.1",
+      port: 5432,
+      username: "db",
+      password: "secret",
+      database: "db",
+
+      synchronize: true,
+      migrationsRun: false,
+      logging: false,
+    }
+  }
+
+  // In memory for testing
   if (
     process.env.NODE_ENV === "development" &&
     process.env.TEST_CREDENTIALS &&

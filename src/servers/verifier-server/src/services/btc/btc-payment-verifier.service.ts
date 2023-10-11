@@ -12,79 +12,79 @@ import { BTCProcessorService } from "../verifier-processors/btc-processor.servic
 
 @Injectable()
 export class BTCPaymentVerifierService {
-    store!: AttestationDefinitionStore;
-    exampleData!: ExampleData<Payment_RequestNoMic, Payment_Request, Payment_Response>;
+  store!: AttestationDefinitionStore;
+  exampleData!: ExampleData<Payment_RequestNoMic, Payment_Request, Payment_Response>;
 
-    //-$$$<start-constructor> Start of custom code section. Do not change this comment.
+  //-$$$<start-constructor> Start of custom code section. Do not change this comment.
 
-    constructor(@Inject("VERIFIER_PROCESSOR") private processor: BTCProcessorService) {
-        this.store = new AttestationDefinitionStore("configs/type-definitions");
+  constructor(@Inject("VERIFIER_PROCESSOR") private processor: BTCProcessorService) {
+    this.store = new AttestationDefinitionStore("configs/type-definitions");
+  }
+
+  private async verifyRequest(request: Payment_RequestNoMic | Payment_Request): Promise<AttestationResponse<Payment_Response>> {
+    let fixedRequest = {
+      ...request,
+    } as Payment_Request;
+    if (!fixedRequest.messageIntegrityCode) {
+      fixedRequest.messageIntegrityCode = ZERO_BYTES_32;
     }
+    const result = await verifyPayment(BtcTransaction, fixedRequest, this.processor.indexedQueryManager, this.processor.client);
+    return {
+      status: getAttestationStatus(result.status),
+      response: result.response,
+    } as AttestationResponse<Payment_Response>;
+  }
 
-    private async verifyRequest(request: Payment_RequestNoMic | Payment_Request): Promise<AttestationResponse<Payment_Response>> {
-        let fixedRequest = {
-            ...request,
-        } as Payment_Request;
-        if (!fixedRequest.messageIntegrityCode) {
-            fixedRequest.messageIntegrityCode = ZERO_BYTES_32;
-        }
-        const result = await verifyPayment(BtcTransaction, fixedRequest, this.processor.indexedQueryManager, this.processor.client);
-        return {
-            status: getAttestationStatus(result.status),
-            response: result.response,
-        } as AttestationResponse<Payment_Response>;
-    }
+  //-$$$<end-constructor> End of custom code section. Do not change this comment.
 
-    //-$$$<end-constructor> End of custom code section. Do not change this comment.
+  public async verifyEncodedRequest(abiEncodedRequest: string): Promise<AttestationResponse<Payment_Response>> {
+    const requestJSON = this.store.parseRequest<Payment_Request>(abiEncodedRequest);
 
-    public async verifyEncodedRequest(abiEncodedRequest: string): Promise<AttestationResponse<Payment_Response>> {
-        const requestJSON = this.store.parseRequest<Payment_Request>(abiEncodedRequest);
+    //-$$$<start-verifyEncodedRequest> Start of custom code section. Do not change this comment.
 
-        //-$$$<start-verifyEncodedRequest> Start of custom code section. Do not change this comment.
+    const response = await this.verifyRequest(requestJSON);
 
-        const response = await this.verifyRequest(requestJSON);
+    //-$$$<end-verifyEncodedRequest> End of custom code section. Do not change this comment.
 
-        //-$$$<end-verifyEncodedRequest> End of custom code section. Do not change this comment.
+    return response;
+  }
 
-        return response;
-    }
+  public async prepareResponse(request: Payment_RequestNoMic): Promise<AttestationResponse<Payment_Response>> {
+    //-$$$<start-prepareResponse> Start of custom code section. Do not change this comment.
 
-    public async prepareResponse(request: Payment_RequestNoMic): Promise<AttestationResponse<Payment_Response>> {
-        //-$$$<start-prepareResponse> Start of custom code section. Do not change this comment.
+    const response = await this.verifyRequest(request);
 
-        const response = await this.verifyRequest(request);
+    //-$$$<end-prepareResponse> End of custom code section. Do not change this comment.
 
-        //-$$$<end-prepareResponse> End of custom code section. Do not change this comment.
+    return response;
+  }
 
-        return response;
-    }
+  public async mic(request: Payment_RequestNoMic): Promise<string | undefined> {
+    //-$$$<start-mic> Start of custom code section. Do not change this comment.
 
-    public async mic(request: Payment_RequestNoMic): Promise<string | undefined> {
-        //-$$$<start-mic> Start of custom code section. Do not change this comment.
+    const result = await this.verifyRequest(request);
+    const response = result.response;
 
-        const result = await this.verifyRequest(request);
-        const response = result.response;
+    //-$$$<end-mic> End of custom code section. Do not change this comment.
 
-        //-$$$<end-mic> End of custom code section. Do not change this comment.
+    if (!response) return undefined;
+    return this.store.attestationResponseHash<Payment_Response>(response, MIC_SALT)!;
+  }
 
-        if (!response) return undefined;
-        return this.store.attestationResponseHash<Payment_Response>(response, MIC_SALT)!;
-    }
+  public async prepareRequest(request: Payment_RequestNoMic): Promise<string | undefined> {
+    //-$$$<start-prepareRequest> Start of custom code section. Do not change this comment.
 
-    public async prepareRequest(request: Payment_RequestNoMic): Promise<string | undefined> {
-        //-$$$<start-prepareRequest> Start of custom code section. Do not change this comment.
+    const result = await this.verifyRequest(request);
+    const response = result.response;
 
-        const result = await this.verifyRequest(request);
-        const response = result.response;
+    //-$$$<end-prepareRequest> End of custom code section. Do not change this comment.
 
-        //-$$$<end-prepareRequest> End of custom code section. Do not change this comment.
+    if (!response) return undefined;
+    const newRequest = {
+      ...request,
+      messageIntegrityCode: this.store.attestationResponseHash<Payment_Response>(response, MIC_SALT)!,
+    } as Payment_Request;
 
-        if (!response) return undefined;
-        const newRequest = {
-            ...request,
-            messageIntegrityCode: this.store.attestationResponseHash<Payment_Response>(response, MIC_SALT)!,
-        } as Payment_Request;
-
-        return this.store.encodeRequest(newRequest);
-    }
+    return this.store.encodeRequest(newRequest);
+  }
 }

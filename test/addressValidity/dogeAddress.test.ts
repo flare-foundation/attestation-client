@@ -2,6 +2,9 @@ import { getTestFile } from "../test-utils/test-utils";
 import { expect } from "chai";
 import { VerificationStatus } from "../../src/verification/attestation-types/attestation-types";
 import { verifyAddressDOGE } from "../../src/servers/verifier-server/src/verification/address-validity/address-validity-doge";
+import { AddressValidity_Request, AddressValidity_RequestBody } from "../../src/servers/verifier-server/src/dtos/attestation-types/AddressValidity.dto";
+import { DOGEAddressValidityVerifierService } from "../../src/servers/verifier-server/src/services/doge/doge-address-validity-verifier.service";
+import { ZERO_BYTES_32, encodeAttestationName } from "../../src/external-libs/utils";
 
 describe(`Address validity doge, ${getTestFile(__filename)}`, function () {
   it("should confirm valid p2pkh address", function () {
@@ -58,5 +61,38 @@ describe(`Address validity doge, ${getTestFile(__filename)}`, function () {
     const resp = verifyAddressDOGE(address);
 
     expect(resp.status).to.eq(VerificationStatus.NOT_CONFIRMED);
+  });
+
+  describe("server functions", function () {
+    const requestBody: AddressValidity_RequestBody = {
+      addressStr: "DJXvHTVFXxgKPxwCC1MfmHxNySoApA87Pc",
+    };
+
+    const attestationType = encodeAttestationName("AddressValidity");
+    const sourceId = encodeAttestationName("XRP");
+
+    const request: AddressValidity_Request = {
+      attestationType,
+      sourceId,
+      messageIntegrityCode: ZERO_BYTES_32,
+      requestBody,
+    };
+
+    const services = new DOGEAddressValidityVerifierService();
+
+    it("should compute mic", async function () {
+      const mic = await services.mic(request);
+
+      expect(mic.length).to.eq(66);
+    });
+
+    it("should prepare request", async function () {
+      const encoded = await services.prepareRequest(request);
+
+      delete request.messageIntegrityCode;
+      const encoded2 = await services.prepareRequest(request);
+
+      expect(encoded).to.eq(encoded2);
+    });
   });
 });

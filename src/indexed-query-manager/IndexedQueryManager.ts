@@ -8,6 +8,7 @@ import {
   BlockHeightSample,
   BlockQueryParams,
   BlockQueryResult,
+  BlockResult,
   ConfirmedBlockQueryRequest,
   ConfirmedBlockQueryResponse,
   ConfirmedTransactionQueryRequest,
@@ -84,10 +85,6 @@ export class IndexedQueryManager implements IIndexedQueryManager {
     return `${MCC.getChainTypeName(this.settings.chainType)}_T`;
   }
 
-  /**
-   * Returns the last confirmed block height (`N`) for which all transactions are in database
-   * @returns
-   */
   public async getLastConfirmedBlockNumber(): Promise<number> {
     const res = await this.entityManager.findOne(DBState, { where: { name: this.getChainN() } });
     if (res === undefined || res === null) {
@@ -96,10 +93,6 @@ export class IndexedQueryManager implements IIndexedQueryManager {
     return res.valueNumber;
   }
 
-  /**
-   * Returns last block height (`T`) and the timestamp of the last sampling by indexer
-   * @returns
-   */
   public async getLatestBlockTimestamp(): Promise<BlockHeightSample | null> {
     const res = await this.entityManager.findOne(DBState, { where: { name: this.getChainT() } });
     if (res === undefined || res === null) {
@@ -115,12 +108,6 @@ export class IndexedQueryManager implements IIndexedQueryManager {
   // General confirm transaction and block queries
   ////////////////////////////////////////////////////////////
 
-  /**
-   * Carries out a transaction search with boundary synchronization, subject to query parameters
-   * @param params query parameters
-   * @returns an object with the list of transactions found and (optional) lowest and highest blocks of search
-   * boundary range.
-   */
   public async queryTransactions(params: TransactionQueryParams): Promise<TransactionQueryResult> {
     let results: DBTransactionBase[] = [];
 
@@ -144,8 +131,8 @@ export class IndexedQueryManager implements IIndexedQueryManager {
 
       results = results.concat(await query.getMany());
     }
-    let lowerQueryWindowBlock: DBBlockBase;
-    let upperQueryWindowBlock: DBBlockBase;
+    let lowerQueryWindowBlock: BlockResult;
+    let upperQueryWindowBlock: BlockResult;
 
     if (params.startBlockNumber !== undefined) {
       const lowerQueryWindowBlockResult = await this.queryBlock({
@@ -169,12 +156,6 @@ export class IndexedQueryManager implements IIndexedQueryManager {
     };
   }
 
-  /**
-   * Carries out a block search with boundary synchronization, subject to query parameters
-   * @param params query parameters
-   * @returns an object with the block found and (optional) lowest and highest blocks of search
-   * boundary range.
-   */
   public async queryBlock(params: BlockQueryParams): Promise<BlockQueryResult> {
     if (!params.blockNumber && !params.hash) {
       throw new Error("One of 'blockNumber' or 'hash' is a mandatory parameter");
@@ -195,18 +176,13 @@ export class IndexedQueryManager implements IIndexedQueryManager {
     };
   }
 
-  /**
-   * Gets a block for a given hash
-   * @param hash
-   * @returns the block with given hash, if exists, `null` otherwise
-   */
-  public async getBlockByHash(hash: string): Promise<DBBlockBase | null> {
+  public async getBlockByHash(hash: string): Promise<DBBlockBase | undefined> {
     const query = this.entityManager.createQueryBuilder(this.blockTable, "block").where("block.blockHash = :hash", { hash: hash });
     const result = await query.getOne();
     if (result) {
       return result as DBBlockBase;
     }
-    return null;
+    return undefined;
   }
 
   ////////////////////////////////////////////////////////////
@@ -234,13 +210,6 @@ export class IndexedQueryManager implements IIndexedQueryManager {
   // Confirmed transaction query
   ////////////////////////////////////////////////////////////
 
-  /**
-   * Carries the boundary synchronized query and tries to obtain transaction meeting the query criteria from the indexer database.
-   * @param params
-   * @returns search status, required
-   * transaction block, if found,
-   * lower and upper boundary blocks, if required by query parameters.
-   */
   public async getConfirmedTransaction(params: ConfirmedTransactionQueryRequest): Promise<ConfirmedTransactionQueryResponse> {
     const transactionsQueryResult = await this.queryTransactions({
       transactionId: params.txId,
@@ -257,12 +226,6 @@ export class IndexedQueryManager implements IIndexedQueryManager {
   // Referenced transactions query
   ////////////////////////////////////////////////////////////
 
-  /**
-   * Carries the boundary synchronized query and tries to obtain transactions meeting the query criteria from the indexer database.
-   * @param params
-   * @returns search status, list of transactions meeting query criteria, and lower and upper boundary blocks, if required by
-   * query parameters.
-   */
   public async getReferencedTransactions(params: ReferencedTransactionsQueryRequest): Promise<ReferencedTransactionsQueryResponse> {
     const firstOverflowBlock = await this.getFirstConfirmedOverflowBlock(params.deadlineBlockTimestamp, params.deadlineBlockNumber);
     if (!firstOverflowBlock) {
@@ -297,12 +260,7 @@ export class IndexedQueryManager implements IIndexedQueryManager {
   // Special block queries
   ////////////////////////////////////////////////////////////
 
-  /**
-   * Gets the last confirmed block with the timestamp strictly smaller to the given timestamp
-   * @param timestamp
-   * @returns the block, if exists, otherwise `null`
-   */
-  public async getLastConfirmedBlockStrictlyBeforeTime(timestamp: number): Promise<DBBlockBase | null> {
+  public async getLastConfirmedBlockStrictlyBeforeTime(timestamp: number): Promise<DBBlockBase | undefined> {
     const query = this.entityManager
       .createQueryBuilder(this.blockTable, "block")
       .where("block.confirmed = :confirmed", { confirmed: true })
@@ -319,7 +277,7 @@ export class IndexedQueryManager implements IIndexedQueryManager {
    * @param blockNumber
    * @returns the block, if it exists, `null` otherwise
    */
-  private async getFirstConfirmedOverflowBlock(timestamp: number, blockNumber: number): Promise<DBBlockBase | null> {
+  private async getFirstConfirmedOverflowBlock(timestamp: number, blockNumber: number): Promise<DBBlockBase | undefined> {
     const query = this.entityManager
       .createQueryBuilder(this.blockTable, "block")
       .where("block.confirmed = :confirmed", { confirmed: true })

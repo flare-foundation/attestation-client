@@ -16,10 +16,10 @@ import { BlockHeaderBTC } from "../mockData/indexMock";
 import { getTestFile } from "../test-utils/test-utils";
 chai.use(chaiAsPromised);
 
-describe(`Indexer sync LTC ${getTestFile(__filename)})`, () => {
+describe.skip(`Indexer sync LTC ${getTestFile(__filename)})`, () => {
   initializeTestGlobalLogger();
 
-  describe("construction", function () {
+  describe.skip("construction", function () {
     const LTCMccConnection = new UtxoMccCreate();
     LTCMccConnection.url = "https://litecoin-api.flare.network";
     LTCMccConnection.username = "public";

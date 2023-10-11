@@ -11,9 +11,8 @@ import {
   ZERO_BYTES_32
 } from "@flarenetwork/mcc";
 import Web3 from "web3";
-import { DBBlockBase } from "../../../../entity/indexer/dbBlock";
-import { DBTransactionBase } from "../../../../entity/indexer/dbTransaction";
 import { IIndexedQueryManager } from "../../../../indexed-query-manager/IIndexedQueryManager";
+import { BlockResult, TransactionResult } from "../../../../indexed-query-manager/indexed-query-manager-types";
 import { retry } from "../../../../utils/helpers/promiseTimeout";
 import { logException } from "../../../../utils/logging/logger";
 import { VerificationStatus } from "../../../../verification/attestation-types/attestation-types";
@@ -53,7 +52,7 @@ function serializeBigInts(obj: any) {
  * @returns
  */
 export async function responsePayment<T extends TransactionBase>(
-  dbTransaction: DBTransactionBase,
+  dbTransaction: TransactionResult,
   TransactionClass: new (...args: any[]) => T,
   request: Payment_Request,
   client?: MccClient
@@ -62,7 +61,7 @@ export async function responsePayment<T extends TransactionBase>(
   try {
     parsedData = JSON.parse(dbTransaction.getResponse());
   } catch (error) {
-    logException(error, `responsePayment '${dbTransaction.id}' JSON parse '${dbTransaction.getResponse()}'`);
+    logException(error, `responsePayment '${dbTransaction.transactionId}' JSON parse '${dbTransaction.getResponse()}'`);
     return { status: VerificationStatus.SYSTEM_FAILURE };
   }
 
@@ -148,7 +147,7 @@ export async function verifyPayment<T extends TransactionBase>(
  * @returns
  */
 export async function responseBalanceDecreasingTransaction<T extends TransactionBase>(
-  dbTransaction: DBTransactionBase,
+  dbTransaction: TransactionResult,
   TransactionClass: new (...args: any[]) => T,
   request: BalanceDecreasingTransaction_Request,
   client?: MccClient
@@ -157,7 +156,7 @@ export async function responseBalanceDecreasingTransaction<T extends Transaction
   try {
     parsedData = JSON.parse(dbTransaction.getResponse());
   } catch (error) {
-    logException(error, `responseBalanceDecreasingTransaction '${dbTransaction.id}' JSON parse '${dbTransaction.getResponse()}'`);
+    logException(error, `responseBalanceDecreasingTransaction '${dbTransaction.transactionId}' JSON parse '${dbTransaction.getResponse()}'`);
     return { status: VerificationStatus.SYSTEM_FAILURE };
   }
 
@@ -234,8 +233,8 @@ export async function verifyBalanceDecreasingTransaction<T extends TransactionBa
  * @returns
  */
 export async function responseConfirmedBlockHeightExists(
-  dbBlock: DBBlockBase,
-  lowerQueryWindowBlock: DBBlockBase,
+  dbBlock: BlockResult,
+  lowerQueryWindowBlock: BlockResult,
   numberOfConfirmations: number,
   request: ConfirmedBlockHeightExists_Request
 ) {
@@ -306,10 +305,10 @@ export async function verifyConfirmedBlockHeightExists(
  * @returns
  */
 export async function responseReferencedPaymentNonExistence<T extends TransactionBase>(
-  dbTransactions: DBTransactionBase[],
+  dbTransactions: TransactionResult[],
   TransactionClass: new (...args: any[]) => T,
-  firstOverflowBlock: DBBlockBase,
-  lowerBoundaryBlock: DBBlockBase,
+  firstOverflowBlock: BlockResult,
+  lowerBoundaryBlock: BlockResult,
   request: ReferencedPaymentNonexistence_Request
 ) {
   // Check transactions for a matching

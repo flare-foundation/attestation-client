@@ -1,7 +1,5 @@
- import { ChainType } from "@flarenetwork/mcc";
+import { ChainType } from "@flarenetwork/mcc";
 import { EntityManager } from "typeorm";
-import { DBBlockBase } from "../entity/indexer/dbBlock";
-import { DBTransactionBase } from "../entity/indexer/dbTransaction";
 
 export interface IndexedQueryManagerOptions {
   chainType: ChainType;
@@ -12,6 +10,30 @@ export interface IndexedQueryManagerOptions {
 export interface BlockHeightSample {
   height: number;
   timestamp: number;
+}
+
+////////////////////////////////////////////////////////
+/// Result interfaces
+////////////////////////////////////////////////////////
+
+export interface TransactionResult {
+  getResponse(): string;
+  chainType: number;
+  transactionId: string;
+  blockNumber: number;
+  timestamp: number;
+  paymentReference: string;
+  response: Buffer;
+  isNativePayment: boolean; 
+  transactionType: string;
+}
+
+export interface BlockResult {
+  blockNumber: number;
+  timestamp: number;
+  transactions: number;
+  confirmed: boolean;
+  blockHash: string;
 }
 
 ////////////////////////////////////////////////////////
@@ -34,13 +56,13 @@ export interface BlockQueryParams {
 export type IndexerQueryType = "FIRST_CHECK" | "RECHECK";
 
 export interface TransactionQueryResult {
-  result: DBTransactionBase[];
-  startBlock?: DBBlockBase;
-  endBlock?: DBBlockBase;
+  result: TransactionResult[];
+  startBlock?: BlockResult;
+  endBlock?: BlockResult;
 }
 
 export interface BlockQueryResult {
-  result?: DBBlockBase;
+  result?: BlockResult;
 }
 
 ////////////////////////////////////////////////////////
@@ -54,7 +76,7 @@ export interface ConfirmedBlockQueryRequest {
 export type ConfirmedBlockQueryStatusType = "OK" | "NOT_EXIST";
 export interface ConfirmedBlockQueryResponse {
   status: ConfirmedBlockQueryStatusType;
-  block?: DBBlockBase;
+  block?: BlockResult;
 }
 export interface ConfirmedTransactionQueryRequest {
   txId: string; // transaction id
@@ -63,7 +85,7 @@ export interface ConfirmedTransactionQueryRequest {
 export type ConfirmedTransactionQueryStatusType = "OK" | "NOT_EXIST";
 export interface ConfirmedTransactionQueryResponse {
   status: ConfirmedTransactionQueryStatusType;
-  transaction?: DBTransactionBase;
+  transaction?: TransactionResult;
 }
 
 export interface ReferencedTransactionsQueryRequest {
@@ -76,11 +98,15 @@ export interface ReferencedTransactionsQueryRequest {
 export type ReferencedTransactionsQueryStatusType = "OK" | "NO_OVERFLOW_BLOCK" | "DATA_AVAILABILITY_FAILURE";
 export interface ReferencedTransactionsQueryResponse {
   status: ReferencedTransactionsQueryStatusType;
-  transactions?: DBTransactionBase[];
-  firstOverflowBlock?: DBBlockBase;
-  minimalBlock?: DBBlockBase;
+  transactions?: TransactionResult[];
+  firstOverflowBlock?: BlockResult;
+  minimalBlock?: BlockResult;
 }
 
+/**
+ * Options for random transaction generation/choice from the indexer database.
+ * Random transaction selection is used with spammers, that are used to test the State Connector system.
+ */
 export interface RandomTransactionOptions {
   mustBeNativePayment?: boolean;
   mustNotBeNativePayment?: boolean;

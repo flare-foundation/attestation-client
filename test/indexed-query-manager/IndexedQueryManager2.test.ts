@@ -127,7 +127,7 @@ describe(`IndexedQueryManager (${getTestFile(__filename)})`, () => {
     });
     it("Should not getBlockByHash", async () => {
       const blockQueried = await indexedQueryManager.getBlockByHash("");
-      expect(blockQueried).to.be.null;
+      expect(blockQueried).to.be.undefined;
     });
 
     it("Should get getFirstConfirmedOverflowBlock", async function () {

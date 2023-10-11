@@ -6,90 +6,90 @@ import { ExampleData } from "../../../../../external-libs/interfaces";
 import { MIC_SALT, ZERO_BYTES_32 } from "../../../../../external-libs/utils";
 import { getAttestationStatus } from "../../../../../verification/attestation-types/attestation-types";
 import {
-    ConfirmedBlockHeightExists_Request,
-    ConfirmedBlockHeightExists_RequestNoMic,
-    ConfirmedBlockHeightExists_Response,
+  ConfirmedBlockHeightExists_Request,
+  ConfirmedBlockHeightExists_RequestNoMic,
+  ConfirmedBlockHeightExists_Response,
 } from "../../dtos/attestation-types/ConfirmedBlockHeightExists.dto";
 import { verifyConfirmedBlockHeightExists } from "../../verification/generic-chain-verifications";
 import { BTCProcessorService } from "../verifier-processors/btc-processor.service";
 
 @Injectable()
 export class BTCConfirmedBlockHeightExistsVerifierService {
-    store!: AttestationDefinitionStore;
-    exampleData!: ExampleData<ConfirmedBlockHeightExists_RequestNoMic, ConfirmedBlockHeightExists_Request, ConfirmedBlockHeightExists_Response>;
+  store!: AttestationDefinitionStore;
+  exampleData!: ExampleData<ConfirmedBlockHeightExists_RequestNoMic, ConfirmedBlockHeightExists_Request, ConfirmedBlockHeightExists_Response>;
 
-    //-$$$<start-constructor> Start of custom code section. Do not change this comment.
+  //-$$$<start-constructor> Start of custom code section. Do not change this comment.
 
-    constructor(@Inject("VERIFIER_PROCESSOR") private processor: BTCProcessorService) {
-        this.store = new AttestationDefinitionStore("configs/type-definitions");
+  constructor(@Inject("VERIFIER_PROCESSOR") private processor: BTCProcessorService) {
+    this.store = new AttestationDefinitionStore("configs/type-definitions");
+  }
+
+  private async verifyRequest(
+    request: ConfirmedBlockHeightExists_RequestNoMic | ConfirmedBlockHeightExists_Request
+  ): Promise<AttestationResponse<ConfirmedBlockHeightExists_Response>> {
+    let fixedRequest = {
+      ...request,
+    } as ConfirmedBlockHeightExists_Request;
+    if (!fixedRequest.messageIntegrityCode) {
+      fixedRequest.messageIntegrityCode = ZERO_BYTES_32;
     }
+    const result = await verifyConfirmedBlockHeightExists(fixedRequest, this.processor.indexedQueryManager);
+    return {
+      status: getAttestationStatus(result.status),
+      response: result.response,
+    } as AttestationResponse<ConfirmedBlockHeightExists_Response>;
+  }
 
-    private async verifyRequest(
-        request: ConfirmedBlockHeightExists_RequestNoMic | ConfirmedBlockHeightExists_Request,
-    ): Promise<AttestationResponse<ConfirmedBlockHeightExists_Response>> {
-        let fixedRequest = {
-            ...request,
-        } as ConfirmedBlockHeightExists_Request;
-        if (!fixedRequest.messageIntegrityCode) {
-            fixedRequest.messageIntegrityCode = ZERO_BYTES_32;
-        }
-        const result = await verifyConfirmedBlockHeightExists(fixedRequest, this.processor.indexedQueryManager);
-        return {
-            status: getAttestationStatus(result.status),
-            response: result.response,
-        } as AttestationResponse<ConfirmedBlockHeightExists_Response>;
-    }
+  //-$$$<end-constructor> End of custom code section. Do not change this comment.
 
-    //-$$$<end-constructor> End of custom code section. Do not change this comment.
+  public async verifyEncodedRequest(abiEncodedRequest: string): Promise<AttestationResponse<ConfirmedBlockHeightExists_Response>> {
+    const requestJSON = this.store.parseRequest<ConfirmedBlockHeightExists_Request>(abiEncodedRequest);
 
-    public async verifyEncodedRequest(abiEncodedRequest: string): Promise<AttestationResponse<ConfirmedBlockHeightExists_Response>> {
-        const requestJSON = this.store.parseRequest<ConfirmedBlockHeightExists_Request>(abiEncodedRequest);
+    //-$$$<start-verifyEncodedRequest> Start of custom code section. Do not change this comment.
 
-        //-$$$<start-verifyEncodedRequest> Start of custom code section. Do not change this comment.
+    const response = await this.verifyRequest(requestJSON);
 
-        const response = await this.verifyRequest(requestJSON);
+    //-$$$<end-verifyEncodedRequest> End of custom code section. Do not change this comment.
 
-        //-$$$<end-verifyEncodedRequest> End of custom code section. Do not change this comment.
+    return response;
+  }
 
-        return response;
-    }
+  public async prepareResponse(request: ConfirmedBlockHeightExists_RequestNoMic): Promise<AttestationResponse<ConfirmedBlockHeightExists_Response>> {
+    //-$$$<start-prepareResponse> Start of custom code section. Do not change this comment.
 
-    public async prepareResponse(request: ConfirmedBlockHeightExists_RequestNoMic): Promise<AttestationResponse<ConfirmedBlockHeightExists_Response>> {
-        //-$$$<start-prepareResponse> Start of custom code section. Do not change this comment.
+    const response = await this.verifyRequest(request);
 
-        const response = await this.verifyRequest(request);
+    //-$$$<end-prepareResponse> End of custom code section. Do not change this comment.
 
-        //-$$$<end-prepareResponse> End of custom code section. Do not change this comment.
+    return response;
+  }
 
-        return response;
-    }
+  public async mic(request: ConfirmedBlockHeightExists_RequestNoMic): Promise<string | undefined> {
+    //-$$$<start-mic> Start of custom code section. Do not change this comment.
 
-    public async mic(request: ConfirmedBlockHeightExists_RequestNoMic): Promise<string | undefined> {
-        //-$$$<start-mic> Start of custom code section. Do not change this comment.
+    const result = await this.verifyRequest(request);
+    const response = result.response;
 
-        const result = await this.verifyRequest(request);
-        const response = result.response;
+    //-$$$<end-mic> End of custom code section. Do not change this comment.
 
-        //-$$$<end-mic> End of custom code section. Do not change this comment.
+    if (!response) return undefined;
+    return this.store.attestationResponseHash<ConfirmedBlockHeightExists_Response>(response, MIC_SALT)!;
+  }
 
-        if (!response) return undefined;
-        return this.store.attestationResponseHash<ConfirmedBlockHeightExists_Response>(response, MIC_SALT)!;
-    }
+  public async prepareRequest(request: ConfirmedBlockHeightExists_RequestNoMic): Promise<string | undefined> {
+    //-$$$<start-prepareRequest> Start of custom code section. Do not change this comment.
 
-    public async prepareRequest(request: ConfirmedBlockHeightExists_RequestNoMic): Promise<string | undefined> {
-        //-$$$<start-prepareRequest> Start of custom code section. Do not change this comment.
+    const result = await this.verifyRequest(request);
+    const response = result.response;
 
-        const result = await this.verifyRequest(request);
-        const response = result.response;
+    //-$$$<end-prepareRequest> End of custom code section. Do not change this comment.
 
-        //-$$$<end-prepareRequest> End of custom code section. Do not change this comment.
+    if (!response) return undefined;
+    const newRequest = {
+      ...request,
+      messageIntegrityCode: this.store.attestationResponseHash<ConfirmedBlockHeightExists_Response>(response, MIC_SALT)!,
+    } as ConfirmedBlockHeightExists_Request;
 
-        if (!response) return undefined;
-        const newRequest = {
-            ...request,
-            messageIntegrityCode: this.store.attestationResponseHash<ConfirmedBlockHeightExists_Response>(response, MIC_SALT)!,
-        } as ConfirmedBlockHeightExists_Request;
-
-        return this.store.encodeRequest(newRequest);
-    }
+    return this.store.encodeRequest(newRequest);
+  }
 }

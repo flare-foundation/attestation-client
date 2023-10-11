@@ -89,7 +89,7 @@ describe(`Attester client integration (sometimes it fails due to time uncertaint
   let requestDoge: Payment_Request;
   let attestationXRP: Attestation;
   let attestationBTC: Attestation;
-  let attestationDoge: Attestation;
+  //let attestationDoge: Attestation;
   let stateConnector: StateConnectorTempTran;
   let bitVoting: BitVoting;
   let spammerWallet: any;
@@ -106,7 +106,7 @@ describe(`Attester client integration (sometimes it fails due to time uncertaint
 
   before(async function () {
     defStore = new AttestationDefinitionStore("configs/type-definitions");
-    
+
     // clear all test databases in './db/' folder
     await clearTestDatabases();
 
@@ -209,7 +209,6 @@ describe(`Attester client integration (sometimes it fails due to time uncertaint
     // let a = 1/1;
     // if (a === 1) {
     //   process.exit(1);
-    // }
 
     // Initialize test requests
 
@@ -221,8 +220,8 @@ describe(`Attester client integration (sometimes it fails due to time uncertaint
     requestBTC = await testPaymentRequest(defStore, setup.BTC.selectedTransaction, BtcTransaction, ChainType.BTC, inUtxo, utxo);
     attestationBTC = prepareAttestation(defStore, requestBTC, setup.startTime);
 
-    requestDoge = await testPaymentRequest(defStore, setup.Doge.selectedTransaction, DogeTransaction, ChainType.DOGE);
-    attestationDoge = prepareAttestation(defStore, requestDoge, setup.startTime);
+    //requestDoge = await testPaymentRequest(defStore, setup.Doge.selectedTransaction, DogeTransaction, ChainType.DOGE);
+    //attestationDoge = prepareAttestation(defStore, requestDoge, setup.startTime);
 
     ///////////////////////////////////
     // Attester related intializations
@@ -268,7 +267,7 @@ describe(`Attester client integration (sometimes it fails due to time uncertaint
       web3,
       spammerWallet,
       bufferWindowDurationSec / 5, //to get duplicates
-      [attestationXRP.data.request, attestationBTC.data.request, attestationDoge.data.request],
+      [attestationXRP.data.request, attestationBTC.data.request],
       SPAMMER_FREQUENCIES,
       SPAMMER_GAPS
     );

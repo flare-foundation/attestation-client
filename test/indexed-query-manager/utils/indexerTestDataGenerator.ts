@@ -366,10 +366,11 @@ export async function testPaymentRequest(
       transactionId: prefix0x(dbTransaction.transactionId),
       inUtxo: inUtxo.toString(),
       utxo: utxo.toString(),
-    }
+    },
   } as Payment_Request;
 
   const responseData = await responsePayment(dbTransaction, TransactionClass, request, undefined);
+  console.log(responseData.response);
 
   if (responseData.status === "OK") {
     request.messageIntegrityCode = definitionStore.attestationResponseHash(responseData.response, MIC_SALT);
@@ -391,7 +392,7 @@ export async function testBalanceDecreasingTransactionRequest(
     requestBody: {
       transactionId: prefix0x(dbTransaction.transactionId),
       sourceAddressIndicator,
-    }
+    },
   } as BalanceDecreasingTransaction_Request;
 
   const responseData = await responseBalanceDecreasingTransaction(dbTransaction, TransactionClass, request, undefined);
@@ -417,7 +418,7 @@ export async function testConfirmedBlockHeightExistsRequest(
     requestBody: {
       blockNumber: dbBlock.blockNumber.toString(),
       queryWindow: queryWindow.toString(),
-    }
+    },
   } as ConfirmedBlockHeightExists_Request;
 
   const responseData = await responseConfirmedBlockHeightExists(dbBlock, lowerQueryWindowBlock, numberOfConfirmations, request);
@@ -441,7 +442,6 @@ export async function testReferencedPaymentNonexistenceRequest(
   paymentReference: string,
   amount: string | number
 ) {
-
   const request = {
     attestationType: encodeAttestationName("ReferencedPaymentNonexistence"),
     sourceId: encodeAttestationName(MCC.getChainTypeName(chainType)),
@@ -453,17 +453,10 @@ export async function testReferencedPaymentNonexistenceRequest(
       destinationAddressHash: Web3.utils.soliditySha3(destinationAddress),
       amount: amount.toString(),
       standardPaymentReference: paymentReference,
-    }
+    },
   } as ReferencedPaymentNonexistence_Request;
 
-  const responseData = await responseReferencedPaymentNonExistence(
-    dbTransactions,
-    TransactionClass,
-    firstOverflowBlock,
-    lowerBoundaryBlock,
-    request
-  );
-
+  const responseData = await responseReferencedPaymentNonExistence(dbTransactions, TransactionClass, firstOverflowBlock, lowerBoundaryBlock, request);
 
   if (responseData.status === "OK") {
     request.messageIntegrityCode = definitionStore.attestationResponseHash(responseData.response, MIC_SALT);

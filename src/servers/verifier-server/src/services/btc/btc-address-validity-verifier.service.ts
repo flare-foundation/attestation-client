@@ -52,71 +52,52 @@ export class BTCAddressValidityVerifierService {
 
     // PUT YOUR CUSTOM CODE HERE
 
-    //-$$$<end-verifyEncodedRequest> End of custom code section. Do not change this comment.
+    const response = await this.verifyRequest(requestJSON);
 
-    // Example of response body. Delete this example and provide value for variable 'response' in the custom code section above.
-    const response: AttestationResponse<AddressValidity_Response> = {
-      status: AttestationResponseStatus.VALID,
-      response: this.exampleData.response,
-    };
+    //-$$$<end-verifyEncodedRequest> End of custom code section. Do not change this comment.
 
     return response;
   }
 
   public async prepareResponse(request: AddressValidity_RequestNoMic): Promise<AttestationResponse<AddressValidity_Response>> {
-    console.dir(request, { depth: null });
-
     //-$$$<start-prepareResponse> Start of custom code section. Do not change this comment.
 
     // PUT YOUR CUSTOM CODE HERE
 
-    //-$$$<end-prepareResponse> End of custom code section. Do not change this comment.
+    const response = await this.verifyRequest(request);
 
-    // Example of response body. Delete this example and provide value for variable 'response' in the custom code section above.
-    const response: AttestationResponse<AddressValidity_Response> = {
-      status: AttestationResponseStatus.VALID,
-      response: {
-        ...this.exampleData.response,
-        ...request,
-      } as AddressValidity_Response,
-    };
+    //-$$$<end-prepareResponse> End of custom code section. Do not change this comment.
 
     return response;
   }
 
   public async mic(request: AddressValidity_RequestNoMic): Promise<string | undefined> {
-    console.dir(request, { depth: null });
-
     //-$$$<start-mic> Start of custom code section. Do not change this comment.
 
     // PUT YOUR CUSTOM CODE HERE
 
+    const result = await this.verifyRequest(request);
+    const response = result.response;
+
     //-$$$<end-mic> End of custom code section. Do not change this comment.
 
     // Example of response body. Delete this example and provide value for variable 'response' in the custom code section above.
-    const response: AddressValidity_Response = {
-      ...this.exampleData.response,
-      ...request,
-    };
 
     if (!response) return undefined;
     return this.store.attestationResponseHash<AddressValidity_Response>(response, MIC_SALT)!;
   }
 
   public async prepareRequest(request: AddressValidity_RequestNoMic): Promise<string | undefined> {
-    console.dir(request, { depth: null });
-
     //-$$$<start-prepareRequest> Start of custom code section. Do not change this comment.
 
     // PUT YOUR CUSTOM CODE HERE
 
+    const result = await this.verifyRequest(request);
+    const response = result.response;
+
     //-$$$<end-prepareRequest> End of custom code section. Do not change this comment.
 
     // Example of response body. Delete this example and provide value for variable 'response' in the custom code section above.
-    const response: AddressValidity_Response = {
-      ...this.exampleData.response,
-      ...request,
-    };
 
     if (!response) return undefined;
     const newRequest = {

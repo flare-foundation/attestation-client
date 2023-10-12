@@ -45,3 +45,27 @@ export class DBBlockXRP extends DBBlockBase {}
 
 @Entity({ name: "algo_block" })
 export class DBBlockALGO extends DBBlockBase {}
+
+
+// External Postgres Database Entities (read only)
+
+@Entity("doge_indexer_dogeblock")
+export class DogeIndexerBlock {
+  @PrimaryColumn({ type: "char" })
+  block_hash!: string;
+
+  @Column()
+  block_number!: number;
+
+  @Column()
+  timestamp!: number;
+
+  @Column()
+  transactions: number;
+
+  @Column()
+  confirmed: boolean;
+
+  @Column()
+  previous_block_hash: string;
+}

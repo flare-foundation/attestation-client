@@ -27,8 +27,8 @@ export async function createTypeOrmOptions(loggerLabel: string): Promise<TypeOrm
       username: "db",
       password: "secret",
       database: "db",
-
-      synchronize: true,
+      entities: entities,
+      synchronize: false,
       migrationsRun: false,
       logging: false,
     }

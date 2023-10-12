@@ -7,23 +7,18 @@ import { VerifierServerConfig } from "../config-models/VerifierServerConfig";
 export async function createTypeOrmOptions(loggerLabel: string): Promise<TypeOrmModuleOptions> {
   // Entity definition
   let verifierType = process.env.VERIFIER_TYPE;
-  let entities = indexerEntities(verifierType);
-
   const config = await readSecureConfig(new VerifierServerConfig(), `verifier-server/${verifierType}-verifier`);
 
   // connecting to external postgres db
-  console.log()
-  console.log()
-  console.log("HERE I AM")
-  console.log()
-  console.log()
-  console.log(process.env.EXTERNAL)
-
   if (
     process.env.NODE_ENV === "development" &&
     process.env.EXTERNAL === "django"
   ) {
+    // get custom entities
+    // TODO: only doge ATM
+    const entities = indexerEntities(`${verifierType}-external`);
     console.log("External")
+    console.log(entities)
     return {
       name: "db",
       type: "postgres",
@@ -38,6 +33,8 @@ export async function createTypeOrmOptions(loggerLabel: string): Promise<TypeOrm
       logging: false,
     }
   }
+
+  const entities = indexerEntities(verifierType);
 
   // In memory for testing
   if (

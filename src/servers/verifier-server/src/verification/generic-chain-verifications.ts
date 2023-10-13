@@ -67,10 +67,23 @@ export async function responsePayment<T extends TransactionBase>(
 
   const fullTxData = new TransactionClass(parsedData.data, parsedData.additionalData);
 
-  const inUtxoNumber = parseInt(BigInt(request.requestBody.inUtxo).toString());
-  const utxoNumber = parseInt(BigInt(request.requestBody.utxo).toString())
+  if (BigInt(request.requestBody.inUtxo) < 0 || BigInt(request.requestBody.inUtxo) >= Number.MAX_SAFE_INTEGER) {
+    return { status: VerificationStatus.NOT_CONFIRMED };
+  }
+  if (BigInt(request.requestBody.utxo) < 0 || BigInt(request.requestBody.utxo) >= Number.MAX_SAFE_INTEGER) {
+    return { status: VerificationStatus.NOT_CONFIRMED };
+  }
 
-  let paymentSummary = await fullTxData.paymentSummary({ client, inUtxo: inUtxoNumber, outUtxo: utxoNumber });
+  // We assume that a transaction cannot have more than Number.MAX_SAFE_INTEGER utxo inputs or outputs.
+  const inUtxoNumber = parseInt(BigInt(request.requestBody.inUtxo).toString());
+  const utxoNumber = parseInt(BigInt(request.requestBody.utxo).toString());
+
+  let paymentSummary: PaymentSummaryResponse;
+  try {
+    paymentSummary = await fullTxData.paymentSummary({ client, inUtxo: inUtxoNumber, outUtxo: utxoNumber });
+  } catch (e) {
+    return { status: VerificationStatus.NOT_CONFIRMED };
+  }
 
   if (paymentSummary.status !== PaymentSummaryStatus.Success) {
     return { status: VerificationStatus.NOT_CONFIRMED };
@@ -80,17 +93,16 @@ export async function responsePayment<T extends TransactionBase>(
     throw new Error("critical error: should always have response");
   }
 
-  const response = {
+  const response = new Payment_Response({
     attestationType: request.attestationType,
     sourceId: request.sourceId,
     votingRound: "0",
     lowestUsedTimestamp: dbTransaction.timestamp.toString(),
     requestBody: serializeBigInts(request.requestBody),
-    responseBody: {
+    responseBody: new Payment_ResponseBody({
       blockNumber: dbTransaction.blockNumber.toString(),
       blockTimestamp: dbTransaction.timestamp.toString(),
       sourceAddressHash: paymentSummary.response.sourceAddressHash,
-      intendedSourceAddressHash: paymentSummary.response.intendedSourceAddressHash,
       receivingAddressHash: paymentSummary.response.receivingAddressHash,
       intendedReceivingAddressHash: paymentSummary.response.intendedReceivingAddressHash,
       standardPaymentReference: paymentSummary.response.paymentReference,
@@ -100,8 +112,8 @@ export async function responsePayment<T extends TransactionBase>(
       intendedReceivedAmount: paymentSummary.response.intendedReceivingAmount.toString(),
       oneToOne: paymentSummary.response.oneToOne,
       status: fullTxData.successStatus.toString(),
-    } as Payment_ResponseBody
-  } as Payment_Response;
+    }),
+  });
 
   return {
     status: VerificationStatus.OK,
@@ -172,20 +184,20 @@ export async function responseBalanceDecreasingTransaction<T extends Transaction
     throw new Error("critical error: should always have response");
   }
 
-  const response = {
+  const response = new BalanceDecreasingTransaction_Response({
     attestationType: request.attestationType,
     sourceId: request.sourceId,
     votingRound: "0",
     lowestUsedTimestamp: dbTransaction.timestamp.toString(),
     requestBody: serializeBigInts(request.requestBody),
-    responseBody: {
+    responseBody: new BalanceDecreasingTransaction_ResponseBody({
       blockNumber: dbTransaction.blockNumber.toString(),
       blockTimestamp: dbTransaction.timestamp.toString(),
       sourceAddressHash: balanceDecreasingSummary.response.sourceAddressHash,
       spentAmount: balanceDecreasingSummary.response.spentAmount.toString(),
       standardPaymentReference: balanceDecreasingSummary.response.paymentReference,
-    } as BalanceDecreasingTransaction_ResponseBody
-  } as BalanceDecreasingTransaction_Response;
+    }),
+  });
 
   return {
     status: VerificationStatus.OK,
@@ -221,6 +233,9 @@ export async function verifyBalanceDecreasingTransaction<T extends TransactionBa
   }
 
   const dbTransaction = confirmedTransactionResult.transaction;
+  if (!dbTransaction) {
+    throw new Error("critical error: should always have response");
+  }
   return await responseBalanceDecreasingTransaction(dbTransaction, TransactionClass, request, client);
 }
 
@@ -238,20 +253,19 @@ export async function responseConfirmedBlockHeightExists(
   numberOfConfirmations: number,
   request: ConfirmedBlockHeightExists_Request
 ) {
-  const response = {
+  const response = new ConfirmedBlockHeightExists_Response({
     attestationType: request.attestationType,
     sourceId: request.sourceId,
     votingRound: "0",
     lowestUsedTimestamp: dbBlock.timestamp.toString(),
     requestBody: serializeBigInts(request.requestBody),
-    responseBody: {
-      blockNumber: dbBlock.blockNumber.toString(),
+    responseBody: new ConfirmedBlockHeightExists_ResponseBody({
       blockTimestamp: dbBlock.timestamp.toString(),
       numberOfConfirmations: numberOfConfirmations.toString(),
       lowestQueryWindowBlockNumber: lowerQueryWindowBlock.blockNumber.toString(),
       lowestQueryWindowBlockTimestamp: lowerQueryWindowBlock.timestamp.toString(),
-    } as ConfirmedBlockHeightExists_ResponseBody,
-  } as ConfirmedBlockHeightExists_Response;
+    }),
+  });
 
   return {
     status: VerificationStatus.OK,
@@ -279,6 +293,9 @@ export async function verifyConfirmedBlockHeightExists(
   }
 
   const dbBlock = confirmedBlockQueryResult.block;
+  if (!dbBlock) {
+    throw new Error("critical error: should always have response");
+  }
   const lowerQueryWindowBlock = await iqm.getLastConfirmedBlockStrictlyBeforeTime(
     dbBlock.timestamp - parseInt(BigInt(request.requestBody.queryWindow).toString())
   );
@@ -324,6 +341,10 @@ export async function responseReferencedPaymentNonExistence<T extends Transactio
     // In account based case this loop goes through only once.
     for (let outUtxo = 0; outUtxo < fullTxData.intendedReceivedAmounts.length; outUtxo++) {
       const address = fullTxData.intendedReceivedAmounts[outUtxo].address;
+      if (!address) {
+        // no-address utxo, we skip it
+        continue;
+      }
       // TODO: standard address hash
       const destinationAddressHashTmp = Web3.utils.soliditySha3(address);
       if (destinationAddressHashTmp === request.requestBody.destinationAddressHash) {
@@ -332,7 +353,7 @@ export async function responseReferencedPaymentNonExistence<T extends Transactio
         )) as PaymentSummaryResponse;
 
         if (paymentSummary.status !== PaymentSummaryStatus.Success) {
-          // the address indicated in destinationAddressHash was fully checked, no need to proceed with utxos
+          // Payment summary for each output matching the destination address is equal, so the destination address has been processed.
           break;
         }
 
@@ -345,23 +366,24 @@ export async function responseReferencedPaymentNonExistence<T extends Transactio
             return { status: VerificationStatus.REFERENCED_TRANSACTION_EXISTS };
           }
         }
-        break;
+        // Payment summary for each output matching the destination address is equal, so the destination address has been processed.
+        break; 
       }
     }
   }
 
-  const response = {
+  const response = new ReferencedPaymentNonexistence_Response({
     attestationType: request.attestationType,
     sourceId: request.sourceId,
     votingRound: "0",
     lowestUsedTimestamp: lowerBoundaryBlock.timestamp.toString(),
     requestBody: serializeBigInts(request.requestBody),
-    responseBody: {
+    responseBody: new ReferencedPaymentNonexistence_ResponseBody({
       minimalBlockTimestamp: lowerBoundaryBlock.blockNumber.toString(),
       firstOverflowBlockNumber: firstOverflowBlock.blockNumber.toString(),
       firstOverflowBlockTimestamp: firstOverflowBlock.timestamp.toString(),
-    } as ReferencedPaymentNonexistence_ResponseBody,
-  } as ReferencedPaymentNonexistence_Response;
+    }),
+  });
 
   return {
     status: VerificationStatus.OK,
@@ -382,15 +404,22 @@ export async function verifyReferencedPaymentNonExistence<T extends TransactionB
   request: ReferencedPaymentNonexistence_Request,
   iqm: IIndexedQueryManager
 ): Promise<VerificationResponse<ReferencedPaymentNonexistence_Response>> {
-  // TODO: check if anything needs to be done with: startBlock >= overflowBlock
   // DANGER: How to handle this if there are a lot of transactions with same payment reference in the interval?
 
-  if (unPrefix0x(request.requestBody.standardPaymentReference) === unPrefix0x(ZERO_BYTES_32)) {
+  if (unPrefix0x(request.requestBody.standardPaymentReference).toLowerCase() === unPrefix0x(ZERO_BYTES_32).toLowerCase()) {
     return { status: VerificationStatus.ZERO_PAYMENT_REFERENCE_UNSUPPORTED };
   }
 
-  if (!/^[0-9A-Fa-f]{64}$/.test(unPrefix0x(request.requestBody.standardPaymentReference))) {
+  if (!/^[0-9A-Fa-f]{64}$/.test(unPrefix0x(request.requestBody.standardPaymentReference.toLowerCase()))) {
     return { status: VerificationStatus.NOT_STANDARD_PAYMENT_REFERENCE };
+  }
+
+  if(BigInt(request.requestBody.minimalBlockNumber) < 0 || BigInt(request.requestBody.minimalBlockNumber) >= Number.MAX_SAFE_INTEGER) {
+    return { status: VerificationStatus.NOT_CONFIRMED };
+  }
+
+  if(BigInt(request.requestBody.deadlineBlockNumber) < 0 || BigInt(request.requestBody.deadlineBlockNumber) >= Number.MAX_SAFE_INTEGER) {
+    return { status: VerificationStatus.NOT_CONFIRMED };
   }
 
   const minimalBlockNumber = parseInt(BigInt(request.requestBody.minimalBlockNumber).toString());
@@ -413,6 +442,15 @@ export async function verifyReferencedPaymentNonExistence<T extends TransactionB
   const firstOverflowBlock = referencedTransactionsResponse.firstOverflowBlock;
   const lowerBoundaryBlock = referencedTransactionsResponse.minimalBlock;
 
+  if (!dbTransactions) {
+    throw new Error("critical error: should always have response");
+  }
+  if (!firstOverflowBlock) {
+    throw new Error("critical error: should always have response");
+  }
+  if (!lowerBoundaryBlock) {
+    throw new Error("critical error: should always have response");
+  }
   if (minimalBlockNumber >= firstOverflowBlock.blockNumber) {
     return {
       status: VerificationStatus.NOT_CONFIRMED,

@@ -246,7 +246,7 @@ export class SourceManager {
           // const originalRequest = getAttestationTypeAndSource(attestation.data.request);
           const requestPrefix = AttestationDefinitionStore.extractPrefixFromRequest(attestation.data.request);
           const micOk =
-          requestPrefix.messageIntegrityCode === this.globalConfigManager.definitionStore.attestationResponseHash(verification.response, MIC_SALT);
+            requestPrefix.messageIntegrityCode.toLowerCase() === this.globalConfigManager.definitionStore.attestationResponseHash(verification.response, MIC_SALT).toLowerCase();
           if (micOk) {
             // augment the attestation response with the round id
             verification.response.votingRound = attestation.roundId.toString();

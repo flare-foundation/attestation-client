@@ -1,7 +1,7 @@
 import { DBAttestationRequest } from "../../entity/attester/dbAttestationRequest";
 import { DBRoundResult } from "../../entity/attester/dbRoundResult";
 import { DBVotingRoundResult } from "../../entity/attester/dbVotingRoundResult";
-import { DBBlockBase, DBBlockBTC, DBBlockLTC, DBBlockDOGE, DBBlockXRP, DBBlockALGO, DogeIndexerBlock } from "../../entity/indexer/dbBlock";
+import { DBBlockBase, DBBlockBTC, DBBlockLTC, DBBlockDOGE, DBBlockXRP, DBBlockALGO, DBDogeIndexerBlock } from "../../entity/indexer/dbBlock";
 import { DBState } from "../../entity/indexer/dbState";
 import {
   DBTransactionBase,
@@ -15,6 +15,8 @@ import {
   DBTransactionXRP1,
   DBTransactionALGO0,
   DBTransactionALGO1,
+  DBDogeTransaction,
+  DBTransactionOutput,
 } from "../../entity/indexer/dbTransaction";
 
 /**
@@ -37,7 +39,7 @@ export function indexerEntities(chain: string) {
       break;
     case "doge-external":
       return [
-        DogeIndexerBlock
+        DBDogeIndexerBlock, DBDogeTransaction, DBTransactionOutput
       ]
     case "xrp":
       entities.push(DBBlockXRP, DBTransactionXRP0, DBTransactionXRP1);

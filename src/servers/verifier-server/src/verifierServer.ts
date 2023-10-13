@@ -31,7 +31,7 @@ export async function runVerifierServer() {
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
   const verifierType = process.env.VERIFIER_TYPE?.toUpperCase()
-  const basePath = process.env.APP_BASE_PATH ? `${process.env.APP_BASE_PATH}/${verifierType}` : `${verifierType}`
+  const basePath = process.env.APP_BASE_PATH ? `${process.env.APP_BASE_PATH}` : ""
 
   app.setGlobalPrefix(process.env.APP_BASE_PATH ?? "");
   const config = new DocumentBuilder()

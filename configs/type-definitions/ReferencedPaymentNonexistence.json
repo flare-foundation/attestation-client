@@ -1,0 +1,424 @@
+{
+  "name": "ReferencedPaymentNonexistence",
+  "fullComment": " @custom:name ReferencedPaymentNonexistence\n @custom:id 0x04\n @custom:supported BTC, DOGE, XRP\n @author Flare\n @notice The purpose of this type of attestation is to prove that an agreed payment has not been made, hence, give grounds to liquidate some funds locked by a smart contract on Flare.\n A confirmed request shows that a transaction meeting certain criteria (address, amount, reference) did not appear in the specified block range.\n @custom:verification Let `firstOverflowBlock` be the first block that has the block number higher than `deadlineBlockNumber` and the timestamp later than `deadlineTimestamp`.\n If `firstOverflowBlock` cannot be determined or does not have a sufficient [number of confirmations](/specs/attestations/configs.md#finalityconfirmation), the attestation request is rejected.\n If `firstOverflowBlockNumber` is higher or equal to `minimalBlockNumber`, the request is rejected.\n The search range are blocks between heights (including) `minimalBlockNumber` and (excluding) `firstOverflowBlockNumber`.\n If the verifier does not have a view on all blocks from `minimalBlockNumber` to `firstOverflowBlockNumber`, the attestation request should be rejected.\n The request is confirmed if no transaction meeting the specified criteria is found in the search range.\n The criteria are chain specific.\n ### UTXO (Bitcoin and Dogecoin)\n - it is not coinbase transaction,\n - the transaction has the specified [standardPaymentReference](/specs/attestations/external-chains/standardPaymentReference.md#btc-and-doge-blockchains),\n - the sum of values of all outputs with the specified address minus the sum of values of all inputs with the specified address is greater than `amount` (in practice the sum of all values of the inputs with the specified address is zero).\n ### XRP\n - the transaction is of type payment,\n - the transaction has the specified [standardPaymentReference](/specs/attestations/external-chains/standardPaymentReference.md#xrp),\n - one of the following must holds:\n   - transaction status is success and the amount received by the specified destination address is greater than the specified `value`,\n   - transaction status is failure by receiver's fault and the specified destination address would receive amount greater than the specified `value` had the transaction been successful.\n @custom:lut `minimalBlockTimestamp`",
+  "description": "The purpose of this type of attestation is to prove that an agreed payment has not been made, hence, give grounds to liquidate some funds locked by a smart contract on Flare.\n A confirmed request shows that a transaction meeting certain criteria (address, amount, reference) did not appear in the specified block range.",
+  "supported": "BTC, DOGE, XRP",
+  "verification": "Let `firstOverflowBlock` be the first block that has the block number higher than `deadlineBlockNumber` and the timestamp later than `deadlineTimestamp`.\n If `firstOverflowBlock` cannot be determined or does not have a sufficient [number of confirmations](/specs/attestations/configs.md#finalityconfirmation), the attestation request is rejected.\n If `firstOverflowBlockNumber` is higher or equal to `minimalBlockNumber`, the request is rejected.\n The search range are blocks between heights (including) `minimalBlockNumber` and (excluding) `firstOverflowBlockNumber`.\n If the verifier does not have a view on all blocks from `minimalBlockNumber` to `firstOverflowBlockNumber`, the attestation request should be rejected.\n The request is confirmed if no transaction meeting the specified criteria is found in the search range.\n The criteria are chain specific.\n ### UTXO (Bitcoin and Dogecoin)\n - it is not coinbase transaction,\n - the transaction has the specified [standardPaymentReference](/specs/attestations/external-chains/standardPaymentReference.md#btc-and-doge-blockchains),\n - the sum of values of all outputs with the specified address minus the sum of values of all inputs with the specified address is greater than `amount` (in practice the sum of all values of the inputs with the specified address is zero).\n ### XRP\n - the transaction is of type payment,\n - the transaction has the specified [standardPaymentReference](/specs/attestations/external-chains/standardPaymentReference.md#xrp),\n - one of the following must holds:\n   - transaction status is success and the amount received by the specified destination address is greater than the specified `value`,\n   - transaction status is failure by receiver's fault and the specified destination address would receive amount greater than the specified `value` had the transaction been successful.",
+  "lut": "`minimalBlockTimestamp`",
+  "proof": {
+    "name": "Proof",
+    "description": "Toplevel proof",
+    "above": "",
+    "below": "",
+    "fullComment": " @notice Toplevel proof\n @param merkleProof Merkle proof corresponding to the attestation response.\n @param data Attestation response.",
+    "params": [
+      {
+        "name": "merkleProof",
+        "type": "bytes32[]",
+        "typeSimple": "bytes32[]",
+        "comment": "Merkle proof corresponding to the attestation response."
+      },
+      {
+        "name": "data",
+        "type": "struct ReferencedPaymentNonexistence.Response",
+        "typeSimple": "Response",
+        "comment": "Attestation response."
+      }
+    ]
+  },
+  "request": {
+    "name": "Request",
+    "description": "Toplevel request",
+    "above": "",
+    "below": "",
+    "fullComment": " @notice Toplevel request\n @param attestationType Id of the attestation type.\n @param sourceId Id of the data source.\n @param messageIntegrityCode `MessageIntegrityCode` that is derived from the expected response as defined [here](/specs/attestations/hash-MIC.md#message-integrity-code).\n @param requestBody Data defining the request. Type (struct) and interpretation is determined by the `attestationType`.",
+    "params": [
+      {
+        "name": "attestationType",
+        "type": "bytes32",
+        "typeSimple": "bytes32",
+        "comment": "Id of the attestation type."
+      },
+      {
+        "name": "sourceId",
+        "type": "bytes32",
+        "typeSimple": "bytes32",
+        "comment": "Id of the data source."
+      },
+      {
+        "name": "messageIntegrityCode",
+        "type": "bytes32",
+        "typeSimple": "bytes32",
+        "comment": "`MessageIntegrityCode` that is derived from the expected response as defined [here](/specs/attestations/hash-MIC.md#message-integrity-code)."
+      },
+      {
+        "name": "requestBody",
+        "type": "struct ReferencedPaymentNonexistence.RequestBody",
+        "typeSimple": "RequestBody",
+        "comment": "Data defining the request. Type (struct) and interpretation is determined by the `attestationType`."
+      }
+    ]
+  },
+  "response": {
+    "name": "Response",
+    "description": "Toplevel response",
+    "above": "",
+    "below": "",
+    "fullComment": " @notice Toplevel response\n @param attestationType Extracted from the request.\n @param sourceId Extracted from the request.\n @param votingRound The id of the state connector round in which the request was considered.\n @param lowestUsedTimestamp The lowest timestamp used to generate the response.\n @param requestBody Extracted from the request.\n @param responseBody Data defining the response. The verification rules for the construction of the response body and the type are defined per specific `attestationType`.",
+    "params": [
+      {
+        "name": "attestationType",
+        "type": "bytes32",
+        "typeSimple": "bytes32",
+        "comment": "Extracted from the request."
+      },
+      {
+        "name": "sourceId",
+        "type": "bytes32",
+        "typeSimple": "bytes32",
+        "comment": "Extracted from the request."
+      },
+      {
+        "name": "votingRound",
+        "type": "uint64",
+        "typeSimple": "uint64",
+        "comment": "The id of the state connector round in which the request was considered."
+      },
+      {
+        "name": "lowestUsedTimestamp",
+        "type": "uint64",
+        "typeSimple": "uint64",
+        "comment": "The lowest timestamp used to generate the response."
+      },
+      {
+        "name": "requestBody",
+        "type": "struct ReferencedPaymentNonexistence.RequestBody",
+        "typeSimple": "RequestBody",
+        "comment": "Extracted from the request."
+      },
+      {
+        "name": "responseBody",
+        "type": "struct ReferencedPaymentNonexistence.ResponseBody",
+        "typeSimple": "ResponseBody",
+        "comment": "Data defining the response. The verification rules for the construction of the response body and the type are defined per specific `attestationType`."
+      }
+    ]
+  },
+  "requestBody": {
+    "name": "RequestBody",
+    "description": "Request body for ReferencePaymentNonexistence attestation type",
+    "above": "",
+    "below": "The `standardPaymentReference` should not be zero (as 32-byte sequence).",
+    "fullComment": " @notice Request body for ReferencePaymentNonexistence attestation type\n @param minimalBlockNumber The start block of the search range.\n @param deadlineBlockNumber The blockNumber to be included in the search range.\n @param deadlineTimestamp The timestamp to be included in the search range.\n @param destinationAddressHash The standard address hash of the address to which the payment had to be done.\n @param amount The requested amount that had to be payed.\n @param standardPaymentReference The requested standard payment reference.\n @custom:below The `standardPaymentReference` should not be zero (as 32-byte sequence).",
+    "params": [
+      {
+        "name": "minimalBlockNumber",
+        "type": "uint64",
+        "typeSimple": "uint64",
+        "comment": "The start block of the search range."
+      },
+      {
+        "name": "deadlineBlockNumber",
+        "type": "uint64",
+        "typeSimple": "uint64",
+        "comment": "The blockNumber to be included in the search range."
+      },
+      {
+        "name": "deadlineTimestamp",
+        "type": "uint64",
+        "typeSimple": "uint64",
+        "comment": "The timestamp to be included in the search range."
+      },
+      {
+        "name": "destinationAddressHash",
+        "type": "bytes32",
+        "typeSimple": "bytes32",
+        "comment": "The standard address hash of the address to which the payment had to be done."
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "typeSimple": "uint256",
+        "comment": "The requested amount that had to be payed."
+      },
+      {
+        "name": "standardPaymentReference",
+        "type": "bytes32",
+        "typeSimple": "bytes32",
+        "comment": "The requested standard payment reference."
+      }
+    ]
+  },
+  "responseBody": {
+    "name": "ResponseBody",
+    "description": "Response body for ReferencePaymentNonexistence attestation type.",
+    "above": "",
+    "below": "`firstOverflowBlock` is the first block that has block number higher than `deadlineBlockNumber` and timestamp later than `deadlineTimestamp`.\n The specified search range are blocks between heights (including) `minimalBlockNumber` and (excluding) `firstOverflowBlockNumber`.",
+    "fullComment": " @notice Response body for ReferencePaymentNonexistence attestation type.\n @param minimalBlockTimestamp The timestamp of the minimalBlock.\n @param firstOverflowBlockNumber The height of the firstOverflowBlock.\n @param firstOverflowBlockTimestamp The timestamp of the firstOverflowBlock.\n @custom:below `firstOverflowBlock` is the first block that has block number higher than `deadlineBlockNumber` and timestamp later than `deadlineTimestamp`.\n The specified search range are blocks between heights (including) `minimalBlockNumber` and (excluding) `firstOverflowBlockNumber`.",
+    "params": [
+      {
+        "name": "minimalBlockTimestamp",
+        "type": "uint64",
+        "typeSimple": "uint64",
+        "comment": "The timestamp of the minimalBlock."
+      },
+      {
+        "name": "firstOverflowBlockNumber",
+        "type": "uint64",
+        "typeSimple": "uint64",
+        "comment": "The height of the firstOverflowBlock."
+      },
+      {
+        "name": "firstOverflowBlockTimestamp",
+        "type": "uint64",
+        "typeSimple": "uint64",
+        "comment": "The timestamp of the firstOverflowBlock."
+      }
+    ]
+  },
+  "requestStructs": [],
+  "responseStructs": [],
+  "requestAbi": {
+    "components": [
+      {
+        "internalType": "bytes32",
+        "name": "attestationType",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "sourceId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "messageIntegrityCode",
+        "type": "bytes32"
+      },
+      {
+        "components": [
+          {
+            "internalType": "uint64",
+            "name": "minimalBlockNumber",
+            "type": "uint64"
+          },
+          {
+            "internalType": "uint64",
+            "name": "deadlineBlockNumber",
+            "type": "uint64"
+          },
+          {
+            "internalType": "uint64",
+            "name": "deadlineTimestamp",
+            "type": "uint64"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "destinationAddressHash",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "uint256",
+            "name": "amount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "standardPaymentReference",
+            "type": "bytes32"
+          }
+        ],
+        "internalType": "struct ReferencedPaymentNonexistence.RequestBody",
+        "name": "requestBody",
+        "type": "tuple"
+      }
+    ],
+    "internalType": "struct ReferencedPaymentNonexistence.Request",
+    "name": "_request",
+    "type": "tuple"
+  },
+  "responseAbi": {
+    "components": [
+      {
+        "internalType": "bytes32",
+        "name": "attestationType",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "sourceId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "uint64",
+        "name": "votingRound",
+        "type": "uint64"
+      },
+      {
+        "internalType": "uint64",
+        "name": "lowestUsedTimestamp",
+        "type": "uint64"
+      },
+      {
+        "components": [
+          {
+            "internalType": "uint64",
+            "name": "minimalBlockNumber",
+            "type": "uint64"
+          },
+          {
+            "internalType": "uint64",
+            "name": "deadlineBlockNumber",
+            "type": "uint64"
+          },
+          {
+            "internalType": "uint64",
+            "name": "deadlineTimestamp",
+            "type": "uint64"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "destinationAddressHash",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "uint256",
+            "name": "amount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "standardPaymentReference",
+            "type": "bytes32"
+          }
+        ],
+        "internalType": "struct ReferencedPaymentNonexistence.RequestBody",
+        "name": "requestBody",
+        "type": "tuple"
+      },
+      {
+        "components": [
+          {
+            "internalType": "uint64",
+            "name": "minimalBlockTimestamp",
+            "type": "uint64"
+          },
+          {
+            "internalType": "uint64",
+            "name": "firstOverflowBlockNumber",
+            "type": "uint64"
+          },
+          {
+            "internalType": "uint64",
+            "name": "firstOverflowBlockTimestamp",
+            "type": "uint64"
+          }
+        ],
+        "internalType": "struct ReferencedPaymentNonexistence.ResponseBody",
+        "name": "responseBody",
+        "type": "tuple"
+      }
+    ],
+    "internalType": "struct ReferencedPaymentNonexistence.Response",
+    "name": "_response",
+    "type": "tuple"
+  },
+  "proofAbi": {
+    "components": [
+      {
+        "internalType": "bytes32[]",
+        "name": "merkleProof",
+        "type": "bytes32[]"
+      },
+      {
+        "components": [
+          {
+            "internalType": "bytes32",
+            "name": "attestationType",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "sourceId",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "uint64",
+            "name": "votingRound",
+            "type": "uint64"
+          },
+          {
+            "internalType": "uint64",
+            "name": "lowestUsedTimestamp",
+            "type": "uint64"
+          },
+          {
+            "components": [
+              {
+                "internalType": "uint64",
+                "name": "minimalBlockNumber",
+                "type": "uint64"
+              },
+              {
+                "internalType": "uint64",
+                "name": "deadlineBlockNumber",
+                "type": "uint64"
+              },
+              {
+                "internalType": "uint64",
+                "name": "deadlineTimestamp",
+                "type": "uint64"
+              },
+              {
+                "internalType": "bytes32",
+                "name": "destinationAddressHash",
+                "type": "bytes32"
+              },
+              {
+                "internalType": "uint256",
+                "name": "amount",
+                "type": "uint256"
+              },
+              {
+                "internalType": "bytes32",
+                "name": "standardPaymentReference",
+                "type": "bytes32"
+              }
+            ],
+            "internalType": "struct ReferencedPaymentNonexistence.RequestBody",
+            "name": "requestBody",
+            "type": "tuple"
+          },
+          {
+            "components": [
+              {
+                "internalType": "uint64",
+                "name": "minimalBlockTimestamp",
+                "type": "uint64"
+              },
+              {
+                "internalType": "uint64",
+                "name": "firstOverflowBlockNumber",
+                "type": "uint64"
+              },
+              {
+                "internalType": "uint64",
+                "name": "firstOverflowBlockTimestamp",
+                "type": "uint64"
+              }
+            ],
+            "internalType": "struct ReferencedPaymentNonexistence.ResponseBody",
+            "name": "responseBody",
+            "type": "tuple"
+          }
+        ],
+        "internalType": "struct ReferencedPaymentNonexistence.Response",
+        "name": "data",
+        "type": "tuple"
+      }
+    ],
+    "internalType": "struct ReferencedPaymentNonexistence.Proof",
+    "name": "_proof",
+    "type": "tuple"
+  }
+}

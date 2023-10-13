@@ -1,14 +1,13 @@
 import axios from "axios";
 import { Attestation } from "../../attester/Attestation";
-import { ApiResponseWrapper } from "../../servers/common/src";
+import { AttestationDefinitionStore } from "../../external-libs/AttestationDefinitionStore";
+import { AttestationResponse } from "../../external-libs/AttestationResponse";
 import { retry } from "../../utils/helpers/promiseTimeout";
 import { AttLogger, getGlobalLogger } from "../../utils/logging/logger";
-import { AttestationRequest, AttestationTypeScheme, Verification } from "../attestation-types/attestation-types";
-import { AttestationType, getAttestationTypeName } from "../generated/attestation-types-enum";
-import { getSourceName, SourceId } from "../sources/sources";
 import { VerifierAttestationTypeRouteConfig } from "./configs/VerifierAttestationTypeRouteConfig";
 import { VerifierRouteConfig } from "./configs/VerifierRouteConfig";
-import { getAttestationTypeAndSource } from "../attestation-types/attestation-types-utils";
+import { EncodedRequestBody } from "../../servers/verifier-server/src/dtos/generic/generic.dto";
+import { sleepMs } from "@flarenetwork/mcc";
 const VERIFIER_TIMEOUT = 10000;
 export class VerifierRoute {
   url?: string;
@@ -71,10 +70,10 @@ export class VerifierRouter {
   }
 
   /**
-   * Checks if the VerifierRouter supports attestation @param type for chain with @param sourceId
+   * Checks if the VerifierRouter supports attestation @param attestationType for chain with @param sourceId
    */
-  public isSupported(sourceId: SourceId, type: AttestationType): boolean {
-    const routeEntry = this.getRouteEntry(getSourceName(sourceId), getAttestationTypeName(type));
+  public isSupported(sourceId: string, attestationType: string): boolean {
+    const routeEntry = this.getRouteEntry(sourceId, attestationType);
     if (!routeEntry || routeEntry === EMPTY_VERIFIER_ROUTE) return false;
     return true;
   }
@@ -103,23 +102,22 @@ export class VerifierRouter {
    * configurations are read and set and there are no double setting of a specific configuration for
    * a pair of (sourceName, attestationTypeName)
    */
-  public async initialize(config: VerifierRouteConfig, definitions: AttestationTypeScheme[], logger?: AttLogger) {
+  public async initialize(config: VerifierRouteConfig, dataStore: AttestationDefinitionStore, logger?: AttLogger) {
     if (this._initialized) {
       throw new Error("Already initialized");
     }
     this.logger = logger ?? getGlobalLogger();
     this.config = config;
     if (!this.config) {
-      throw new Error(`Missing configuration`);
+      throw  new Error(`Missing configuration`);
     }
 
     this.routeMap = new Map<string, Map<string, VerifierAttestationTypeRouteConfig>>(); //different type as promised
 
     // set up all possible routes
-    for (let definition of definitions) {
+    for (let definition of dataStore.definitions.values()) {
       let attestationTypeName = definition.name;
-      for (let source of definition.supportedSources) {
-        let sourceName = getSourceName(source);
+      for (let sourceName of definition.supported.split(",").map(x => x.trim())) {
         let tmp = this.routeMap.get(sourceName);
         if (!tmp) {
           tmp = new Map<string, VerifierAttestationTypeRouteConfig>();
@@ -164,10 +162,9 @@ export class VerifierRouter {
 
     // Check if everything is configured
     if (process.env.REQUIRE_ALL_ROUTES_CONFIGURED) {
-      for (let definition of definitions) {
+      for (let definition of dataStore.definitions.values()) {
         let attestationTypeName = definition.name;
-        for (let source of definition.supportedSources) {
-          let sourceName = getSourceName(source);
+        for (let sourceName of definition.supported.split(",").map(x => x.trim())) {
           let sourceMap = this.routeMap.get(sourceName);
           if (sourceMap.get(definition.name) === EMPTY_VERIFIER_ROUTE) {
             throw new Error(`The route is not set for pair ('${sourceName}','${attestationTypeName}')`);
@@ -185,10 +182,7 @@ export class VerifierRouter {
    * @returns
    */
   private getRoute(attestation: Attestation): VerifierRoute | null {
-    let { attestationType, sourceId } = getAttestationTypeAndSource(attestation.data.request);
-    let attestationTypeName = getAttestationTypeName(attestationType);
-    let sourceName = getSourceName(sourceId);
-    let route = this.getRouteEntry(sourceName, attestationTypeName);
+    let route = this.getRouteEntry(attestation.data.sourceId, attestation.data.type);
     if (route === EMPTY_VERIFIER_ROUTE) {
       return null;
     }
@@ -212,9 +206,10 @@ export class VerifierRouter {
     let route = this.getRoute(attestation);
     if (route) {
       const attestationRequest = {
-        request: attestation.data.request,
-      } as AttestationRequest;
+        abiEncodedRequest: attestation.data.request,
+      } as EncodedRequestBody;
 
+      // Can throw exception
       const resp = await retry(
         `VerifierRouter::verifyAttestation`,
         async () =>
@@ -226,11 +221,7 @@ export class VerifierRouter {
         VERIFIER_TIMEOUT
       );
 
-      let apiResponse = resp.data as ApiResponseWrapper<Verification<any, any>>;
-      if (apiResponse.status === "OK") {
-        return apiResponse.data;
-      }
-      throw new ApiResponseError(apiResponse.errorMessage);
+      return resp.data as AttestationResponse<any>;
     }
     throw new InvalidRouteError(`Invalid route.`);
   }

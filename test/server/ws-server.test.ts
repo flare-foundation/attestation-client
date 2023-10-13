@@ -10,12 +10,13 @@ import { Test } from "@nestjs/testing";
 import chai, { assert, expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
 import { VerifierConfigurationService } from "../../src/servers/verifier-server/src/services/verifier-configuration.service";
-import { VerifierServerModule } from "../../src/servers/verifier-server/src/verifier-server.module";
+// import { VerifierServerModule } from "../../src/servers/verifier-server/src/verifier-server.module";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
 import { IIdentifiable } from "../../src/utils/helpers/promiseRequestTypes";
 import { WsClient } from "../../src/verification/experimental/client/WsClient";
 import { WsClientOptions } from "../../src/verification/experimental/client/WsClientOptions";
 import { getTestFile } from "../test-utils/test-utils";
+import { VerifierBtcServerModule } from "../../src/servers/verifier-server/src/verifier-btc-server.module";
 
 chai.use(chaiAsPromised);
 
@@ -41,7 +42,7 @@ describe(`Test websocket verifier server (${getTestFile(__filename)})`, () => {
     process.env.SECURE_CONFIG_PATH = "./test/server/test-data";
     process.env.TEST_IGNORE_SUPPORTED_ATTESTATION_CHECK_TEST = "1";
     const module = await Test.createTestingModule({
-      imports: [VerifierServerModule],
+      imports: [VerifierBtcServerModule],
       // providers: [WsServerService, WsServerGateway, AuthGuard],
     }).compile();
     app = module.createNestApplication();

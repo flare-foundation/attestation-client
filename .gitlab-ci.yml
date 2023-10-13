@@ -21,6 +21,7 @@ build-project:
   image: node:16
   before_script:
   - yarn install --frozen-lockfile
+  - yarn c
   script:
   - yarn build
 
@@ -61,6 +62,7 @@ test-coverage:
     NODE_ENV: development
   before_script:
   - yarn install --frozen-lockfile > /dev/null
+  - yarn c
   script:
   - yarn run test:coverage
   after_script:

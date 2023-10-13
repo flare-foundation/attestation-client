@@ -14,7 +14,7 @@ import {
 import { AttestationResponseDTO, EncodedRequestBody, MicResponse } from "../../dtos/generic/generic.dto";
 
 @ApiTags("BalanceDecreasingTransaction")
-@Controller("DOGE/BalanceDecreasingTransaction")
+@Controller("BalanceDecreasingTransaction")
 @UseGuards(AuthGuard("api-key"))
 @ApiSecurity("X-API-KEY")
 export class DOGEBalanceDecreasingTransactionVerifierController {

@@ -33,29 +33,28 @@ import {
  * - Queries are carried out in for transactions in the block range [`B`, `N`].
  * 
  */
-export interface IIndexedQueryManager {
+export abstract class IIndexedQueryManager {
 
   ////////////////////////////////////////////////////////////
   // Last confirmed blocks, tips
   ////////////////////////////////////////////////////////////
 
-
   /**
    * Returns the last confirmed block height (denoted `N`) in the indexer database for which all transactions are in database
    * @returns
    */
-  getLastConfirmedBlockNumber(): Promise<number>;
+  public abstract getLastConfirmedBlockNumber(): Promise<number>;
   
   /**
    * Returns last block height (`T`) and the timestamp of the last sampling by indexer
    * @returns
    */
-  getLatestBlockTimestamp(): Promise<BlockHeightSample | null>;
+  public abstract getLatestBlockTimestamp(): Promise<BlockHeightSample | null>;
 
   /**
    * Returns the number of confirmations required for a transaction and block to be considered confirmed by the indexer.
    */
-  numberOfConfirmations(): number;
+  public abstract numberOfConfirmations(): number;
   ////////////////////////////////////////////////////////////
   // General confirm transaction and block queries
   ////////////////////////////////////////////////////////////
@@ -66,7 +65,7 @@ export interface IIndexedQueryManager {
    * @returns an object with the list of transactions found and (optional) lowest and highest blocks of search
    * boundary range.
    */
-  queryTransactions(params: TransactionQueryParams): Promise<TransactionQueryResult>;
+  public abstract queryTransactions(params: TransactionQueryParams): Promise<TransactionQueryResult>;
 
   /**
    * Carries out a block search with boundary synchronization, subject to query parameters
@@ -74,14 +73,14 @@ export interface IIndexedQueryManager {
    * @returns an object with the block found and (optional) lowest and highest blocks of search
    * boundary range.
    */
-  queryBlock(params: BlockQueryParams): Promise<BlockQueryResult>;
+  public abstract queryBlock(params: BlockQueryParams): Promise<BlockQueryResult>;
 
   /**
    * Gets a block for a given hash
    * @param hash
    * @returns the block with given hash, if exists in the indexer database, `undefined` otherwise
    */
-  getBlockByHash(hash: string): Promise<BlockResult | undefined>;
+  public abstract getBlockByHash(hash: string): Promise<BlockResult | undefined>;
 
   ////////////////////////////////////////////////////////////
   // Confirmed blocks query
@@ -93,7 +92,7 @@ export interface IIndexedQueryManager {
    * @returns search status, required confirmed block, if found, and lower and upper boundary blocks, if required by
    * query parameters.
    */
-  getConfirmedBlock(params: ConfirmedBlockQueryRequest): Promise<ConfirmedBlockQueryResponse>;
+  public abstract getConfirmedBlock(params: ConfirmedBlockQueryRequest): Promise<ConfirmedBlockQueryResponse>;
 
   ////////////////////////////////////////////////////////////
   // Confirmed transaction query
@@ -106,7 +105,7 @@ export interface IIndexedQueryManager {
    * transaction block, if found,
    * lower and upper boundary blocks, if required by query parameters.
    */
-  getConfirmedTransaction(params: ConfirmedTransactionQueryRequest): Promise<ConfirmedTransactionQueryResponse>;
+  public abstract getConfirmedTransaction(params: ConfirmedTransactionQueryRequest): Promise<ConfirmedTransactionQueryResponse>;
 
   ////////////////////////////////////////////////////////////
   // Referenced transactions query
@@ -118,7 +117,7 @@ export interface IIndexedQueryManager {
    * @returns search status, list of transactions meeting query criteria, and lower and upper boundary blocks, if required by
    * query parameters.
    */
-  getReferencedTransactions(params: ReferencedTransactionsQueryRequest): Promise<ReferencedTransactionsQueryResponse>;
+  public abstract getReferencedTransactions(params: ReferencedTransactionsQueryRequest): Promise<ReferencedTransactionsQueryResponse>;
 
   ////////////////////////////////////////////////////////////
   // Special block queries
@@ -129,19 +128,19 @@ export interface IIndexedQueryManager {
    * @param timestamp
    * @returns the block, if exists, otherwise `null`
    */
-  getLastConfirmedBlockStrictlyBeforeTime(timestamp: number): Promise<BlockResult | undefined>;
+  public abstract getLastConfirmedBlockStrictlyBeforeTime(timestamp: number): Promise<BlockResult | undefined>;
 
   /**
    * Fetches random transactions selection from the indexer database in a batch, generated according to options.
    * @param batchSize 
    * @param options 
    */
-  fetchRandomTransactions(batchSize, options: RandomTransactionOptions): Promise<TransactionResult[]>;
+  public abstract fetchRandomTransactions(batchSize, options: RandomTransactionOptions): Promise<TransactionResult[]>;
 
   /**
    * Random block selection from the indexer database in a batch.
    * @param batchSize 
    * @param startTime selection is done for blocks after this timestamp
    */
-  fetchRandomConfirmedBlocks(batchSize, startTime?: number): Promise<BlockResult[]>;
+  public abstract fetchRandomConfirmedBlocks(batchSize, startTime?: number): Promise<BlockResult[]>;
 }

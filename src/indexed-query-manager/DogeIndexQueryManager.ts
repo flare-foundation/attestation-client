@@ -1,8 +1,8 @@
 import { MCC } from "@flarenetwork/mcc";
 import { EntityManager } from "typeorm";
-import { DBBlockBase, IDBBlockBase } from "../entity/indexer/dbBlock";
+import { DBBlockBase, DBDogeIndexerBlock, IDBBlockBase, IDEDogeIndexerBlock } from "../entity/indexer/dbBlock";
 import { DBState } from "../entity/indexer/dbState";
-import { DBTransactionBase, IDBTransactionBase } from "../entity/indexer/dbTransaction";
+import { DBDogeTransaction, DBTransactionBase, IDBDogeTransaction, IDBTransactionBase } from "../entity/indexer/dbTransaction";
 import { prepareIndexerTables } from "../indexer/indexer-utils";
 import {
   BlockHeightSample,
@@ -31,23 +31,23 @@ import { IIndexedQueryManager } from "./IIndexedQueryManager";
 /**
  * A class used to carry out queries on the indexer database such that the upper and lower bounds are synchronized.
  */
-export class IndexedQueryManager extends IIndexedQueryManager {
+export class DogeIndexedQueryManager extends IIndexedQueryManager {
   private settings: IndexedQueryManagerOptions;
 
-  //Two transaction table entities `transaction0` and `transaction1`
-  private transactionTable: IDBTransactionBase[];
+  private transactionTable: IDBDogeTransaction;
 
   // Block table entity
-  private blockTable: IDBBlockBase;
+  private blockTable: IDEDogeIndexerBlock;
 
   constructor(options: IndexedQueryManagerOptions) {
-    super();
+    super()
+    this.transactionTable = DBDogeTransaction
+    this.blockTable = DBDogeIndexerBlock
     // assert existence
     if (!options.entityManager) {
       throw new Error("unsupported without entityManager");
     }
     this.settings = options;
-    this.prepareTables();
   }
   public numberOfConfirmations(): number {
     return this.settings.numberOfConfirmations();
@@ -55,15 +55,6 @@ export class IndexedQueryManager extends IIndexedQueryManager {
 
   private get entityManager(): EntityManager {
     return this.settings.entityManager;
-  }
-
-  /**
-   * Prepares the table variables containing transaction and block entities
-   */
-  private prepareTables() {
-    const prepared = prepareIndexerTables(this.settings.chainType);
-    this.transactionTable = prepared.transactionTable;
-    this.blockTable = prepared.blockTable;
   }
 
   ////////////////////////////////////////////////////////////
@@ -110,51 +101,19 @@ export class IndexedQueryManager extends IIndexedQueryManager {
   ////////////////////////////////////////////////////////////
 
   public async queryTransactions(params: TransactionQueryParams): Promise<TransactionQueryResult> {
-    let results: DBTransactionBase[] = [];
 
-    for (const table of this.transactionTable) {
-      let query = this.entityManager.createQueryBuilder(table, "transaction");
+    let query = this.entityManager.createQueryBuilder(this.transactionTable, "transaction")
 
-      if (params.startBlockNumber) {
-        query = query.andWhere("transaction.blockNumber >= :startBlock", { startBlock: params.startBlockNumber });
-      }
-
-      if (params.endBlockNumber) {
-        query = query.andWhere("transaction.blockNumber <= :endBlock", { endBlock: params.endBlockNumber });
-      }
-
-      if (params.paymentReference) {
-        query = query.andWhere("transaction.paymentReference=:ref", { ref: params.paymentReference });
-      }
-      if (params.transactionId) {
-        query = query.andWhere("transaction.transactionId = :txId", { txId: params.transactionId });
-      }
-
-      results = results.concat(await query.getMany());
-    }
-    let lowerQueryWindowBlock: BlockResult;
-    let upperQueryWindowBlock: BlockResult;
-
-    if (params.startBlockNumber !== undefined) {
-      const lowerQueryWindowBlockResult = await this.queryBlock({
-        blockNumber: params.startBlockNumber,
-        confirmed: true,
-      });
-      lowerQueryWindowBlock = lowerQueryWindowBlockResult.result;
+    if(params.transactionId){
+      query = query.andWhere("transaction.transactionId = :txId", { txId: params.transactionId });
     }
 
-    if (params.endBlockNumber !== undefined) {
-      const upperQueryWindowBlockResult = await this.queryBlock({
-        blockNumber: params.endBlockNumber,
-        confirmed: true,
-      });
-      upperQueryWindowBlock = upperQueryWindowBlockResult.result;
-    }
+    const res =  await query.orderBy("transaction.transactionId").leftJoinAndSelect("transaction.transactionoutput_set", "transactionOutput").getMany();
+
     return {
-      result: results as DBTransactionBase[],
-      startBlock: lowerQueryWindowBlock,
-      endBlock: upperQueryWindowBlock,
-    };
+      result: res.map(val => val.toTransactionResult()),
+    }
+
   }
 
   public async queryBlock(params: BlockQueryParams): Promise<BlockQueryResult> {
@@ -166,22 +125,27 @@ export class IndexedQueryManager extends IIndexedQueryManager {
       query = query.andWhere("block.confirmed = :confirmed", { confirmed: !!params.confirmed });
     }
     if (params.hash) {
-      query.andWhere("block.blockHash = :hash", { hash: params.hash });
+      query.andWhere("block.block_hash = :hash", { hash: params.hash });
     } else if (params.blockNumber) {
-      query.andWhere("block.blockNumber = :blockNumber", { blockNumber: params.blockNumber });
+      query.andWhere("block.block_number = :blockNumber", { blockNumber: params.blockNumber });
     }
 
     const result = await query.getOne();
+    if(result){
+      return {
+        result: result.toBlockResult()
+      }
+    }
     return {
-      result: result ? (result as DBBlockBase) : undefined,
-    };
+      result: undefined
+    }
   }
 
-  public async getBlockByHash(hash: string): Promise<DBBlockBase | undefined> {
-    const query = this.entityManager.createQueryBuilder(this.blockTable, "block").where("block.blockHash = :hash", { hash: hash });
+  public async getBlockByHash(hash: string): Promise<BlockResult | undefined> {
+    const query = this.entityManager.createQueryBuilder(this.blockTable, "block").where("block.block_hash = :hash", { hash: hash });
     const result = await query.getOne();
     if (result) {
-      return result as DBBlockBase;
+      return result.toBlockResult();
     }
     return undefined;
   }
@@ -262,14 +226,15 @@ export class IndexedQueryManager extends IIndexedQueryManager {
   ////////////////////////////////////////////////////////////
 
   public async getLastConfirmedBlockStrictlyBeforeTime(timestamp: number): Promise<DBBlockBase | undefined> {
-    const query = this.entityManager
-      .createQueryBuilder(this.blockTable, "block")
-      .where("block.confirmed = :confirmed", { confirmed: true })
-      .andWhere("block.timestamp < :timestamp", { timestamp: timestamp })
-      .orderBy("block.blockNumber", "DESC")
-      .limit(1);
+    // const query = this.entityManager
+    //   .createQueryBuilder(this.blockTable, "block")
+    //   .where("block.confirmed = :confirmed", { confirmed: true })
+    //   .andWhere("block.timestamp < :timestamp", { timestamp: timestamp })
+    //   .orderBy("block.blockNumber", "DESC")
+    //   .limit(1);
 
-    return query.getOne();
+    // return query.getOne();
+    throw new Error("Not implemented")
   }
 
   /**
@@ -279,80 +244,83 @@ export class IndexedQueryManager extends IIndexedQueryManager {
    * @returns the block, if it exists, `null` otherwise
    */
   private async getFirstConfirmedOverflowBlock(timestamp: number, blockNumber: number): Promise<DBBlockBase | undefined> {
-    const query = this.entityManager
-      .createQueryBuilder(this.blockTable, "block")
-      .where("block.confirmed = :confirmed", { confirmed: true })
-      .andWhere("block.timestamp > :timestamp", { timestamp: timestamp })
-      .andWhere("block.blockNumber > :blockNumber", { blockNumber: blockNumber })
-      .orderBy("block.blockNumber", "ASC")
-      .limit(1);
+    // const query = this.entityManager
+    //   .createQueryBuilder(this.blockTable, "block")
+    //   .where("block.confirmed = :confirmed", { confirmed: true })
+    //   .andWhere("block.timestamp > :timestamp", { timestamp: timestamp })
+    //   .andWhere("block.blockNumber > :blockNumber", { blockNumber: blockNumber })
+    //   .orderBy("block.blockNumber", "ASC")
+    //   .limit(1);
 
-    return query.getOne();
+    // return query.getOne();
+    throw new Error("Not implemented")
   }
 
 
   public async fetchRandomTransactions(batchSize = 100, options: RandomTransactionOptions): Promise<DBTransactionBase[]> {
-    let result: DBTransactionBase[] = [];
-    let maxReps = 10;
-    while (result.length === 0) {
-      let tableId = 0;
-      if (process.env.TEST_CREDENTIALS) {
-        tableId = 0;
-      } else {
-        tableId = Math.round(Math.random());
-      }
+    // let result: DBTransactionBase[] = [];
+    // let maxReps = 10;
+    // while (result.length === 0) {
+    //   let tableId = 0;
+    //   if (process.env.TEST_CREDENTIALS) {
+    //     tableId = 0;
+    //   } else {
+    //     tableId = Math.round(Math.random());
+    //   }
 
-      const table = this.transactionTable[tableId];
+    //   const table = this.transactionTable[tableId];
 
-      const maxQuery = this.entityManager.createQueryBuilder(table, "transaction").select("MAX(transaction.id)", "max");
-      const res = await maxQuery.getRawOne();
-      if (!res.max) {
-        maxReps--;
-        if (maxReps === 0) {
-          return [];
-        }
-        continue;
-      }
-      const randN = Math.floor(Math.random() * res.max);
-      let query = this.entityManager.createQueryBuilder(table, "transaction").andWhere("transaction.id > :max", { max: randN });
-      // .andWhere("transaction.id < :upper", {upper: randN + 100000})
+    //   const maxQuery = this.entityManager.createQueryBuilder(table, "transaction").select("MAX(transaction.id)", "max");
+    //   const res = await maxQuery.getRawOne();
+    //   if (!res.max) {
+    //     maxReps--;
+    //     if (maxReps === 0) {
+    //       return [];
+    //     }
+    //     continue;
+    //   }
+    //   const randN = Math.floor(Math.random() * res.max);
+    //   let query = this.entityManager.createQueryBuilder(table, "transaction").andWhere("transaction.id > :max", { max: randN });
+    //   // .andWhere("transaction.id < :upper", {upper: randN + 100000})
 
-      if (options.mustHavePaymentReference) {
-        query = query.andWhere("transaction.paymentReference != ''");
-      }
-      if (options.mustNotHavePaymentReference) {
-        query = query.andWhere("transaction.paymentReference == ''");
-      }
-      if (options.mustBeNativePayment) {
-        query = query.andWhere("transaction.isNativePayment = 1");
-      }
-      if (options.mustNotBeNativePayment) {
-        query = query.andWhere("transaction.isNativePayment = 0");
-      }
-      if (options.startTime) {
-        query = query.andWhere("transaction.timestamp >= :startTime", { startTime: options.startTime });
-      }
-      query = query
-        //.orderBy("transaction.id")
-        .limit(batchSize);
-      result = (await query.getMany()) as DBTransactionBase[];
-    }
+    //   if (options.mustHavePaymentReference) {
+    //     query = query.andWhere("transaction.paymentReference != ''");
+    //   }
+    //   if (options.mustNotHavePaymentReference) {
+    //     query = query.andWhere("transaction.paymentReference == ''");
+    //   }
+    //   if (options.mustBeNativePayment) {
+    //     query = query.andWhere("transaction.isNativePayment = 1");
+    //   }
+    //   if (options.mustNotBeNativePayment) {
+    //     query = query.andWhere("transaction.isNativePayment = 0");
+    //   }
+    //   if (options.startTime) {
+    //     query = query.andWhere("transaction.timestamp >= :startTime", { startTime: options.startTime });
+    //   }
+    //   query = query
+    //     //.orderBy("transaction.id")
+    //     .limit(batchSize);
+    //   result = (await query.getMany()) as DBTransactionBase[];
+    // }
 
-    return result;
+    // return result;
+    throw new Error("Not implemented")
   }
 
   public async fetchRandomConfirmedBlocks(batchSize = 100, startTime?: number): Promise<DBBlockBase[]> {
-    let query = this.entityManager.createQueryBuilder(this.blockTable, "block").where("block.confirmed = :confirmed", { confirmed: true });
-    if (startTime) {
-      query = query.andWhere("block.timestamp >= :startTime", { startTime });
-    }
-    if (process.env.NODE_ENV === "development" && this.entityManager.connection.options.type == "better-sqlite3") {
-      query = query.orderBy("RANDOM()").limit(batchSize);
-    } else {
-      query = query.orderBy("RAND()").limit(batchSize);
-    }
+    // let query = this.entityManager.createQueryBuilder(this.blockTable, "block").where("block.confirmed = :confirmed", { confirmed: true });
+    // if (startTime) {
+    //   query = query.andWhere("block.timestamp >= :startTime", { startTime });
+    // }
+    // if (process.env.NODE_ENV === "development" && this.entityManager.connection.options.type == "better-sqlite3") {
+    //   query = query.orderBy("RANDOM()").limit(batchSize);
+    // } else {
+    //   query = query.orderBy("RAND()").limit(batchSize);
+    // }
 
-    return (await query.getMany()) as DBBlockBase[];
+    // return (await query.getMany()) as DBBlockBase[];
+    throw new Error("Not implemented")
   }
 
 }

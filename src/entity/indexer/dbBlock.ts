@@ -1,4 +1,5 @@
 import { Column, Entity, Index, PrimaryColumn } from "typeorm";
+import { BlockResult } from "../../indexed-query-manager/indexed-query-manager-types";
 
 /**
  * Format for storing block data in indexer database
@@ -46,16 +47,14 @@ export class DBBlockXRP extends DBBlockBase {}
 @Entity({ name: "algo_block" })
 export class DBBlockALGO extends DBBlockBase {}
 
-
-// External Postgres Database Entities (read only)
-
+// External Postgres Database Entities (DOGE) (read only)
 @Entity("doge_indexer_dogeblock")
-export class DogeIndexerBlock {
+export class DBDogeIndexerBlock {
   @PrimaryColumn({ type: "char" })
-  block_hash!: string;
+  blockHash!: string;
 
   @Column()
-  block_number!: number;
+  blockNumber!: number;
 
   @Column()
   timestamp!: number;
@@ -67,5 +66,17 @@ export class DogeIndexerBlock {
   confirmed: boolean;
 
   @Column()
-  previous_block_hash: string;
+  previousBlockHash: string;
+
+  toBlockResult(): BlockResult {
+    return {
+      blockNumber: this.blockNumber,
+      blockHash: this.blockHash,
+      timestamp: this.timestamp,
+      transactions: this.transactions,
+      confirmed: this.confirmed,
+    };
+  }
 }
+
+export type IDEDogeIndexerBlock = new () => DBDogeIndexerBlock;

@@ -4,11 +4,10 @@ import chaiaspromised from "chai-as-promised";
 import sinon from "sinon";
 import { CachedMccClient } from "../../src/caching/CachedMccClient";
 import { initializeTestGlobalLogger } from "../../src/utils/logging/logger";
-import { SourceId } from "../../src/verification/sources/sources";
 import { getTestFile } from "../test-utils/test-utils";
 import { MockMccClient } from "./test-utils/MockMccClient";
 chai.use(chaiaspromised);
-const CHAIN_ID = SourceId.XRP;
+const CHAIN_ID = ChainType.XRP;
 
 describe(`Cached MCC Client test (${getTestFile(__filename)})`, function () {
   initializeTestGlobalLogger();
@@ -25,7 +24,7 @@ describe(`Cached MCC Client test (${getTestFile(__filename)})`, function () {
   });
 
   it("Should terminate application after several retries", async function () {
-    const cachedMccClient = new CachedMccClient(CHAIN_ID as any as ChainType, { forcedClient: mockMccClient });
+    const cachedMccClient = new CachedMccClient(CHAIN_ID, { forcedClient: mockMccClient });
 
     const stub1 = sinon.stub(process, "exit");
     await cachedMccClient.getTransaction("");

@@ -384,7 +384,7 @@
         "NODE_ENV": "development"
       },
       "runtimeExecutable": "yarn",
-      "runtimeArgs": ["test", "test/indexer/indexer.test.ts"]
+      "runtimeArgs": ["test", "test/verification/verifierRouter.test.ts"]
     },
 
     {
@@ -698,7 +698,7 @@
       "type": "node",
       "console": "integratedTerminal",
       "request": "launch",
-      "name": "Test block processor mannager",
+      "name": "Test block processor manager",
       "runtimeExecutable": "yarn",
       "outFiles": [
         "${workspaceFolder}/**/*.js",

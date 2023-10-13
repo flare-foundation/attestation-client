@@ -3,10 +3,11 @@ import Web3 from "web3";
 import * as yargs from "yargs";
 import { StateConnector } from "../../typechain-web3-v1/StateConnector";
 import { StateConnectorTempTran } from "../../typechain-web3-v1/StateConnectorTempTran";
-import { DBBlockBase } from "../entity/indexer/dbBlock";
-import { DBTransactionBase } from "../entity/indexer/dbTransaction";
+import { AttestationDefinitionStore } from "../external-libs/AttestationDefinitionStore";
+import { ARBase } from "../external-libs/interfaces";
+import { IIndexedQueryManager } from "../indexed-query-manager/IIndexedQueryManager";
 import { IndexedQueryManager } from "../indexed-query-manager/IndexedQueryManager";
-import { IndexedQueryManagerOptions } from "../indexed-query-manager/indexed-query-manager-types";
+import { BlockResult, IndexedQueryManagerOptions, TransactionResult } from "../indexed-query-manager/indexed-query-manager-types";
 import { TxOrBlockGeneratorType, getRandomAttestationRequest, prepareRandomGenerators } from "../indexed-query-manager/random-attestation-requests/random-ar";
 import { RandomDBIterator } from "../indexed-query-manager/random-attestation-requests/random-query";
 import { readSecureConfig } from "../utils/config/configSecure";
@@ -16,11 +17,6 @@ import { Web3Functions } from "../utils/helpers/Web3Functions";
 import { getTimeMs } from "../utils/helpers/internetTime";
 import { getWeb3, getWeb3StateConnectorContract } from "../utils/helpers/web3-utils";
 import { getGlobalLogger, logException, setGlobalLoggerLabel, setLoggerName } from "../utils/logging/logger";
-import { AttestationDefinitionStore } from "../verification/attestation-types/AttestationDefinitionStore";
-import { AttestationTypeScheme } from "../verification/attestation-types/attestation-types";
-import { readAttestationTypeSchemes } from "../verification/attestation-types/attestation-types-helpers";
-import { ARType } from "../verification/generated/attestation-request-types";
-import { SourceId } from "../verification/sources/sources";
 import { SpammerCredentials } from "./SpammerConfiguration";
 
 const args = yargs
@@ -44,8 +40,7 @@ class AttestationSpammer {
   web3Functions_2!: Web3Functions;
   logEvents: boolean;
 
-  indexedQueryManager: IndexedQueryManager;
-  definitions: AttestationTypeScheme[];
+  indexedQueryManager: IIndexedQueryManager;
   // attestationRoundManager: AttestationRoundManager;
   spammerCredentials: SpammerCredentials;
 
@@ -64,7 +59,7 @@ class AttestationSpammer {
 
   id: string;
 
-  randomGenerators: Map<TxOrBlockGeneratorType, RandomDBIterator<DBTransactionBase | DBBlockBase>>;
+  randomGenerators: Map<TxOrBlockGeneratorType, RandomDBIterator<TransactionResult | BlockResult>>;
 
   constructor() {
     this.id = "default";
@@ -73,8 +68,7 @@ class AttestationSpammer {
   }
 
   async init() {
-    this.defStore = new AttestationDefinitionStore();
-    await this.defStore.initialize();
+    this.defStore = new AttestationDefinitionStore("configs/type-definitions");
     // Reading configuration
     this.spammerCredentials = await readSecureConfig(new SpammerCredentials(), `spammer/${args["chain"].toLowerCase()}-spammer`);
 
@@ -123,7 +117,6 @@ class AttestationSpammer {
 
     // eslint-disable-next-line
     this.startLogEvents();
-    this.definitions = await readAttestationTypeSchemes();
     this.logger.info(`Running spammer for ${args["chain"]}`);
 
     this.logger.info(`Sending from address ${this.web3Functions.account.address}`);
@@ -138,7 +131,7 @@ class AttestationSpammer {
   }
 
   static sendId = 0;
-  async sendAttestationRequest(stateConnector: StateConnector | StateConnectorTempTran, request: ARType) {
+  async sendAttestationRequest(stateConnector: StateConnector | StateConnectorTempTran, request: ARBase) {
     // let scheme = this.definitions.find(definition => definition.id === request.attestationType);
     // let requestBytes = encodeRequestBytes(request, scheme);
 
@@ -270,7 +263,7 @@ class AttestationSpammer {
           this.logger,
           this.randomGenerators,
           this.indexedQueryManager,
-          this.chainType as number as SourceId,
+          MCC.getChainTypeName(this.chainType),
           this.client
         );
 

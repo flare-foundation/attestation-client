@@ -4,6 +4,8 @@
 # set up in such a way that the remote 'origin' is set to developer repo and the remote 'github' 
 # is set to public repo.
 #
+# Make sure to use bash not zsh 
+#
 # source scripts/release/release.sh
 #
 # Then call 

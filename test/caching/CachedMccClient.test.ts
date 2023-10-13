@@ -5,14 +5,13 @@ import sinon from "sinon";
 import { CachedMccClient } from "../../src/caching/CachedMccClient";
 import { sleepMs } from "../../src/utils/helpers/utils";
 import { initializeTestGlobalLogger } from "../../src/utils/logging/logger";
-import { SourceId } from "../../src/verification/sources/sources";
 import { TestBlockXRPAlt } from "../mockData/indexMock";
 import { getTestFile } from "../test-utils/test-utils";
 import { MockMccClient } from "./test-utils/MockMccClient";
 chai.use(chaiAsPromised);
 
 
-const CHAIN_ID = SourceId.XRP;
+const CHAIN_ID = ChainType.XRP;
 
 describe(`Cached MCC Client test XRP (${getTestFile(__filename)})`, function () {
   initializeTestGlobalLogger();
@@ -45,12 +44,12 @@ describe(`Cached MCC Client test XRP (${getTestFile(__filename)})`, function () 
   });
 
   it("Correct client initialization", async function () {
-    const cachedMccClient = new CachedMccClient(CHAIN_ID as any as ChainType, undefined);
+    const cachedMccClient = new CachedMccClient(CHAIN_ID, undefined);
     expect(cachedMccClient.client).not.to.be.undefined;
   });
 
   it("Transaction is cached", async function () {
-    const cachedMccClient = new CachedMccClient(CHAIN_ID as any as ChainType, { forcedClient: mockMccClient });
+    const cachedMccClient = new CachedMccClient(CHAIN_ID, { forcedClient: mockMccClient });
     const randomTxId = mockMccClient.randomHash32(true);
     const result = await cachedMccClient.getTransaction(randomTxId);
     expect(cachedMccClient.transactionCache.get(randomTxId)).not.to.be.undefined;
@@ -59,7 +58,7 @@ describe(`Cached MCC Client test XRP (${getTestFile(__filename)})`, function () 
   });
 
   it("Transaction not recorded twice", async function () {
-    const cachedMccClient = new CachedMccClient(CHAIN_ID as any as ChainType, { forcedClient: mockMccClient });
+    const cachedMccClient = new CachedMccClient(CHAIN_ID, { forcedClient: mockMccClient });
     const randomTxId = mockMccClient.randomHash32(true);
     await cachedMccClient.getTransaction(randomTxId);
     await cachedMccClient.getTransaction(randomTxId);
@@ -77,7 +76,7 @@ describe(`Cached MCC Client test XRP (${getTestFile(__filename)})`, function () 
       clientConfig: {} as any,
       forcedClient: mockMccClient,
     };
-    const cachedMccClient = new CachedMccClient(CHAIN_ID as any as ChainType, cachedMccClientOptions);
+    const cachedMccClient = new CachedMccClient(CHAIN_ID, cachedMccClientOptions);
 
     for (let i = 0; i < LIMIT; i++) {
       const randomTxId = mockMccClient.randomHash32(true);
@@ -99,7 +98,7 @@ describe(`Cached MCC Client test XRP (${getTestFile(__filename)})`, function () 
   });
 
   it("Block is cached", async function () {
-    const cachedMccClient = new CachedMccClient(CHAIN_ID as any as ChainType, { forcedClient: mockMccClient });
+    const cachedMccClient = new CachedMccClient(CHAIN_ID, { forcedClient: mockMccClient });
     const randomBlockHash = mockMccClient.randomHash32(true);
     await cachedMccClient.getBlock(randomBlockHash);
     expect(cachedMccClient.blockCache.get(randomBlockHash)).not.to.be.undefined;
@@ -109,7 +108,7 @@ describe(`Cached MCC Client test XRP (${getTestFile(__filename)})`, function () 
   });
 
   it("Block not recorded twice", async function () {
-    const cachedMccClient = new CachedMccClient(CHAIN_ID as any as ChainType, { forcedClient: mockMccClient });
+    const cachedMccClient = new CachedMccClient(CHAIN_ID, { forcedClient: mockMccClient });
     const randomBlockHash = mockMccClient.randomHash32(true);
     await cachedMccClient.getBlock(randomBlockHash);
     await cachedMccClient.getBlock(randomBlockHash);
@@ -117,7 +116,7 @@ describe(`Cached MCC Client test XRP (${getTestFile(__filename)})`, function () 
   });
 
   it("Block by number is cached", async function () {
-    const cachedMccClient = new CachedMccClient(CHAIN_ID as any as ChainType, { forcedClient: mockMccClient });
+    const cachedMccClient = new CachedMccClient(CHAIN_ID, { forcedClient: mockMccClient });
 
     const stub = sinon.stub(cachedMccClient.client, "getBlock").resolves(TestBlockXRPAlt);
 
@@ -140,7 +139,7 @@ describe(`Cached MCC Client test XRP (${getTestFile(__filename)})`, function () 
       clientConfig: {} as any,
       forcedClient: mockMccClient,
     };
-    const cachedMccClient = new CachedMccClient(CHAIN_ID as any as ChainType, cachedMccClientOptions);
+    const cachedMccClient = new CachedMccClient(CHAIN_ID, cachedMccClientOptions);
 
     for (let i = 0; i < LIMIT; i++) {
       const randomBlockHash = mockMccClient.randomHash32(true);

@@ -1,0 +1,356 @@
+{
+  "name": "ConfirmedBlockHeightExists",
+  "fullComment": " @custom:name ConfirmedBlockHeightExists\n @custom:id 0x02\n @custom:supported BTC, DOGE, XRP\n @author Flare\n @notice The intention of this attestation type is for a dapp to be able to see what is the confirmed height of an external chain and to calculate what is the block production (time wise) in a given time range.\n @custom:verification For the given `blockNumber`, it is checked that the block is confirmed by at least `numberOfConfirmations`.\n If it is not, the request is rejected.\n Then `lowestQueryWindowBlock` is determined and its number and timestamp are extracted.\n Current confirmation heights consensus:\n | `Chain` | `chainId` | `numberOfConfirmations` |\n | ------- | --------- | ----------------------- |\n | `BTC`   | 0         | 6                       |\n | `DOGE`  | 2         | 60                      |\n | `XRP`   | 3         | 3                       |\n @custom:lut `lowestQueryWindowBlockTimestamp`",
+  "description": "The intention of this attestation type is for a dapp to be able to see what is the confirmed height of an external chain and to calculate what is the block production (time wise) in a given time range.",
+  "supported": "BTC, DOGE, XRP",
+  "verification": "For the given `blockNumber`, it is checked that the block is confirmed by at least `numberOfConfirmations`.\n If it is not, the request is rejected.\n Then `lowestQueryWindowBlock` is determined and its number and timestamp are extracted.\n Current confirmation heights consensus:\n | `Chain` | `chainId` | `numberOfConfirmations` |\n | ------- | --------- | ----------------------- |\n | `BTC`   | 0         | 6                       |\n | `DOGE`  | 2         | 60                      |\n | `XRP`   | 3         | 3                       |",
+  "lut": "`lowestQueryWindowBlockTimestamp`",
+  "proof": {
+    "name": "Proof",
+    "description": "Toplevel proof",
+    "above": "",
+    "below": "",
+    "fullComment": " @notice Toplevel proof\n @param merkleProof Merkle proof corresponding to the attestation response.\n @param data Attestation response.",
+    "params": [
+      {
+        "name": "merkleProof",
+        "type": "bytes32[]",
+        "typeSimple": "bytes32[]",
+        "comment": "Merkle proof corresponding to the attestation response."
+      },
+      {
+        "name": "data",
+        "type": "struct ConfirmedBlockHeightExists.Response",
+        "typeSimple": "Response",
+        "comment": "Attestation response."
+      }
+    ]
+  },
+  "request": {
+    "name": "Request",
+    "description": "Toplevel request",
+    "above": "",
+    "below": "",
+    "fullComment": " @notice Toplevel request\n @param attestationType Id of the attestation type.\n @param sourceId Id of the data source.\n @param messageIntegrityCode `MessageIntegrityCode` that is derived from the expected response as defined [here](/specs/attestations/hash-MIC.md#message-integrity-code).\n @param requestBody Data defining the request. Type (struct) and interpretation is determined by the `attestationType`.",
+    "params": [
+      {
+        "name": "attestationType",
+        "type": "bytes32",
+        "typeSimple": "bytes32",
+        "comment": "Id of the attestation type."
+      },
+      {
+        "name": "sourceId",
+        "type": "bytes32",
+        "typeSimple": "bytes32",
+        "comment": "Id of the data source."
+      },
+      {
+        "name": "messageIntegrityCode",
+        "type": "bytes32",
+        "typeSimple": "bytes32",
+        "comment": "`MessageIntegrityCode` that is derived from the expected response as defined [here](/specs/attestations/hash-MIC.md#message-integrity-code)."
+      },
+      {
+        "name": "requestBody",
+        "type": "struct ConfirmedBlockHeightExists.RequestBody",
+        "typeSimple": "RequestBody",
+        "comment": "Data defining the request. Type (struct) and interpretation is determined by the `attestationType`."
+      }
+    ]
+  },
+  "response": {
+    "name": "Response",
+    "description": "Toplevel response",
+    "above": "",
+    "below": "",
+    "fullComment": " @notice Toplevel response\n @param attestationType Extracted from the request.\n @param sourceId Extracted from the request.\n @param votingRound The id of the state connector round in which the request was considered.\n @param lowestUsedTimestamp The lowest timestamp used to generate the response.\n @param requestBody Extracted from the request.\n @param responseBody Data defining the response. The verification rules for the construction of the response body and the type are defined per specific `attestationType`.",
+    "params": [
+      {
+        "name": "attestationType",
+        "type": "bytes32",
+        "typeSimple": "bytes32",
+        "comment": "Extracted from the request."
+      },
+      {
+        "name": "sourceId",
+        "type": "bytes32",
+        "typeSimple": "bytes32",
+        "comment": "Extracted from the request."
+      },
+      {
+        "name": "votingRound",
+        "type": "uint64",
+        "typeSimple": "uint64",
+        "comment": "The id of the state connector round in which the request was considered."
+      },
+      {
+        "name": "lowestUsedTimestamp",
+        "type": "uint64",
+        "typeSimple": "uint64",
+        "comment": "The lowest timestamp used to generate the response."
+      },
+      {
+        "name": "requestBody",
+        "type": "struct ConfirmedBlockHeightExists.RequestBody",
+        "typeSimple": "RequestBody",
+        "comment": "Extracted from the request."
+      },
+      {
+        "name": "responseBody",
+        "type": "struct ConfirmedBlockHeightExists.ResponseBody",
+        "typeSimple": "ResponseBody",
+        "comment": "Data defining the response. The verification rules for the construction of the response body and the type are defined per specific `attestationType`."
+      }
+    ]
+  },
+  "requestBody": {
+    "name": "RequestBody",
+    "description": "Request body for ConfirmedBlockHeightExistsType attestation type",
+    "above": "",
+    "below": "",
+    "fullComment": " @notice Request body for ConfirmedBlockHeightExistsType attestation type\n @param blockNumber The number of the block the request wants a confirmation of.\n @param queryWindow The period in seconds for sampling. The range is from `blockNumber` to the blockNumber of the first block more than queryWindow before the `blockNumber`.",
+    "params": [
+      {
+        "name": "blockNumber",
+        "type": "uint64",
+        "typeSimple": "uint64",
+        "comment": "The number of the block the request wants a confirmation of."
+      },
+      {
+        "name": "queryWindow",
+        "type": "uint64",
+        "typeSimple": "uint64",
+        "comment": "The period in seconds for sampling. The range is from `blockNumber` to the blockNumber of the first block more than queryWindow before the `blockNumber`."
+      }
+    ]
+  },
+  "responseBody": {
+    "name": "ResponseBody",
+    "description": "Response body for ConfirmedBlockHeightExistsType attestation type",
+    "above": "",
+    "below": "`blockNumber`, `lowestQueryWindowBlockNumber`, `blockTimestamp` and `lowestQueryWindowBlockTimestamp` can be used to compute the average block production time in the specified block range.",
+    "fullComment": " @notice Response body for ConfirmedBlockHeightExistsType attestation type\n @custom:below `blockNumber`, `lowestQueryWindowBlockNumber`, `blockTimestamp` and `lowestQueryWindowBlockTimestamp` can be used to compute the average block production time in the specified block range.\n @param blockTimestamp The timestamp of the block with `blockNumber`.\n @param numberOfConfirmations The depth at which a block is considered confirmed depending on the chain. All attestation clients must agree on this number.\n @param lowestQueryWindowBlockNumber The block number of the latest block that has a timestamp strictly smaller than `blockTimestamp` - `queryWindow`.\n @param lowestQueryWindowBlockTimestamp The timestamp of the block at height `lowestQueryWindowBlockNumber`.",
+    "params": [
+      {
+        "name": "blockTimestamp",
+        "type": "uint64",
+        "typeSimple": "uint64",
+        "comment": "The timestamp of the block with `blockNumber`."
+      },
+      {
+        "name": "numberOfConfirmations",
+        "type": "uint64",
+        "typeSimple": "uint64",
+        "comment": "The depth at which a block is considered confirmed depending on the chain. All attestation clients must agree on this number."
+      },
+      {
+        "name": "lowestQueryWindowBlockNumber",
+        "type": "uint64",
+        "typeSimple": "uint64",
+        "comment": "The block number of the latest block that has a timestamp strictly smaller than `blockTimestamp` - `queryWindow`."
+      },
+      {
+        "name": "lowestQueryWindowBlockTimestamp",
+        "type": "uint64",
+        "typeSimple": "uint64",
+        "comment": "The timestamp of the block at height `lowestQueryWindowBlockNumber`."
+      }
+    ]
+  },
+  "requestStructs": [],
+  "responseStructs": [],
+  "requestAbi": {
+    "components": [
+      {
+        "internalType": "bytes32",
+        "name": "attestationType",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "sourceId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "messageIntegrityCode",
+        "type": "bytes32"
+      },
+      {
+        "components": [
+          {
+            "internalType": "uint64",
+            "name": "blockNumber",
+            "type": "uint64"
+          },
+          {
+            "internalType": "uint64",
+            "name": "queryWindow",
+            "type": "uint64"
+          }
+        ],
+        "internalType": "struct ConfirmedBlockHeightExists.RequestBody",
+        "name": "requestBody",
+        "type": "tuple"
+      }
+    ],
+    "internalType": "struct ConfirmedBlockHeightExists.Request",
+    "name": "_request",
+    "type": "tuple"
+  },
+  "responseAbi": {
+    "components": [
+      {
+        "internalType": "bytes32",
+        "name": "attestationType",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "sourceId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "uint64",
+        "name": "votingRound",
+        "type": "uint64"
+      },
+      {
+        "internalType": "uint64",
+        "name": "lowestUsedTimestamp",
+        "type": "uint64"
+      },
+      {
+        "components": [
+          {
+            "internalType": "uint64",
+            "name": "blockNumber",
+            "type": "uint64"
+          },
+          {
+            "internalType": "uint64",
+            "name": "queryWindow",
+            "type": "uint64"
+          }
+        ],
+        "internalType": "struct ConfirmedBlockHeightExists.RequestBody",
+        "name": "requestBody",
+        "type": "tuple"
+      },
+      {
+        "components": [
+          {
+            "internalType": "uint64",
+            "name": "blockTimestamp",
+            "type": "uint64"
+          },
+          {
+            "internalType": "uint64",
+            "name": "numberOfConfirmations",
+            "type": "uint64"
+          },
+          {
+            "internalType": "uint64",
+            "name": "lowestQueryWindowBlockNumber",
+            "type": "uint64"
+          },
+          {
+            "internalType": "uint64",
+            "name": "lowestQueryWindowBlockTimestamp",
+            "type": "uint64"
+          }
+        ],
+        "internalType": "struct ConfirmedBlockHeightExists.ResponseBody",
+        "name": "responseBody",
+        "type": "tuple"
+      }
+    ],
+    "internalType": "struct ConfirmedBlockHeightExists.Response",
+    "name": "_response",
+    "type": "tuple"
+  },
+  "proofAbi": {
+    "components": [
+      {
+        "internalType": "bytes32[]",
+        "name": "merkleProof",
+        "type": "bytes32[]"
+      },
+      {
+        "components": [
+          {
+            "internalType": "bytes32",
+            "name": "attestationType",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "sourceId",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "uint64",
+            "name": "votingRound",
+            "type": "uint64"
+          },
+          {
+            "internalType": "uint64",
+            "name": "lowestUsedTimestamp",
+            "type": "uint64"
+          },
+          {
+            "components": [
+              {
+                "internalType": "uint64",
+                "name": "blockNumber",
+                "type": "uint64"
+              },
+              {
+                "internalType": "uint64",
+                "name": "queryWindow",
+                "type": "uint64"
+              }
+            ],
+            "internalType": "struct ConfirmedBlockHeightExists.RequestBody",
+            "name": "requestBody",
+            "type": "tuple"
+          },
+          {
+            "components": [
+              {
+                "internalType": "uint64",
+                "name": "blockTimestamp",
+                "type": "uint64"
+              },
+              {
+                "internalType": "uint64",
+                "name": "numberOfConfirmations",
+                "type": "uint64"
+              },
+              {
+                "internalType": "uint64",
+                "name": "lowestQueryWindowBlockNumber",
+                "type": "uint64"
+              },
+              {
+                "internalType": "uint64",
+                "name": "lowestQueryWindowBlockTimestamp",
+                "type": "uint64"
+              }
+            ],
+            "internalType": "struct ConfirmedBlockHeightExists.ResponseBody",
+            "name": "responseBody",
+            "type": "tuple"
+          }
+        ],
+        "internalType": "struct ConfirmedBlockHeightExists.Response",
+        "name": "data",
+        "type": "tuple"
+      }
+    ],
+    "internalType": "struct ConfirmedBlockHeightExists.Proof",
+    "name": "_proof",
+    "type": "tuple"
+  }
+}

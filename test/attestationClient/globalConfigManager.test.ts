@@ -1,14 +1,13 @@
 // yarn test test/attestationClient/globalConfigManager.test.ts
 
-import { AttestationClientConfig } from "../../src/attester/configs/AttestationClientConfig";
-import { expect, assert } from "chai";
-import { GlobalConfigManager } from "../../src/attester/GlobalConfigManager";
-import { getGlobalLogger, initializeTestGlobalLogger, setLoggerName } from "../../src/utils/logging/logger";
-import { getTestFile } from "../test-utils/test-utils";
-import sinon from "sinon";
+import { assert, expect } from "chai";
 import { before } from "mocha";
+import sinon from "sinon";
+import { GlobalConfigManager } from "../../src/attester/GlobalConfigManager";
+import { AttestationClientConfig } from "../../src/attester/configs/AttestationClientConfig";
 import { readSecureConfig } from "../../src/utils/config/configSecure";
-import { SourceId } from "../../src/verification/sources/sources";
+import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
+import { getTestFile } from "../test-utils/test-utils";
 
 describe(`Global Config Manager (${getTestFile(__filename)})`, function () {
   initializeTestGlobalLogger();
@@ -80,12 +79,12 @@ describe(`Global Config Manager (${getTestFile(__filename)})`, function () {
   });
 
   it("Should not get SourceLimiterConfig #1", function () {
-    const config = globalConfigManager.getGlobalConfig(10).sourcesMap.get(15);
+    const config = globalConfigManager.getGlobalConfig(10).sourcesMap.get("INVALID");
     assert(!config);
   });
 
   it("Should get SourceLimiterConfig", function () {
-    const config = globalConfigManager.getGlobalConfig(170).sourcesMap.get(SourceId.DOGE);
+    const config = globalConfigManager.getGlobalConfig(170).sourcesMap.get("DOGE");
     assert(config);
   });
 
@@ -103,17 +102,17 @@ describe(`Global Config Manager (${getTestFile(__filename)})`, function () {
 
   describe("Global Attestation Config", function () {
     it("should verify supported types", function () {
-      const res = globalConfigManager.globalAttestationConfigs[0].sourceAndTypeSupported(2, 3);
+      const res = globalConfigManager.globalAttestationConfigs[0].sourceAndTypeSupported("DOGE", "ConfirmedBlockHeightExists");
       assert(res);
     });
 
     it("should deny unsupported chains", function () {
-      const res = globalConfigManager.globalAttestationConfigs[0].sourceAndTypeSupported(10, 3);
+      const res = globalConfigManager.globalAttestationConfigs[0].sourceAndTypeSupported("INVALID", "ConfirmedBlockHeightExists");
       assert(!res);
     });
 
     it("should deny unsupported types", function () {
-      const res = globalConfigManager.globalAttestationConfigs[0].sourceAndTypeSupported(2, 10);
+      const res = globalConfigManager.globalAttestationConfigs[0].sourceAndTypeSupported("DOGE", "INVALID");
       assert(!res);
     });
   });

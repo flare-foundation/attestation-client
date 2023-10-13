@@ -1,10 +1,10 @@
 import axios from "axios";
+import { EncodedRequestBody } from "../../../src/servers/verifier-server/src/dtos/generic/generic.dto";
 import { VerifierConfigurationService } from "../../../src/servers/verifier-server/src/services/verifier-configuration.service";
-import { AttestationRequest } from "../../../src/verification/attestation-types/attestation-types";
 
-export async function sendToVerifier(configurationService: VerifierConfigurationService, attestationRequest: AttestationRequest, apiKey?: string) {
+export async function sendToVerifier(attestationType: string, sourceId: string, configurationService: VerifierConfigurationService, attestationRequest: EncodedRequestBody, apiKey?: string) {
    const resp = await axios.post(
-      `http://localhost:${configurationService.config.port}/query`,
+      `http://localhost:${configurationService.config.port}/${sourceId}/${attestationType}`,
       attestationRequest,
       {
          headers: {

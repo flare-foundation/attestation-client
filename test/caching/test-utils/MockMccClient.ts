@@ -57,7 +57,7 @@ export class MockMccClient implements ReadRpcInterface<any, any, any, any, any> 
   getBlockHeader(blockNumberOrHash: any): Promise<BlockHeaderBase> {
     throw new Error("Method not implemented.");
   }
-  async getTransaction(txId: string, metaData?: getTransactionOptions): Promise<TransactionBase> {
+  async getTransaction(txId: string, metaData?: getTransactionOptions): Promise<TransactionBase<any>> {
     if (txId === "") {
       throw MccError("XXX error"); // for testing purposes
     }
@@ -125,7 +125,7 @@ export class MockMccClientBTC implements ReadRpcInterface<any, any, any, any, an
     const blockHeaderTemplate = new BtcBlockHeader(respData.result as any);
     return blockHeaderTemplate;
   }
-  async getTransaction(txId: string, metaData?: getTransactionOptions): Promise<TransactionBase> {
+  async getTransaction(txId: string, metaData?: getTransactionOptions): Promise<TransactionBase<any>> {
     if (txId === "") {
       throw MccError("XXX error"); // for testing purposes
     }

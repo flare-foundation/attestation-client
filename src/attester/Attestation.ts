@@ -1,5 +1,5 @@
 import { Managed } from "@flarenetwork/mcc";
-import { Verification } from "../verification/attestation-types/attestation-types";
+import { AttestationResponse } from "../external-libs/AttestationResponse";
 import { AttestationData } from "./AttestationData";
 import { AttestationRound } from "./AttestationRound";
 import { AttestationStatus } from "./types/AttestationStatus";
@@ -30,7 +30,8 @@ export class Attestation {
   status: AttestationStatus = AttestationStatus.initial;
 
   // verification result (response by verifier)
-  verificationData!: Verification<any, any>;
+  verificationData!: AttestationResponse<any>;
+  hash: string | undefined;
 
   // processing stats
   processStartTime = 0;

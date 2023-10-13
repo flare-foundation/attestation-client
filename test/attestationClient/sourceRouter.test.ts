@@ -1,14 +1,13 @@
 // yarn test test/attestationClient/sourceRouter.test.ts
 
-import { expect, assert } from "chai";
-import { AttestationClientConfig } from "../../src/attester/configs/AttestationClientConfig";
+import { assert, expect } from "chai";
+import sinon from "sinon";
 import { GlobalConfigManager } from "../../src/attester/GlobalConfigManager";
+import { AttestationClientConfig } from "../../src/attester/configs/AttestationClientConfig";
 import { SourceRouter } from "../../src/attester/source/SourceRouter";
+import { readSecureConfig } from "../../src/utils/config/configSecure";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
 import { getTestFile } from "../test-utils/test-utils";
-import sinon from "sinon";
-import { readSecureConfig } from "../../src/utils/config/configSecure";
-import { SourceId } from "../../src/verification/sources/sources";
 
 describe(`SourceRouter (${getTestFile(__filename)})`, function () {
   initializeTestGlobalLogger();
@@ -42,17 +41,17 @@ describe(`SourceRouter (${getTestFile(__filename)})`, function () {
 
   it("Should initialize Source", function () {
     sourceRouter.initializeSourcesForRound(170);
-    expect(sourceRouter.sourceManagers.size).to.eq(Object.keys(SourceId).length / 2 - 1);  // 'invalid' not counted
+    expect(sourceRouter.sourceManagers.size).to.eq(4);  // BTC, DOGE, XRP, ETH
   });
 
   it("Should get SourceManager", function () {
-    const res = sourceRouter.getSourceManager(SourceId.XRP);
-    expect(res.sourceId).to.eq(SourceId.XRP);
+    const res = sourceRouter.getSourceManager("XRP");
+    expect(res.sourceId).to.eq("XRP");
   });
 
   it("Should not get SourceManager", function () {
     const stub = sinon.stub(process, "exit");
-    const res = sourceRouter.getSourceManager(SourceId.invalid);
+    const res = sourceRouter.getSourceManager("INVALID");
     assert(stub.calledOnce);
   });
 });

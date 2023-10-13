@@ -4,9 +4,9 @@ import { InjectEntityManager } from "@nestjs/typeorm";
 import { EntityManager } from "typeorm";
 import { DBBlockBase } from "../../../../entity/indexer/dbBlock";
 import { DBState } from "../../../../entity/indexer/dbState";
-import { ApiDBTransaction } from "../dtos/ApiDbTransaction";
-import { BlockRange } from "../dtos/BlockRange.dto";
 import { VerifierConfigurationService } from "./verifier-configuration.service";
+import { ApiDBTransaction } from "../dtos/indexer/ApiDbTransaction";
+import { BlockRange } from "../dtos/indexer/BlockRange.dto";
 
 @Injectable()
 export class IndexerEngineService {

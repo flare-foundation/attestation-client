@@ -1,7 +1,6 @@
 import { optional } from "@flarenetwork/mcc";
+import { decodeAttestationName } from "../../external-libs/utils";
 import { AdditionalTypeInfo, IReflection } from "../../utils/reflection/reflection";
-import { AttestationType } from "../../verification/generated/attestation-types-enum";
-import { SourceId } from "../../verification/sources/sources";
 import { SourceConfig } from "./SourceConfig";
 
 /**
@@ -33,7 +32,7 @@ export class GlobalAttestationConfig implements IReflection<GlobalAttestationCon
    * Provides a map between data sources and source configurations.
    * NOTE: this one is not read from the JSON configuration but
    */
-  @optional() sourcesMap = new Map<SourceId, SourceConfig>();
+  @optional() sourcesMap = new Map<string, SourceConfig>();
 
   getAdditionalTypeInfo(obj: any): AdditionalTypeInfo {
     const info = new AdditionalTypeInfo();
@@ -58,16 +57,18 @@ export class GlobalAttestationConfig implements IReflection<GlobalAttestationCon
   }
 
   /**
-   * Returns `true` if source @param sourceId and attestation type @param type are supported in
+   * Returns `true` if source @param sourceId and attestation type @param attestationType are supported in
    * the global configuration.
    * @param sourceId
-   * @param type
+   * @param attestationType
    * @returns
    */
-  public sourceAndTypeSupported(sourceId: SourceId, type: AttestationType): boolean {
-    const config = this.sourcesMap.get(sourceId);
+  public sourceAndTypeSupported(sourceId: string, attestationType: string): boolean {
+    const _sourceId = /^0x[0-9a-fA-F]{64}$/i.test(sourceId) ? decodeAttestationName(sourceId) : sourceId;
+    const _attestationType = /^0x[0-9a-fA-F]{64}$/i.test(attestationType) ? decodeAttestationName(attestationType) : attestationType;
+    const config = this.sourcesMap.get(_sourceId);
     if (!config) return false;
-    const typeConfig = config.attestationTypesMap.get(type);
+    const typeConfig = config.attestationTypesMap.get(_attestationType);
     return !!typeConfig;
   }
 }

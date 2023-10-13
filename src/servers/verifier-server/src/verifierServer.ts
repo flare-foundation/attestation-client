@@ -5,10 +5,26 @@ import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import helmet from "helmet";
 import { getGlobalLogger } from "../../../utils/logging/logger";
 import { VerifierConfigurationService } from "./services/verifier-configuration.service";
-import { VerifierServerModule } from "./verifier-server.module";
+import { VerifierBtcServerModule } from "./verifier-btc-server.module";
+import { VerifierDogeServerModule } from "./verifier-doge-server.module";
+import { VerifierXrpServerModule } from "./verifier-xrp-server.module";
+
+function moduleForDataSource(): any {
+  switch (process.env.VERIFIER_TYPE.toLowerCase()) {
+    case "btc":
+      return VerifierBtcServerModule
+    case "doge":
+      return VerifierDogeServerModule
+    case "xrp":
+      return VerifierXrpServerModule
+    default:
+      throw new Error(`Wrong verifier type: '${process.env.VERIFIER_TYPE}'`);
+  }
+}
 
 export async function runVerifierServer() {
-  const app = await NestFactory.create(VerifierServerModule);
+  const moduleClass = moduleForDataSource();
+  const app = await NestFactory.create(moduleClass);
   app.useWebSocketAdapter(new WsAdapter(app));
 
   app.use(helmet());

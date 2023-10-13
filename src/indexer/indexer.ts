@@ -100,7 +100,7 @@ export class Indexer {
       transactionCacheSize: 100000,
       blockCacheSize: 100000,
       cleanupChunkSize: 100,
-      activeLimit: 70,
+      activeLimit: 20,  //TODO: set this up
       clientConfig: {
         ...this.chainConfig.mccCreate,
         rateLimitOptions: this.chainConfig.rateLimitOptions,

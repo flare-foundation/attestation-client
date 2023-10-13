@@ -1,30 +1,27 @@
-import { ChainType, prefix0x, toBN, unPrefix0x } from "@flarenetwork/mcc";
+import { ChainType, MCC, prefix0x, toBN, unPrefix0x } from "@flarenetwork/mcc";
 import fs from "fs";
 import { EntityManager } from "typeorm";
 import Web3 from "web3";
 import { DBBlockBase } from "../../../src/entity/indexer/dbBlock";
 import { DBState } from "../../../src/entity/indexer/dbState";
 import { DBTransactionBase } from "../../../src/entity/indexer/dbTransaction";
-import { getUnixEpochTimestamp } from "../../../src/utils/helpers/utils";
-import { AttestationDefinitionStore } from "../../../src/verification/attestation-types/AttestationDefinitionStore";
-import { MIC_SALT, NumberLike } from "../../../src/verification/attestation-types/attestation-types";
-import { toHex } from "../../../src/verification/attestation-types/attestation-types-helpers";
-import {
-  ARBalanceDecreasingTransaction,
-  ARConfirmedBlockHeightExists,
-  ARPayment,
-  ARReferencedPaymentNonexistence,
-} from "../../../src/verification/generated/attestation-request-types";
-import { AttestationType } from "../../../src/verification/generated/attestation-types-enum";
-import { SourceId, getSourceName } from "../../../src/verification/sources/sources";
+import { AttestationDefinitionStore } from "../../../src/external-libs/AttestationDefinitionStore";
+import { MIC_SALT, encodeAttestationName } from "../../../src/external-libs/utils";
+import { BalanceDecreasingTransaction_Request } from "../../../src/servers/verifier-server/src/dtos/attestation-types/BalanceDecreasingTransaction.dto";
+import { ConfirmedBlockHeightExists_Request } from "../../../src/servers/verifier-server/src/dtos/attestation-types/ConfirmedBlockHeightExists.dto";
+import { Payment_Request } from "../../../src/servers/verifier-server/src/dtos/attestation-types/Payment.dto";
+import { ReferencedPaymentNonexistence_Request } from "../../../src/servers/verifier-server/src/dtos/attestation-types/ReferencedPaymentNonexistence.dto";
 import {
   responseBalanceDecreasingTransaction,
   responseConfirmedBlockHeightExists,
   responsePayment,
   responseReferencedPaymentNonExistence,
-} from "../../../src/verification/verification-utils/generic-chain-verifications";
-import { MccTransactionType } from "../../../src/verification/verification-utils/verification-utils";
+} from "../../../src/servers/verifier-server/src/verification/generic-chain-verifications";
+import { MccTransactionType } from "../../../src/servers/verifier-server/src/verification/verification-utils";
 import { compressBin } from "../../../src/utils/compression/compression";
+import { getUnixEpochTimestamp } from "../../../src/utils/helpers/utils";
+import { toHex } from "../../../src/verification/attestation-types/attestation-types-helpers";
+import { TransactionResult } from "../../../src/indexed-query-manager/indexed-query-manager-types";
 
 const TEST_DATA_PATH = "test/indexed-query-manager/test-data";
 
@@ -70,7 +67,7 @@ function setFirstOPReturn(vouts: any, value: string) {
   throw new Error("No OP_RETURN found");
 }
 
-function addBtcTransactionResponse(transaction: DBTransactionBase, transactionIndex: number) {
+function addBtcTransactionResponse(transaction: TransactionResult, transactionIndex: number) {
   let index = parseInt(transaction.transactionId.slice(-1), 16) % BTC_TYPES_COUNT;
   let txStr = "";
   let paymentReference = null;
@@ -103,7 +100,7 @@ function addBtcTransactionResponse(transaction: DBTransactionBase, transactionIn
   return JSON.stringify(json);
 }
 
-function addXrpTransactionResponse(transaction: DBTransactionBase, transactionIndex: number) {
+function addXrpTransactionResponse(transaction: TransactionResult, transactionIndex: number) {
   let index = parseInt(transaction.transactionId.slice(-1), 16) % XRP_TYPES_COUNT;
   let txStr = "";
   let paymentReference = null;
@@ -137,7 +134,7 @@ function addXrpTransactionResponse(transaction: DBTransactionBase, transactionIn
   return JSON.stringify(json);
 }
 
-function addDogeTransactionResponse(transaction: DBTransactionBase, transactionIndex: number) {
+function addDogeTransactionResponse(transaction: TransactionResult, transactionIndex: number) {
   let index = parseInt(transaction.transactionId.slice(-1), 16) % DOGE_TYPES_COUNT;
   let txStr = "";
   let paymentReference = null;
@@ -169,7 +166,7 @@ function addDogeTransactionResponse(transaction: DBTransactionBase, transactionI
   return JSON.stringify(json);
 }
 
-function addTransactionResponse(transaction: DBTransactionBase, transactionIndex: number) {
+function addTransactionResponse(transaction: TransactionResult, transactionIndex: number) {
   switch (transaction.chainType) {
     case ChainType.BTC:
       return addBtcTransactionResponse(transaction, transactionIndex);
@@ -193,7 +190,7 @@ function generateTransactionsForBlock(chainType: ChainType, blockNumber: number,
     transaction.paymentReference = "";
     transaction.isNativePayment = true;
     transaction.transactionType = "";
-    transaction.response = compressBin( addTransactionResponse(transaction, i) );
+    transaction.response = compressBin(addTransactionResponse(transaction, i));
     transactions.push(transaction);
   }
   return transactions;
@@ -229,7 +226,7 @@ export async function generateTestIndexerDB(
     await manager.save(dbBlock);
   }
   let stateEntries: DBState[] = [];
-  let prefixName = getSourceName(chainType).toUpperCase();
+  let prefixName = MCC.getChainTypeName(chainType);
   let dbState = new DBState();
   dbState.name = `${prefixName}_N`;
   dbState.valueNumber = lastConfirmedBlock;
@@ -259,7 +256,7 @@ export async function generateTestIndexerDB(
 }
 
 function getChainT(chainType: ChainType) {
-  return `${getSourceName(chainType)}_T`;
+  return `${MCC.getChainTypeName(chainType)}_T`;
 }
 
 export async function snapshotTimestampT(manager: EntityManager, chainType: ChainType) {
@@ -317,7 +314,7 @@ export function firstAddressVout(dbTransaction: DBTransactionBase, index = 0) {
 
 export function firstAddressVin(dbTransaction: DBTransactionBase) {
   let response = JSON.parse(dbTransaction.getResponse());
-  for(let i = 0; i < response.data.vin.length; i++) {
+  for (let i = 0; i < response.data.vin.length; i++) {
     if (response.data.vin[i].prevout.scriptPubKey?.address) {
       return i;
     }
@@ -361,19 +358,21 @@ export async function testPaymentRequest(
   inUtxo: number = 0,
   utxo: number = 0
 ) {
-  const responseData = await responsePayment(dbTransaction, TransactionClass, inUtxo, utxo, undefined);
-
   const request = {
-    attestationType: AttestationType.Payment,
-    sourceId: chainType as any as SourceId,
+    attestationType: encodeAttestationName("Payment"),
+    sourceId: encodeAttestationName(MCC.getChainTypeName(chainType)),
     messageIntegrityCode: "0x0000000000000000000000000000000000000000000000000000000000000000",
-    id: prefix0x(dbTransaction.transactionId),
-    blockNumber: responseData.response?.blockNumber,
-    inUtxo,
-    utxo,
-  } as ARPayment;
+    requestBody: {
+      transactionId: prefix0x(dbTransaction.transactionId),
+      inUtxo: inUtxo.toString(),
+      utxo: utxo.toString(),
+    },
+  } as Payment_Request;
+
+  const responseData = await responsePayment(dbTransaction, TransactionClass, request, undefined);
+
   if (responseData.status === "OK") {
-    request.messageIntegrityCode = definitionStore.dataHash(request, responseData.response, MIC_SALT);
+    request.messageIntegrityCode = definitionStore.attestationResponseHash(responseData.response, MIC_SALT);
   }
   return request;
 }
@@ -385,18 +384,20 @@ export async function testBalanceDecreasingTransactionRequest(
   chainType: ChainType,
   sourceAddressIndicator: string = "0x0000000000000000000000000000000000000000000000000000000000000000"
 ) {
-  const responseData = await responseBalanceDecreasingTransaction(dbTransaction, TransactionClass, sourceAddressIndicator, undefined);
-
   const request = {
-    attestationType: AttestationType.BalanceDecreasingTransaction,
-    sourceId: chainType as any as SourceId,
+    attestationType: encodeAttestationName("BalanceDecreasingTransaction"),
+    sourceId: encodeAttestationName(MCC.getChainTypeName(chainType)),
     messageIntegrityCode: "0x0000000000000000000000000000000000000000000000000000000000000000",
-    id: prefix0x(dbTransaction.transactionId),
-    blockNumber: responseData.response?.blockNumber,
-    sourceAddressIndicator,
-  } as ARBalanceDecreasingTransaction;
+    requestBody: {
+      transactionId: prefix0x(dbTransaction.transactionId),
+      sourceAddressIndicator,
+    },
+  } as BalanceDecreasingTransaction_Request;
+
+  const responseData = await responseBalanceDecreasingTransaction(dbTransaction, TransactionClass, request, undefined);
+
   if (responseData.status === "OK") {
-    request.messageIntegrityCode = definitionStore.dataHash(request, responseData.response, MIC_SALT);
+    request.messageIntegrityCode = definitionStore.attestationResponseHash(responseData.response, MIC_SALT);
   }
   return request;
 }
@@ -409,17 +410,20 @@ export async function testConfirmedBlockHeightExistsRequest(
   numberOfConfirmations: number,
   queryWindow: number
 ) {
-  const responseData = await responseConfirmedBlockHeightExists(dbBlock, lowerQueryWindowBlock, numberOfConfirmations);
-
   const request = {
-    attestationType: AttestationType.ConfirmedBlockHeightExists,
-    sourceId: chainType as any as SourceId,
+    attestationType: encodeAttestationName("ConfirmedBlockHeightExists"),
+    sourceId: encodeAttestationName(MCC.getChainTypeName(chainType)),
     messageIntegrityCode: "0x0000000000000000000000000000000000000000000000000000000000000000",
-    blockNumber: dbBlock.blockNumber,
-    queryWindow,
-  } as ARConfirmedBlockHeightExists;
+    requestBody: {
+      blockNumber: dbBlock.blockNumber.toString(),
+      queryWindow: queryWindow.toString(),
+    },
+  } as ConfirmedBlockHeightExists_Request;
+
+  const responseData = await responseConfirmedBlockHeightExists(dbBlock, lowerQueryWindowBlock, numberOfConfirmations, request);
+
   if (responseData.status === "OK") {
-    request.messageIntegrityCode = definitionStore.dataHash(request, responseData.response, MIC_SALT);
+    request.messageIntegrityCode = definitionStore.attestationResponseHash(responseData.response, MIC_SALT);
   }
   return request;
 }
@@ -435,34 +439,26 @@ export async function testReferencedPaymentNonexistenceRequest(
   deadlineTimestamp: number,
   destinationAddress: string,
   paymentReference: string,
-  amount: NumberLike
+  amount: string | number
 ) {
-  const responseData = await responseReferencedPaymentNonExistence(
-    dbTransactions,
-    TransactionClass,
-    firstOverflowBlock,
-    lowerBoundaryBlock,
-    deadlineBlockNumber,
-    deadlineTimestamp,
-    Web3.utils.soliditySha3(destinationAddress),
-    paymentReference,
-    amount
-  );
-
   const request = {
-    attestationType: AttestationType.ReferencedPaymentNonexistence,
-    sourceId: chainType as any as SourceId,
-    minimalBlockNumber: lowerBoundaryBlock.blockNumber,
+    attestationType: encodeAttestationName("ReferencedPaymentNonexistence"),
+    sourceId: encodeAttestationName(MCC.getChainTypeName(chainType)),
     messageIntegrityCode: "0x0000000000000000000000000000000000000000000000000000000000000000",
-    deadlineBlockNumber,
-    deadlineTimestamp,
-    destinationAddressHash: Web3.utils.soliditySha3(destinationAddress),
-    amount,
-    paymentReference,
-  } as ARReferencedPaymentNonexistence;
+    requestBody: {
+      minimalBlockNumber: lowerBoundaryBlock.blockNumber.toString(),
+      deadlineBlockNumber: deadlineBlockNumber.toString(),
+      deadlineTimestamp: deadlineTimestamp.toString(),
+      destinationAddressHash: Web3.utils.soliditySha3(destinationAddress),
+      amount: amount.toString(),
+      standardPaymentReference: paymentReference,
+    },
+  } as ReferencedPaymentNonexistence_Request;
+
+  const responseData = await responseReferencedPaymentNonExistence(dbTransactions, TransactionClass, firstOverflowBlock, lowerBoundaryBlock, request);
 
   if (responseData.status === "OK") {
-    request.messageIntegrityCode = definitionStore.dataHash(request, responseData.response, MIC_SALT);
+    request.messageIntegrityCode = definitionStore.attestationResponseHash(responseData.response, MIC_SALT);
   }
 
   return request;

@@ -1,6 +1,4 @@
-import { ChainType } from "@flarenetwork/mcc";
-import { SourceId } from "../../verification/sources/sources";
-import { AttLogger, getGlobalLogger } from "../logging/logger";
+import { getGlobalLogger } from "../logging/logger";
 
 // used for return after exit(1) so that return is actually called after mocked exit
 export const MOCK_NULL_WHEN_TESTING = null;
@@ -150,33 +148,4 @@ export function queryPrint(query: any) {
   });
   // tslint:disable-next-line:no-console
   console.log(sql);
-}
-
-/**
- * Checks that globally set enumerations of chains in Multi Chain Client and Attestation Client match
- */
-export function checkChainTypesMatchSourceIds(logger?: AttLogger): boolean {
-  let isMatching = true;
-  for (const value in ChainType) {
-    if (typeof ChainType[value] === "number") {
-      if (ChainType[value] !== SourceId[value]) {
-        isMatching = false;
-        logger?.error2(
-          `ChainType and Source value mismatch ChainType.${ChainType[ChainType[value] as any]}=${ChainType[value]}, Source.${
-            SourceId[SourceId[value] as any]
-          }=${SourceId[value]}`
-        );
-      }
-
-      if (ChainType[ChainType[value] as any] !== SourceId[SourceId[value] as any]) {
-        isMatching = false;
-        logger?.error2(
-          `ChainType and Source key mismatch ChainType.${ChainType[ChainType[value] as any]}=${ChainType[value]}, Source.${SourceId[SourceId[value] as any]}=${
-            SourceId[value]
-          }`
-        );
-      }
-    }
-  }
-  return isMatching;
 }

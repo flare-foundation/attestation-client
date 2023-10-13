@@ -1,16 +1,17 @@
 import { XrpTransaction } from "@flarenetwork/mcc";
-import { Inject, Injectable } from "@nestjs/common";
+import { HttpException, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { readFileSync } from "fs";
 import { AttestationDefinitionStore } from "../../../../../external-libs/AttestationDefinitionStore";
 import { AttestationResponse, AttestationResponseStatus } from "../../../../../external-libs/AttestationResponse";
 import { ExampleData } from "../../../../../external-libs/interfaces";
-import { MIC_SALT, ZERO_BYTES_32 } from "../../../../../external-libs/utils";
+import { MIC_SALT, ZERO_BYTES_32, encodeAttestationName, serializeBigInts } from "../../../../../external-libs/utils";
 import { getAttestationStatus } from "../../../../../verification/attestation-types/attestation-types";
 import {
     ReferencedPaymentNonexistence_Request,
     ReferencedPaymentNonexistence_RequestNoMic,
     ReferencedPaymentNonexistence_Response,
 } from "../../dtos/attestation-types/ReferencedPaymentNonexistence.dto";
+import { AttestationResponseDTO } from "../../dtos/generic/generic.dto";
 import { verifyReferencedPaymentNonExistence } from "../../verification/generic-chain-verifications";
 import { XRPProcessorService } from "../verifier-processors/xrp-processor.service";
 
@@ -28,6 +29,16 @@ export class XRPReferencedPaymentNonexistenceVerifierService {
     private async verifyRequest(
         request: ReferencedPaymentNonexistence_RequestNoMic | ReferencedPaymentNonexistence_Request,
     ): Promise<AttestationResponse<ReferencedPaymentNonexistence_Response>> {
+        if (request.attestationType !== encodeAttestationName("ReferencedPaymentNonexistence") || request.sourceId !== encodeAttestationName("XRP")) {
+            throw new HttpException(
+                {
+                    status: HttpStatus.BAD_REQUEST,
+                    error: `Attestation type and source id combination not supported: (${request.attestationType}, ${request.sourceId}). This source supports attestation type 'ReferencedPaymentNonexistence' (0x5265666572656e6365645061796d656e744e6f6e6578697374656e6365000000) and source id 'XRP' (0x5852500000000000000000000000000000000000000000000000000000000000).`,
+                },
+                HttpStatus.BAD_REQUEST
+            );
+        }
+
         let fixedRequest = {
             ...request,
         } as ReferencedPaymentNonexistence_Request;
@@ -35,17 +46,16 @@ export class XRPReferencedPaymentNonexistenceVerifierService {
             fixedRequest.messageIntegrityCode = ZERO_BYTES_32;
         }
         const result = await verifyReferencedPaymentNonExistence(XrpTransaction, fixedRequest, this.processor.indexedQueryManager);
-        return {
+        return serializeBigInts({
             status: getAttestationStatus(result.status),
             response: result.response,
-        } as AttestationResponse<ReferencedPaymentNonexistence_Response>;
+        }) as AttestationResponse<ReferencedPaymentNonexistence_Response>;
     }
 
     //-$$$<end-constructor> End of custom code section. Do not change this comment.
 
-    public async verifyEncodedRequest(abiEncodedRequest: string): Promise<AttestationResponse<ReferencedPaymentNonexistence_Response>> {
+    public async verifyEncodedRequest(abiEncodedRequest: string): Promise<AttestationResponseDTO<ReferencedPaymentNonexistence_Response>> {
         const requestJSON = this.store.parseRequest<ReferencedPaymentNonexistence_Request>(abiEncodedRequest);
-
         //-$$$<start-verifyEncodedRequest> Start of custom code section. Do not change this comment.
 
         const response = await this.verifyRequest(requestJSON);
@@ -55,7 +65,7 @@ export class XRPReferencedPaymentNonexistenceVerifierService {
         return response;
     }
 
-    public async prepareResponse(request: ReferencedPaymentNonexistence_RequestNoMic): Promise<AttestationResponse<ReferencedPaymentNonexistence_Response>> {
+    public async prepareResponse(request: ReferencedPaymentNonexistence_RequestNoMic): Promise<AttestationResponseDTO<ReferencedPaymentNonexistence_Response>> {
         //-$$$<start-prepareResponse> Start of custom code section. Do not change this comment.
 
         const response = await this.verifyRequest(request);

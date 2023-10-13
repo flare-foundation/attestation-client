@@ -158,7 +158,7 @@ export class ConfirmedBlockHeightExists_ResponseBody {
      */
     @Validate(IsUnsignedIntLike)
     @ApiProperty({ description: `The timestamp of the block with 'blockNumber'.`, example: "123" })
-    blockTimestamp!: string;
+    blockTimestamp: string;
 
     /**
      * The depth at which a block is considered confirmed depending on the chain. All attestation clients must agree on this number.
@@ -168,7 +168,7 @@ export class ConfirmedBlockHeightExists_ResponseBody {
         description: `The depth at which a block is considered confirmed depending on the chain. All attestation clients must agree on this number.`,
         example: "123",
     })
-    numberOfConfirmations!: string;
+    numberOfConfirmations: string;
 
     /**
      * The block number of the latest block that has a timestamp strictly smaller than `blockTimestamp` - `queryWindow`.
@@ -178,14 +178,14 @@ export class ConfirmedBlockHeightExists_ResponseBody {
         description: `The block number of the latest block that has a timestamp strictly smaller than 'blockTimestamp' - 'queryWindow'.`,
         example: "123",
     })
-    lowestQueryWindowBlockNumber!: string;
+    lowestQueryWindowBlockNumber: string;
 
     /**
      * The timestamp of the block at height `lowestQueryWindowBlockNumber`.
      */
     @Validate(IsUnsignedIntLike)
     @ApiProperty({ description: `The timestamp of the block at height 'lowestQueryWindowBlockNumber'.`, example: "123" })
-    lowestQueryWindowBlockTimestamp!: string;
+    lowestQueryWindowBlockTimestamp: string;
 }
 export class ConfirmedBlockHeightExists_RequestBody {
     constructor(params: Required<ConfirmedBlockHeightExists_RequestBody>) {
@@ -197,7 +197,7 @@ export class ConfirmedBlockHeightExists_RequestBody {
      */
     @Validate(IsUnsignedIntLike)
     @ApiProperty({ description: `The number of the block the request wants a confirmation of.`, example: "123" })
-    blockNumber!: string;
+    blockNumber: string;
 
     /**
      * The period in seconds for sampling. The range is from `blockNumber` to the blockNumber of the first block more than queryWindow before the `blockNumber`.
@@ -207,7 +207,7 @@ export class ConfirmedBlockHeightExists_RequestBody {
         description: `The period in seconds for sampling. The range is from 'blockNumber' to the blockNumber of the first block more than queryWindow before the 'blockNumber'.`,
         example: "123",
     })
-    queryWindow!: string;
+    queryWindow: string;
 }
 export class ConfirmedBlockHeightExists_Request {
     constructor(params: Required<ConfirmedBlockHeightExists_Request>) {
@@ -219,14 +219,14 @@ export class ConfirmedBlockHeightExists_Request {
      */
     @Validate(IsHash32)
     @ApiProperty({ description: `Id of the attestation type.`, example: "0x436f6e6669726d6564426c6f636b486569676874457869737473000000000000" })
-    attestationType!: string;
+    attestationType: string;
 
     /**
      * Id of the data source.
      */
     @Validate(IsHash32)
-    @ApiProperty({ description: `Id of the data source.`, example: "0x0000000000000000000000000000000000000000000000000000000000000000" })
-    sourceId!: string;
+    @ApiProperty({ description: `Id of the data source.`, example: "0x4254430000000000000000000000000000000000000000000000000000000000" })
+    sourceId: string;
 
     /**
      * `MessageIntegrityCode` that is derived from the expected response as defined [here](/specs/attestations/hash-MIC.md#message-integrity-code).
@@ -236,7 +236,7 @@ export class ConfirmedBlockHeightExists_Request {
         description: `'MessageIntegrityCode' that is derived from the expected response as defined [here](/specs/attestations/hash-MIC.md#message-integrity-code).`,
         example: "0x0000000000000000000000000000000000000000000000000000000000000000",
     })
-    messageIntegrityCode!: string;
+    messageIntegrityCode: string;
 
     /**
      * Data defining the request. Type (struct) and interpretation is determined by the `attestationType`.
@@ -247,7 +247,7 @@ export class ConfirmedBlockHeightExists_Request {
     @IsNotEmptyObject()
     @IsObject()
     @ApiProperty({ description: `Data defining the request. Type (struct) and interpretation is determined by the 'attestationType'.` })
-    requestBody!: ConfirmedBlockHeightExists_RequestBody;
+    requestBody: ConfirmedBlockHeightExists_RequestBody;
 }
 export class ConfirmedBlockHeightExists_Response {
     constructor(params: Required<ConfirmedBlockHeightExists_Response>) {
@@ -259,28 +259,28 @@ export class ConfirmedBlockHeightExists_Response {
      */
     @Validate(IsHash32)
     @ApiProperty({ description: `Extracted from the request.`, example: "0x436f6e6669726d6564426c6f636b486569676874457869737473000000000000" })
-    attestationType!: string;
+    attestationType: string;
 
     /**
      * Extracted from the request.
      */
     @Validate(IsHash32)
-    @ApiProperty({ description: `Extracted from the request.`, example: "0x0000000000000000000000000000000000000000000000000000000000000000" })
-    sourceId!: string;
+    @ApiProperty({ description: `Extracted from the request.`, example: "0x4254430000000000000000000000000000000000000000000000000000000000" })
+    sourceId: string;
 
     /**
      * The id of the state connector round in which the request was considered.
      */
     @Validate(IsUnsignedIntLike)
     @ApiProperty({ description: `The id of the state connector round in which the request was considered.`, example: "123" })
-    votingRound!: string;
+    votingRound: string;
 
     /**
      * The lowest timestamp used to generate the response.
      */
     @Validate(IsUnsignedIntLike)
     @ApiProperty({ description: `The lowest timestamp used to generate the response.`, example: "123" })
-    lowestUsedTimestamp!: string;
+    lowestUsedTimestamp: string;
 
     /**
      * Extracted from the request.
@@ -291,7 +291,7 @@ export class ConfirmedBlockHeightExists_Response {
     @IsNotEmptyObject()
     @IsObject()
     @ApiProperty({ description: `Extracted from the request.` })
-    requestBody!: ConfirmedBlockHeightExists_RequestBody;
+    requestBody: ConfirmedBlockHeightExists_RequestBody;
 
     /**
      * Data defining the response. The verification rules for the construction of the response body and the type are defined per specific `attestationType`.
@@ -304,7 +304,7 @@ export class ConfirmedBlockHeightExists_Response {
     @ApiProperty({
         description: `Data defining the response. The verification rules for the construction of the response body and the type are defined per specific 'attestationType'.`,
     })
-    responseBody!: ConfirmedBlockHeightExists_ResponseBody;
+    responseBody: ConfirmedBlockHeightExists_ResponseBody;
 }
 export class ConfirmedBlockHeightExists_Proof {
     constructor(params: Required<ConfirmedBlockHeightExists_Proof>) {
@@ -319,7 +319,7 @@ export class ConfirmedBlockHeightExists_Proof {
         description: `Merkle proof corresponding to the attestation response.`,
         example: ["0x0000000000000000000000000000000000000000000000000000000000000000"],
     })
-    merkleProof!: string[];
+    merkleProof: string[];
 
     /**
      * Attestation response.
@@ -330,7 +330,7 @@ export class ConfirmedBlockHeightExists_Proof {
     @IsNotEmptyObject()
     @IsObject()
     @ApiProperty({ description: `Attestation response.` })
-    data!: ConfirmedBlockHeightExists_Response;
+    data: ConfirmedBlockHeightExists_Response;
 }
 
 export class ConfirmedBlockHeightExists_RequestNoMic extends OmitType<ConfirmedBlockHeightExists_Request, "messageIntegrityCode">(

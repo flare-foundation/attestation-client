@@ -1,5 +1,22 @@
 {
-  "additionalData": {},
+  "additionalData": {
+    "vinouts": [
+      {
+        "index": 0,
+        "vinvout": {
+          "n": 1,
+          "scriptPubKey": {
+            "address": "tb1q8yu29c59hlmem3hed28f49k4f3kwwkrv4smgkh",
+            "asm": "0 3938a2e285bff79dc6f96a8e9a96d54c6ce7586c",
+            "desc": "addr(tb1q8yu29c59hlmem3hed28f49k4f3kwwkrv4smgkh)#hn522arq",
+            "hex": "00143938a2e285bff79dc6f96a8e9a96d54c6ce7586c",
+            "type": "witness_v0_keyhash"
+          },
+          "value": 0.0003127
+        }
+      }
+    ]
+  },
   "data": {
     "txid": "76efdbf38b8f970ddb5356933d1eca136d49d767a395d64903e15bfd8940a609",
     "hash": "0782cb0ebb3b14e59b798a84b6d45df3011e0cd4230ec9910c7f3d8b6ba36ce4",

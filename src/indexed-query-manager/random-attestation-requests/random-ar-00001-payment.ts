@@ -1,17 +1,14 @@
 import { MccClient, prefix0x, toBN } from "@flarenetwork/mcc";
 import Web3 from "web3";
-import { DBTransactionBase } from "../../entity/indexer/dbTransaction";
+import { AttestationDefinitionStore } from "../../external-libs/AttestationDefinitionStore";
+import { MIC_SALT, ZERO_BYTES_32, encodeAttestationName } from "../../external-libs/utils";
+import { Payment_Request } from "../../servers/verifier-server/src/dtos/attestation-types/Payment.dto";
+import { verifyPayment } from "../../servers/verifier-server/src/verification/generic-chain-verifications";
 import { AttLogger } from "../../utils/logging/logger";
-import { AttestationDefinitionStore } from "../../verification/attestation-types/AttestationDefinitionStore";
-import { MIC_SALT, WeightedRandomChoice } from "../../verification/attestation-types/attestation-types";
+import { WeightedRandomChoice } from "../../verification/attestation-types/attestation-types";
 import { randomWeightedChoice } from "../../verification/attestation-types/attestation-types-helpers";
-import { DHPayment } from "../../verification/generated/attestation-hash-types";
-import { ARPayment } from "../../verification/generated/attestation-request-types";
-import { AttestationType } from "../../verification/generated/attestation-types-enum";
-import { SourceId } from "../../verification/sources/sources";
-import { verifyAttestation } from "../../verification/verifiers/verifier_routing";
-import { IndexedQueryManager } from "../IndexedQueryManager";
-import { createTestAttestationFromRequest } from "./random-ar";
+import { IIndexedQueryManager } from "../IIndexedQueryManager";
+import { TransactionResult } from "../indexed-query-manager-types";
 
 /////////////////////////////////////////////////////////////////
 // Specific random attestation request generators for
@@ -28,12 +25,13 @@ const RANDOM_OPTIONS_PAYMENT = [
 export async function prepareRandomizedRequestPayment(
   defStore: AttestationDefinitionStore,
   logger: AttLogger,
-  indexedQueryManager: IndexedQueryManager,
-  randomTransaction: DBTransactionBase,
-  sourceId: SourceId,
+  indexedQueryManager: IIndexedQueryManager,
+  randomTransaction: TransactionResult,
+  sourceId: string,
+  TransactionClass: new (...args: any[]) => any,
   enforcedChoice?: RandomPaymentChoiceType,
   client?: MccClient
-): Promise<ARPayment | null> {
+): Promise<Payment_Request | null> {
   if (!randomTransaction) {
     return null;
   }
@@ -46,23 +44,23 @@ export async function prepareRandomizedRequestPayment(
   const id = choice === "NON_EXISTENT_TX_ID" ? Web3.utils.randomHex(32) : prefix0x(randomTransaction.transactionId);
   const blockNumber = randomTransaction.blockNumber;
   const request = {
-    attestationType: AttestationType.Payment,
-    sourceId: sourceId,
-    messageIntegrityCode: "0x0000000000000000000000000000000000000000000000000000000000000000", // TODO change
-    id,
-    blockNumber,
-    utxo: toBN(0), // TODO: randomize for UTXO chains
-    inUtxo: toBN(0), // TODO: randomize for UTXO chains
-  } as ARPayment;
+    attestationType: encodeAttestationName("Payment"),
+    sourceId: encodeAttestationName(sourceId),
+    messageIntegrityCode: ZERO_BYTES_32, // TODO change,
+    requestBody: {
+      transactionId: id,
+      blockNumber: blockNumber,
+      utxo: toBN(0).toString(), // TODO: randomize for UTXO chains
+      inUtxo: toBN(0).toString(), // TODO: randomize for UTXO chains
+    }
+  } as Payment_Request;
   if (choice === "WRONG_MIC") {
     return request;
   }
-  let attestation = createTestAttestationFromRequest(defStore, request, 0, logger);
   try {
-    let response = await verifyAttestation(defStore, client, attestation, indexedQueryManager);
-    // augment with message integrity code
+    let response = await verifyPayment(TransactionClass, request, indexedQueryManager);    
     if (response.status === "OK") {
-      request.messageIntegrityCode = defStore.dataHash(request, response.response as DHPayment, MIC_SALT);
+      request.messageIntegrityCode = defStore.attestationResponseHash(response.response, MIC_SALT);
       logger.info(`Request augmented correctly (Payment)`);
       return request;
     }

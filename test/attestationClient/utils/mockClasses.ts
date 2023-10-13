@@ -1,14 +1,14 @@
-import { AttestationClientConfig } from "../../../src/attester/configs/AttestationClientConfig";
-import { FlareConnection } from "../../../src/attester/FlareConnection";
-import { AttLogger } from "../../../src/utils/logging/logger";
-import BN from "bn.js";
-import { EpochSettings } from "../../../src/utils/data-structures/EpochSettings";
-import { toBN } from "web3-utils";
-import { SourceRouter } from "../../../src/attester/source/SourceRouter";
-import { VerifierRouter } from "../../../src/verification/routing/VerifierRouter";
-import { Attestation } from "../../../src/attester/Attestation";
-import { Verification, VerificationStatus } from "../../../src/verification/attestation-types/attestation-types";
 import { prefix0x, unPrefix0x } from "@flarenetwork/mcc";
+import BN from "bn.js";
+import { toBN } from "web3-utils";
+import { Attestation } from "../../../src/attester/Attestation";
+import { FlareConnection } from "../../../src/attester/FlareConnection";
+import { AttestationClientConfig } from "../../../src/attester/configs/AttestationClientConfig";
+import { SourceRouter } from "../../../src/attester/source/SourceRouter";
+import { AttestationResponse, AttestationResponseStatus } from "../../../src/external-libs/AttestationResponse";
+import { EpochSettings } from "../../../src/utils/data-structures/EpochSettings";
+import { AttLogger } from "../../../src/utils/logging/logger";
+import { VerifierRouter } from "../../../src/verification/routing/VerifierRouter";
 
 export class MockFlareConnection extends FlareConnection {
   constructor(config: AttestationClientConfig, logger: AttLogger, initWeb3 = false) {
@@ -97,8 +97,8 @@ export class MockFlareConnection extends FlareConnection {
 export class MockSourceRouter extends SourceRouter {}
 
 export class MockVerifierRouter extends VerifierRouter {
-  public async verifyAttestation(attestation: Attestation): Promise<Verification<any, any>> {
-    let res: Verification<any, any> = { status: VerificationStatus.OK };
+  public async verifyAttestation(attestation: Attestation): Promise<AttestationResponse<any>> {
+    let res: AttestationResponse<any> = { status: AttestationResponseStatus.VALID };
     return res;
   }
 }

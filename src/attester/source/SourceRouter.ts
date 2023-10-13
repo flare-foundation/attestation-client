@@ -1,6 +1,5 @@
 import { Managed } from "@flarenetwork/mcc";
 import { AttLogger } from "../../utils/logging/logger";
-import { SourceId, toSourceId } from "../../verification/sources/sources";
 import { GlobalConfigManager } from "../GlobalConfigManager";
 import { SourceManager } from "./SourceManager";
 
@@ -9,7 +8,7 @@ import { SourceManager } from "./SourceManager";
  */
 @Managed()
 export class SourceRouter {
-  sourceManagers = new Map<SourceId, SourceManager>();
+  sourceManagers = new Map<string, SourceManager>();
 
   globalConfigManager: GlobalConfigManager;
   logger: AttLogger;
@@ -26,12 +25,7 @@ export class SourceRouter {
   initializeSourcesForRound(roundId: number) {
     let verifierRouter = this.globalConfigManager.getVerifierRouter(roundId);
     for (let sourceName of verifierRouter.routeMap.keys()) {
-      const sourceId = toSourceId(sourceName);
-      if (sourceId === SourceId.invalid) {
-        this.logger.error(`Invalid source id. This should never happen! Terminating!`);
-        process.exit(1);
-        return; // Don't delete needed for testing
-      }
+      const sourceId = sourceName;      
       let sourceManager = this.sourceManagers.get(sourceId);
       if (sourceManager) {
         sourceManager.refreshLatestRoundId(roundId);
@@ -52,7 +46,7 @@ export class SourceRouter {
    * @param sourceId
    * @returns
    */
-  getSourceManager(sourceId: SourceId): SourceManager {
+  getSourceManager(sourceId: string): SourceManager {
     const sourceManager = this.sourceManagers.get(sourceId);
     if (!sourceManager) {
       this.logger.error(`${sourceId}: critical error, source not defined`);

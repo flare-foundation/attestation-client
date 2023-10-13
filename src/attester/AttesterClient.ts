@@ -82,6 +82,7 @@ export class AttesterClient {
       // handle Attestation Request
       if (event.event === "AttestationRequest") {
         // if attestation request is not well formatted, exception is thrown (event is ignored)
+        // IMPORTANT: Note that such attestation request is ignored and skipped in indexing.
         const attestationData = new AttestationData(event);
 
         // eslint-disable-next-line

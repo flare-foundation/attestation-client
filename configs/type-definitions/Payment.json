@@ -1,0 +1,505 @@
+{
+  "name": "Payment",
+  "fullComment": " @custom:name Payment\n @custom:id 0x01\n @custom:supported BTC, DOGE, XRP\n @author Flare\n @notice The attestation type is used to prove that a native currency payment was carried out on some blockchain.\n Various blockchains support different types of native payments. For each block chain, it is specified how a payment\n transaction should be formed to be provable by this attestation type.\n The provable payments emulate usual banking payment from entity A to entity B in native currency with an optional payment reference.\n @custom:verification Based on transaction id, the transaction is fetched from the API of the blockchain node or relevant indexer.\n If the transaction cannot be fetched or the transaction is in a block that does not have sufficient [number of confirmations](/specs/attestations/configs.md#finalityconfirmation), the attestation request is rejected.\n Once the transaction is received, the [payment summary](/specs/attestations/external-chains/transactions.md#payment-summary) is computed according to the source chain.\n If summary is successfully calculated, the response is assembled from the summary.\n Otherwise, the attestation request is rejected.\n @custom:lut `blockTimestamp`",
+  "description": "The attestation type is used to prove that a native currency payment was carried out on some blockchain.\n Various blockchains support different types of native payments. For each block chain, it is specified how a payment\n transaction should be formed to be provable by this attestation type.\n The provable payments emulate usual banking payment from entity A to entity B in native currency with an optional payment reference.",
+  "supported": "BTC, DOGE, XRP",
+  "verification": "Based on transaction id, the transaction is fetched from the API of the blockchain node or relevant indexer.\n If the transaction cannot be fetched or the transaction is in a block that does not have sufficient [number of confirmations](/specs/attestations/configs.md#finalityconfirmation), the attestation request is rejected.\n Once the transaction is received, the [payment summary](/specs/attestations/external-chains/transactions.md#payment-summary) is computed according to the source chain.\n If summary is successfully calculated, the response is assembled from the summary.\n Otherwise, the attestation request is rejected.",
+  "lut": "`blockTimestamp`",
+  "proof": {
+    "name": "Proof",
+    "description": "Toplevel proof",
+    "above": "",
+    "below": "",
+    "fullComment": " @notice Toplevel proof\n @param merkleProof Merkle proof corresponding to the attestation response.\n @param data Attestation response.",
+    "params": [
+      {
+        "name": "merkleProof",
+        "type": "bytes32[]",
+        "typeSimple": "bytes32[]",
+        "comment": "Merkle proof corresponding to the attestation response."
+      },
+      {
+        "name": "data",
+        "type": "struct Payment.Response",
+        "typeSimple": "Response",
+        "comment": "Attestation response."
+      }
+    ]
+  },
+  "request": {
+    "name": "Request",
+    "description": "Toplevel request",
+    "above": "",
+    "below": "",
+    "fullComment": " @notice Toplevel request\n @param attestationType Id of the attestation type.\n @param sourceId Id of the data source.\n @param messageIntegrityCode `MessageIntegrityCode` that is derived from the expected response as defined [here](/specs/attestations/hash-MIC.md#message-integrity-code).\n @param requestBody Data defining the request. Type (struct) and interpretation is determined by the `attestationType`.",
+    "params": [
+      {
+        "name": "attestationType",
+        "type": "bytes32",
+        "typeSimple": "bytes32",
+        "comment": "Id of the attestation type."
+      },
+      {
+        "name": "sourceId",
+        "type": "bytes32",
+        "typeSimple": "bytes32",
+        "comment": "Id of the data source."
+      },
+      {
+        "name": "messageIntegrityCode",
+        "type": "bytes32",
+        "typeSimple": "bytes32",
+        "comment": "`MessageIntegrityCode` that is derived from the expected response as defined [here](/specs/attestations/hash-MIC.md#message-integrity-code)."
+      },
+      {
+        "name": "requestBody",
+        "type": "struct Payment.RequestBody",
+        "typeSimple": "RequestBody",
+        "comment": "Data defining the request. Type (struct) and interpretation is determined by the `attestationType`."
+      }
+    ]
+  },
+  "response": {
+    "name": "Response",
+    "description": "Toplevel response",
+    "above": "",
+    "below": "",
+    "fullComment": " @notice Toplevel response\n @param attestationType Extracted from the request.\n @param sourceId Extracted from the request.\n @param votingRound The id of the state connector round in which the request was considered.\n @param lowestUsedTimestamp The lowest timestamp used to generate the response.\n @param requestBody Extracted from the request.\n @param responseBody Data defining the response. The verification rules for the construction of the response body and the type are defined per specific `attestationType`.",
+    "params": [
+      {
+        "name": "attestationType",
+        "type": "bytes32",
+        "typeSimple": "bytes32",
+        "comment": "Extracted from the request."
+      },
+      {
+        "name": "sourceId",
+        "type": "bytes32",
+        "typeSimple": "bytes32",
+        "comment": "Extracted from the request."
+      },
+      {
+        "name": "votingRound",
+        "type": "uint64",
+        "typeSimple": "uint64",
+        "comment": "The id of the state connector round in which the request was considered."
+      },
+      {
+        "name": "lowestUsedTimestamp",
+        "type": "uint64",
+        "typeSimple": "uint64",
+        "comment": "The lowest timestamp used to generate the response."
+      },
+      {
+        "name": "requestBody",
+        "type": "struct Payment.RequestBody",
+        "typeSimple": "RequestBody",
+        "comment": "Extracted from the request."
+      },
+      {
+        "name": "responseBody",
+        "type": "struct Payment.ResponseBody",
+        "typeSimple": "ResponseBody",
+        "comment": "Data defining the response. The verification rules for the construction of the response body and the type are defined per specific `attestationType`."
+      }
+    ]
+  },
+  "requestBody": {
+    "name": "RequestBody",
+    "description": "Request body for Payment attestation type",
+    "above": "",
+    "below": "",
+    "fullComment": " @notice Request body for Payment attestation type\n @param transactionId Id of the payment transaction.\n @param inUtxo Index of the transaction input. Always 0 for the non-utxo chains.\n @param utxo Index of the transaction output. Always 0 for the non-utxo chains.",
+    "params": [
+      {
+        "name": "transactionId",
+        "type": "bytes32",
+        "typeSimple": "bytes32",
+        "comment": "Id of the payment transaction."
+      },
+      {
+        "name": "inUtxo",
+        "type": "uint256",
+        "typeSimple": "uint256",
+        "comment": "Index of the transaction input. Always 0 for the non-utxo chains."
+      },
+      {
+        "name": "utxo",
+        "type": "uint16",
+        "typeSimple": "uint16",
+        "comment": "Index of the transaction output. Always 0 for the non-utxo chains."
+      }
+    ]
+  },
+  "responseBody": {
+    "name": "ResponseBody",
+    "description": "Response body for Payment attestation type",
+    "above": "",
+    "below": "",
+    "fullComment": " @notice Response body for Payment attestation type\n @param blockNumber Number of the block in which the transaction is included.\n @param blockTimestamp The timestamps of the block in which the transaction is included.\n @param sourceAddressHash Standard address hash of the source address.\n @param receivingAddressHash Standard address hash of the receiving address. Zero 32-byte string if there is no receivingAddress (if `status` is not success).\n @param intendedReceivingAddressHash Standard address hash of the intended receiving address. Relevant if the transaction was unsuccessful.\n @param spentAmount Amount spent by the source address.\n @param intendedSpentAmount Amount to be spent by the source address. Relevant if the transaction status is not success.\n @param receivedAmount Amount received by the receiving address.\n @param intendedReceivedAmount Amount intended to be received by the receiving address. Relevant if the transaction was unsuccessful.\n @param standardPaymentReference Identifier of the transaction as defined [here](/specs/attestations/external-chains/standardPaymentReference.md).\n @param oneToOne Indicator whether only one source and one receiver are involved in the transaction.\n @param status Status of the transaction as described [here](/specs/attestations/external-chains/transactions.md#transaction-success-status):\n   0 - success,\n   1 - failed by sender's fault,\n   2 - failed by receiver's fault.",
+    "params": [
+      {
+        "name": "blockNumber",
+        "type": "uint64",
+        "typeSimple": "uint64",
+        "comment": "Number of the block in which the transaction is included."
+      },
+      {
+        "name": "blockTimestamp",
+        "type": "uint64",
+        "typeSimple": "uint64",
+        "comment": "The timestamps of the block in which the transaction is included."
+      },
+      {
+        "name": "sourceAddressHash",
+        "type": "bytes32",
+        "typeSimple": "bytes32",
+        "comment": "Standard address hash of the source address."
+      },
+      {
+        "name": "receivingAddressHash",
+        "type": "bytes32",
+        "typeSimple": "bytes32",
+        "comment": "Standard address hash of the receiving address. Zero 32-byte string if there is no receivingAddress (if `status` is not success)."
+      },
+      {
+        "name": "intendedReceivingAddressHash",
+        "type": "bytes32",
+        "typeSimple": "bytes32",
+        "comment": "Standard address hash of the intended receiving address. Relevant if the transaction was unsuccessful."
+      },
+      {
+        "name": "spentAmount",
+        "type": "int256",
+        "typeSimple": "int256",
+        "comment": "Amount spent by the source address."
+      },
+      {
+        "name": "intendedSpentAmount",
+        "type": "int256",
+        "typeSimple": "int256",
+        "comment": "Amount to be spent by the source address. Relevant if the transaction status is not success."
+      },
+      {
+        "name": "receivedAmount",
+        "type": "int256",
+        "typeSimple": "int256",
+        "comment": "Amount received by the receiving address."
+      },
+      {
+        "name": "intendedReceivedAmount",
+        "type": "int256",
+        "typeSimple": "int256",
+        "comment": "Amount intended to be received by the receiving address. Relevant if the transaction was unsuccessful."
+      },
+      {
+        "name": "standardPaymentReference",
+        "type": "bytes32",
+        "typeSimple": "bytes32",
+        "comment": "Identifier of the transaction as defined [here](/specs/attestations/external-chains/standardPaymentReference.md)."
+      },
+      {
+        "name": "oneToOne",
+        "type": "bool",
+        "typeSimple": "bool",
+        "comment": "Indicator whether only one source and one receiver are involved in the transaction."
+      },
+      {
+        "name": "status",
+        "type": "uint8",
+        "typeSimple": "uint8",
+        "comment": "Status of the transaction as described [here](/specs/attestations/external-chains/transactions.md#transaction-success-status):"
+      }
+    ]
+  },
+  "requestStructs": [],
+  "responseStructs": [],
+  "requestAbi": {
+    "components": [
+      {
+        "internalType": "bytes32",
+        "name": "attestationType",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "sourceId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "messageIntegrityCode",
+        "type": "bytes32"
+      },
+      {
+        "components": [
+          {
+            "internalType": "bytes32",
+            "name": "transactionId",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "uint256",
+            "name": "inUtxo",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint16",
+            "name": "utxo",
+            "type": "uint16"
+          }
+        ],
+        "internalType": "struct Payment.RequestBody",
+        "name": "requestBody",
+        "type": "tuple"
+      }
+    ],
+    "internalType": "struct Payment.Request",
+    "name": "_request",
+    "type": "tuple"
+  },
+  "responseAbi": {
+    "components": [
+      {
+        "internalType": "bytes32",
+        "name": "attestationType",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "sourceId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "uint64",
+        "name": "votingRound",
+        "type": "uint64"
+      },
+      {
+        "internalType": "uint64",
+        "name": "lowestUsedTimestamp",
+        "type": "uint64"
+      },
+      {
+        "components": [
+          {
+            "internalType": "bytes32",
+            "name": "transactionId",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "uint256",
+            "name": "inUtxo",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint16",
+            "name": "utxo",
+            "type": "uint16"
+          }
+        ],
+        "internalType": "struct Payment.RequestBody",
+        "name": "requestBody",
+        "type": "tuple"
+      },
+      {
+        "components": [
+          {
+            "internalType": "uint64",
+            "name": "blockNumber",
+            "type": "uint64"
+          },
+          {
+            "internalType": "uint64",
+            "name": "blockTimestamp",
+            "type": "uint64"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "sourceAddressHash",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "receivingAddressHash",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "intendedReceivingAddressHash",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "int256",
+            "name": "spentAmount",
+            "type": "int256"
+          },
+          {
+            "internalType": "int256",
+            "name": "intendedSpentAmount",
+            "type": "int256"
+          },
+          {
+            "internalType": "int256",
+            "name": "receivedAmount",
+            "type": "int256"
+          },
+          {
+            "internalType": "int256",
+            "name": "intendedReceivedAmount",
+            "type": "int256"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "standardPaymentReference",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bool",
+            "name": "oneToOne",
+            "type": "bool"
+          },
+          {
+            "internalType": "uint8",
+            "name": "status",
+            "type": "uint8"
+          }
+        ],
+        "internalType": "struct Payment.ResponseBody",
+        "name": "responseBody",
+        "type": "tuple"
+      }
+    ],
+    "internalType": "struct Payment.Response",
+    "name": "_response",
+    "type": "tuple"
+  },
+  "proofAbi": {
+    "components": [
+      {
+        "internalType": "bytes32[]",
+        "name": "merkleProof",
+        "type": "bytes32[]"
+      },
+      {
+        "components": [
+          {
+            "internalType": "bytes32",
+            "name": "attestationType",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "sourceId",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "uint64",
+            "name": "votingRound",
+            "type": "uint64"
+          },
+          {
+            "internalType": "uint64",
+            "name": "lowestUsedTimestamp",
+            "type": "uint64"
+          },
+          {
+            "components": [
+              {
+                "internalType": "bytes32",
+                "name": "transactionId",
+                "type": "bytes32"
+              },
+              {
+                "internalType": "uint256",
+                "name": "inUtxo",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint16",
+                "name": "utxo",
+                "type": "uint16"
+              }
+            ],
+            "internalType": "struct Payment.RequestBody",
+            "name": "requestBody",
+            "type": "tuple"
+          },
+          {
+            "components": [
+              {
+                "internalType": "uint64",
+                "name": "blockNumber",
+                "type": "uint64"
+              },
+              {
+                "internalType": "uint64",
+                "name": "blockTimestamp",
+                "type": "uint64"
+              },
+              {
+                "internalType": "bytes32",
+                "name": "sourceAddressHash",
+                "type": "bytes32"
+              },
+              {
+                "internalType": "bytes32",
+                "name": "receivingAddressHash",
+                "type": "bytes32"
+              },
+              {
+                "internalType": "bytes32",
+                "name": "intendedReceivingAddressHash",
+                "type": "bytes32"
+              },
+              {
+                "internalType": "int256",
+                "name": "spentAmount",
+                "type": "int256"
+              },
+              {
+                "internalType": "int256",
+                "name": "intendedSpentAmount",
+                "type": "int256"
+              },
+              {
+                "internalType": "int256",
+                "name": "receivedAmount",
+                "type": "int256"
+              },
+              {
+                "internalType": "int256",
+                "name": "intendedReceivedAmount",
+                "type": "int256"
+              },
+              {
+                "internalType": "bytes32",
+                "name": "standardPaymentReference",
+                "type": "bytes32"
+              },
+              {
+                "internalType": "bool",
+                "name": "oneToOne",
+                "type": "bool"
+              },
+              {
+                "internalType": "uint8",
+                "name": "status",
+                "type": "uint8"
+              }
+            ],
+            "internalType": "struct Payment.ResponseBody",
+            "name": "responseBody",
+            "type": "tuple"
+          }
+        ],
+        "internalType": "struct Payment.Response",
+        "name": "data",
+        "type": "tuple"
+      }
+    ],
+    "internalType": "struct Payment.Proof",
+    "name": "_proof",
+    "type": "tuple"
+  }
+}

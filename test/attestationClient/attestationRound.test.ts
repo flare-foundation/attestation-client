@@ -1,29 +1,28 @@
 // yarn test test/attestationClient/attestationRound.test.ts
 
-import { expect, assert } from "chai";
+import { traceManager } from "@flarenetwork/mcc";
+import { assert, expect } from "chai";
+import sinon from "sinon";
+import { Attestation } from "../../src/attester/Attestation";
+import { AttestationData } from "../../src/attester/AttestationData";
 import { AttestationRound } from "../../src/attester/AttestationRound";
 import { AttesterState } from "../../src/attester/AttesterState";
+import { BitVoteData } from "../../src/attester/BitVoteData";
+import { GlobalConfigManager } from "../../src/attester/GlobalConfigManager";
 import { AttestationClientConfig } from "../../src/attester/configs/AttestationClientConfig";
 import { GlobalAttestationConfig } from "../../src/attester/configs/GlobalAttestationConfig";
-import { GlobalConfigManager } from "../../src/attester/GlobalConfigManager";
+import { SourceRouter } from "../../src/attester/source/SourceRouter";
+import { AttestationRoundPhase, AttestationRoundStatus } from "../../src/attester/types/AttestationRoundEnums";
+import { AttestationStatus } from "../../src/attester/types/AttestationStatus";
+import { AttestationDefinitionStore } from "../../src/external-libs/AttestationDefinitionStore";
+import { readSecureConfig } from "../../src/utils/config/configSecure";
 import { DatabaseConnectOptions } from "../../src/utils/database/DatabaseConnectOptions";
 import { DatabaseService } from "../../src/utils/database/DatabaseService";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
 import { getTestFile } from "../test-utils/test-utils";
-import sinon from "sinon";
 import { createBlankAtRequestEvent, createBlankBitVoteEvent } from "./utils/createEvents";
-import { BitVoteData } from "../../src/attester/BitVoteData";
 import { MockFlareConnection } from "./utils/mockClasses";
-import { Attestation } from "../../src/attester/Attestation";
-import { AttestationData } from "../../src/attester/AttestationData";
-import { AttestationStatus } from "../../src/attester/types/AttestationStatus";
-import { readSecureConfig } from "../../src/utils/config/configSecure";
-import { SourceRouter } from "../../src/attester/source/SourceRouter";
-import { AttestationRoundPhase, AttestationRoundStatus } from "../../src/attester/types/AttestationRoundEnums";
-import { traceManager } from "@flarenetwork/mcc";
-import { SourceId } from "../../src/verification/sources/sources";
-import { AttestationType } from "../../src/verification/generated/attestation-types-enum";
-import { AttestationDefinitionStore } from "../../src/verification/attestation-types/AttestationDefinitionStore";
+import { ethers } from "ethers";
 
 describe(`Attestation Round (${getTestFile(__filename)})`, function () {
   initializeTestGlobalLogger();
@@ -71,8 +70,7 @@ describe(`Attestation Round (${getTestFile(__filename)})`, function () {
 
     await roundAlt.initialize();
 
-    defStore = new AttestationDefinitionStore();
-    await defStore.initialize();
+    defStore = new AttestationDefinitionStore("configs/type-definitions");
 
   });
 
@@ -175,7 +173,9 @@ describe(`Attestation Round (${getTestFile(__filename)})`, function () {
 
     it("Should create bitVote", function () {
       for (let j = 1; j < 6; j++) {
-        const event = createBlankAtRequestEvent(defStore, AttestationType.Payment, SourceId.DOGE, 1, `0xfakeMIC${j}`, "12345", `0xfakeID${j}`);
+        const fakeMic = `0x0123aaa${j}`.length % 2 == 0 ? `0x0123aaa${j}` : `0x0123aaa${j}0`;
+        const fakeId = `0x1d1d1d${j}`.length % 2 == 0 ? `0x1d1d1d${j}` : `0x1d1d1d${j}0`;
+        const event = createBlankAtRequestEvent(defStore, "Payment", "DOGE", 1, ethers.zeroPadBytes(fakeMic, 32), "12345", ethers.zeroPadBytes(fakeId, 32));
         const attestation = new Attestation(160, new AttestationData(event));
         attestation.index = j - 1;
         attestation.status = j < 4 ? AttestationStatus.valid : AttestationStatus.tooLate;
@@ -192,7 +192,10 @@ describe(`Attestation Round (${getTestFile(__filename)})`, function () {
         round.defaultSetAddresses.push(address);
         round.attestations.splice(0);
         for (let i = 1; i < 10; i++) {
-          const event = createBlankAtRequestEvent(defStore, AttestationType.Payment, SourceId.DOGE, 1, `0xfakeMIC${j}`, "12345", `0xfakeID${i}`);
+          const fakeMic = `0x0123aaa${j}`.length % 2 == 0 ? `0x0123aaa${j}` : `0x0123aaa${j}0`;
+          const fakeId = `0x1d1d1d${j}`.length % 2 == 0 ? `0x1d1d1d${j}` : `0x1d1d1d${j}0`;
+  
+          const event = createBlankAtRequestEvent(defStore, "Payment", "DOGE", 1, ethers.zeroPadBytes(fakeMic, 32), "12345", ethers.zeroPadBytes(fakeId, 32));
           const attestation = new Attestation(160, new AttestationData(event));
           attestation.index = i - 1;
           attestation.status = i < 5 + j ? AttestationStatus.valid : AttestationStatus.overLimit;
@@ -218,7 +221,10 @@ describe(`Attestation Round (${getTestFile(__filename)})`, function () {
         roundAlt.defaultSetAddresses.push(address);
         roundAlt.attestations.splice(0);
         for (let i = 1; i < 10; i++) {
-          const event = createBlankAtRequestEvent(defStore, AttestationType.Payment, SourceId.DOGE, 1, `0xfakeMIC${j}`, "12345", `0xfakeID${i}`);
+          const fakeMic = `0x0123aaa${j}`.length % 2 == 0 ? `0x0123aaa${j}` : `0x0123aaa${j}0`;
+          const fakeId = `0x1d1d1d${j}`.length % 2 == 0 ? `0x1d1d1d${j}` : `0x1d1d1d${j}0`;
+
+          const event = createBlankAtRequestEvent(defStore, "Payment", "DOGE", 1,ethers.zeroPadBytes(fakeMic, 32), "12345", ethers.zeroPadBytes(fakeId, 32));
           const attestation = new Attestation(180, new AttestationData(event));
           attestation.index = i - 1;
           attestation.status = i == j ? AttestationStatus.valid : AttestationStatus.overLimit;
@@ -280,7 +286,10 @@ describe(`Attestation Round (${getTestFile(__filename)})`, function () {
         round.defaultSetAddresses.push(address);
         round.attestations.splice(0);
         for (let i = 1; i < 10; i++) {
-          const event = createBlankAtRequestEvent(defStore, AttestationType.Payment, SourceId.DOGE, 1, `0xfakeMIC${j}`, "12345", `0xfakeID${i}`);
+          const fakeMic = `0x0123aaa${j}`.length % 2 == 0 ? `0x0123aaa${j}` : `0x0123aaa${j}0`;
+          const fakeId = `0x1d1d1d${j}`.length % 2 == 0 ? `0x1d1d1d${j}` : `0x1d1d1d${j}0`;
+
+          const event = createBlankAtRequestEvent(defStore, "Payment", "DOGE", 1, ethers.zeroPadBytes(fakeMic, 32), "12345", ethers.zeroPadBytes(fakeId, 32));
           const attestation = new Attestation(160, new AttestationData(event));
           attestation.index = i - 1;
           attestation.status = AttestationStatus.overLimit;
@@ -302,13 +311,13 @@ describe(`Attestation Round (${getTestFile(__filename)})`, function () {
 
   describe("SourceManager", function () {
     it("Should get max failed retries", function () {
-      const sourceManager = sourceRouter.getSourceManager(SourceId.BTC);
+      const sourceManager = sourceRouter.getSourceManager("BTC");
 
       expect(sourceManager.maxFailedRetries).to.eq(1);
     });
 
     it("Should get delayBeforeRetry", function () {
-      const sourceManager = sourceRouter.getSourceManager(SourceId.BTC);
+      const sourceManager = sourceRouter.getSourceManager("BTC");
 
       expect(sourceManager.delayBeforeRetryMs).to.eq(1000);
     });

@@ -1,20 +1,15 @@
 import { ChainType, MCC, UtxoMccCreate } from "@flarenetwork/mcc";
 import { EntityManager } from "typeorm";
-import { IndexedQueryManagerOptions } from "../../../../../indexed-query-manager/indexed-query-manager-types";
+import { IIndexedQueryManager } from "../../../../../indexed-query-manager/IIndexedQueryManager";
 import { IndexedQueryManager } from "../../../../../indexed-query-manager/IndexedQueryManager";
-import { AttestationRequest } from "../../../../../verification/attestation-types/attestation-types";
-import { hexlifyBN } from "../../../../../verification/attestation-types/attestation-types-helpers";
-import { verifyDOGE } from "../../../../../verification/verifiers/verifier_routing";
+import { IndexedQueryManagerOptions } from "../../../../../indexed-query-manager/indexed-query-manager-types";
 import { VerifierConfigurationService } from "../verifier-configuration.service";
-import { VerifierProcessor } from "./verifier-processor";
 
-export class DOGEProcessorService extends VerifierProcessor {
+export class DOGEProcessorService {
   client: MCC.DOGE;
-  indexedQueryManager: IndexedQueryManager;
-  _initialized = false;
+  indexedQueryManager: IIndexedQueryManager;
 
   constructor(private config: VerifierConfigurationService, private manager: EntityManager) {
-    super();
     this.client = new MCC.DOGE(this.config.config.chainConfiguration.mccCreate as UtxoMccCreate);
 
     const options: IndexedQueryManagerOptions = {
@@ -28,18 +23,4 @@ export class DOGEProcessorService extends VerifierProcessor {
     this.indexedQueryManager = new IndexedQueryManager(options);
   }
 
-  public async verify(attestationRequest: AttestationRequest) {
-    this.assertIsSupported(attestationRequest);
-    await this.ensureInitialized();
-    let response = await verifyDOGE(this.defStore, this.client, attestationRequest.request, this.indexedQueryManager);
-    return hexlifyBN(response);
-  }
-
-  public supportedAttestationTypes(): string[] {
-    return this.config.config.attestationTypes;
-  }
-
-  public supportedSource(): string {
-    return this.config.config.sourceId;
-  }
 }

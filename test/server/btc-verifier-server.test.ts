@@ -389,7 +389,7 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
 
       let resp = await sendToVerifier("ConfirmedBlockHeightExists", "BTC", configurationService, attestationRequest, API_KEY);
       assert(resp.status === "VALID", "Wrong server response");
-      assert(BigInt(resp.response.responseBody.blockNumber) === BigInt(BLOCK_CHOICE), "Wrong block number");
+      assert(BigInt(resp.response.requestBody.blockNumber) === BigInt(BLOCK_CHOICE), "Wrong block number");
       assert(BigInt(resp.response.responseBody.lowestQueryWindowBlockNumber) === BigInt(BLOCK_CHOICE - BLOCK_QUERY_WINDOW - 1), "Wrong lowest query window block number");
       assert(request.messageIntegrityCode === defStore.attestationResponseHash(resp.response, MIC_SALT), "MIC does not match");
     });

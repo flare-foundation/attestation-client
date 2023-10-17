@@ -4,8 +4,8 @@
         "sourceId": "0x4254430000000000000000000000000000000000000000000000000000000000",
         "requestBody": {
             "transactionId": "0xc3600420d060552ebc3686d80bf56734a37149182d1e1a00b8b5a607ed546f21",
-            "inUtxo": "0xc3600420d060552ebc3686d80bf56734a37149182d1e1a00b8b5a607ed546f21",
-            "utxo": "0xc360"
+            "inUtxo": "88370651283603936799044845796144957897304107081884032169937479674071381995297",
+            "utxo": "50016"
         }
     },
     "response": {
@@ -15,22 +15,22 @@
         "lowestUsedTimestamp": "1234",
         "requestBody": {
             "transactionId": "0xc3600420d060552ebc3686d80bf56734a37149182d1e1a00b8b5a607ed546f21",
-            "inUtxo": "0xc3600420d060552ebc3686d80bf56734a37149182d1e1a00b8b5a607ed546f21",
-            "utxo": "0xc360"
+            "inUtxo": "88370651283603936799044845796144957897304107081884032169937479674071381995297",
+            "utxo": "50016"
         },
         "responseBody": {
-            "blockNumber": "0xc3600420d060552e",
-            "blockTimestamp": "0xc3600420d060552e",
+            "blockNumber": "14078256974141609262",
+            "blockTimestamp": "14078256974141609262",
             "sourceAddressHash": "0xc3600420d060552ebc3686d80bf56734a37149182d1e1a00b8b5a607ed546f21",
             "receivingAddressHash": "0xc3600420d060552ebc3686d80bf56734a37149182d1e1a00b8b5a607ed546f21",
             "intendedReceivingAddressHash": "0xc3600420d060552ebc3686d80bf56734a37149182d1e1a00b8b5a607ed546f21",
-            "spentAmount": "0x03600420d060552ebc3686d80bf56734a37149182d1e1a00b8b5a607ed546f21",
-            "intendedSpentAmount": "0x03600420d060552ebc3686d80bf56734a37149182d1e1a00b8b5a607ed546f21",
-            "receivedAmount": "0x03600420d060552ebc3686d80bf56734a37149182d1e1a00b8b5a607ed546f21",
-            "intendedReceivedAmount": "0x03600420d060552ebc3686d80bf56734a37149182d1e1a00b8b5a607ed546f21",
+            "spentAmount": "1526584355616790231366607039629027007351618582653609140344291668136534765345",
+            "intendedSpentAmount": "1526584355616790231366607039629027007351618582653609140344291668136534765345",
+            "receivedAmount": "1526584355616790231366607039629027007351618582653609140344291668136534765345",
+            "intendedReceivedAmount": "1526584355616790231366607039629027007351618582653609140344291668136534765345",
             "standardPaymentReference": "0xc3600420d060552ebc3686d80bf56734a37149182d1e1a00b8b5a607ed546f21",
             "oneToOne": true,
-            "status": "0xc3"
+            "status": "195"
         }
     },
     "request": {
@@ -38,8 +38,8 @@
         "sourceId": "0x4254430000000000000000000000000000000000000000000000000000000000",
         "requestBody": {
             "transactionId": "0xc3600420d060552ebc3686d80bf56734a37149182d1e1a00b8b5a607ed546f21",
-            "inUtxo": "0xc3600420d060552ebc3686d80bf56734a37149182d1e1a00b8b5a607ed546f21",
-            "utxo": "0xc360"
+            "inUtxo": "88370651283603936799044845796144957897304107081884032169937479674071381995297",
+            "utxo": "50016"
         },
         "messageIntegrityCode": "0x349df226c716c75ff603a04d6539e334cae870263b40effbdbec7aa913c76ec6"
     },
@@ -55,22 +55,22 @@
             "lowestUsedTimestamp": "1234",
             "requestBody": {
                 "transactionId": "0xc3600420d060552ebc3686d80bf56734a37149182d1e1a00b8b5a607ed546f21",
-                "inUtxo": "0xc3600420d060552ebc3686d80bf56734a37149182d1e1a00b8b5a607ed546f21",
-                "utxo": "0xc360"
+                "inUtxo": "88370651283603936799044845796144957897304107081884032169937479674071381995297",
+                "utxo": "50016"
             },
             "responseBody": {
-                "blockNumber": "0xc3600420d060552e",
-                "blockTimestamp": "0xc3600420d060552e",
+                "blockNumber": "14078256974141609262",
+                "blockTimestamp": "14078256974141609262",
                 "sourceAddressHash": "0xc3600420d060552ebc3686d80bf56734a37149182d1e1a00b8b5a607ed546f21",
                 "receivingAddressHash": "0xc3600420d060552ebc3686d80bf56734a37149182d1e1a00b8b5a607ed546f21",
                 "intendedReceivingAddressHash": "0xc3600420d060552ebc3686d80bf56734a37149182d1e1a00b8b5a607ed546f21",
-                "spentAmount": "0x03600420d060552ebc3686d80bf56734a37149182d1e1a00b8b5a607ed546f21",
-                "intendedSpentAmount": "0x03600420d060552ebc3686d80bf56734a37149182d1e1a00b8b5a607ed546f21",
-                "receivedAmount": "0x03600420d060552ebc3686d80bf56734a37149182d1e1a00b8b5a607ed546f21",
-                "intendedReceivedAmount": "0x03600420d060552ebc3686d80bf56734a37149182d1e1a00b8b5a607ed546f21",
+                "spentAmount": "1526584355616790231366607039629027007351618582653609140344291668136534765345",
+                "intendedSpentAmount": "1526584355616790231366607039629027007351618582653609140344291668136534765345",
+                "receivedAmount": "1526584355616790231366607039629027007351618582653609140344291668136534765345",
+                "intendedReceivedAmount": "1526584355616790231366607039629027007351618582653609140344291668136534765345",
                 "standardPaymentReference": "0xc3600420d060552ebc3686d80bf56734a37149182d1e1a00b8b5a607ed546f21",
                 "oneToOne": true,
-                "status": "0xc3"
+                "status": "195"
             }
         }
     }

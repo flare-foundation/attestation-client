@@ -1,15 +1,16 @@
-import { Inject, Injectable } from "@nestjs/common";
+import { HttpException, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { readFileSync } from "fs";
 import { AttestationDefinitionStore } from "../../../../../external-libs/AttestationDefinitionStore";
 import { AttestationResponse, AttestationResponseStatus } from "../../../../../external-libs/AttestationResponse";
 import { ExampleData } from "../../../../../external-libs/interfaces";
-import { MIC_SALT, ZERO_BYTES_32 } from "../../../../../external-libs/utils";
+import { MIC_SALT, ZERO_BYTES_32, encodeAttestationName, serializeBigInts } from "../../../../../external-libs/utils";
 import { getAttestationStatus } from "../../../../../verification/attestation-types/attestation-types";
 import {
     ConfirmedBlockHeightExists_Request,
     ConfirmedBlockHeightExists_RequestNoMic,
     ConfirmedBlockHeightExists_Response,
 } from "../../dtos/attestation-types/ConfirmedBlockHeightExists.dto";
+import { AttestationResponseDTO } from "../../dtos/generic/generic.dto";
 import { verifyConfirmedBlockHeightExists } from "../../verification/generic-chain-verifications";
 import { XRPProcessorService } from "../verifier-processors/xrp-processor.service";
 
@@ -27,6 +28,16 @@ export class XRPConfirmedBlockHeightExistsVerifierService {
     private async verifyRequest(
         request: ConfirmedBlockHeightExists_RequestNoMic | ConfirmedBlockHeightExists_Request,
     ): Promise<AttestationResponse<ConfirmedBlockHeightExists_Response>> {
+        if (request.attestationType !== encodeAttestationName("ConfirmedBlockHeightExists") || request.sourceId !== encodeAttestationName("XRP")) {
+            throw new HttpException(
+                {
+                    status: HttpStatus.BAD_REQUEST,
+                    error: `Attestation type and source id combination not supported: (${request.attestationType}, ${request.sourceId}). This source supports attestation type 'ConfirmedBlockHeightExists' (0x436f6e6669726d6564426c6f636b486569676874457869737473000000000000) and source id 'XRP' (0x5852500000000000000000000000000000000000000000000000000000000000).`,
+                },
+                HttpStatus.BAD_REQUEST
+            );
+        }
+
         let fixedRequest = {
             ...request,
         } as ConfirmedBlockHeightExists_Request;
@@ -34,17 +45,16 @@ export class XRPConfirmedBlockHeightExistsVerifierService {
             fixedRequest.messageIntegrityCode = ZERO_BYTES_32;
         }
         const result = await verifyConfirmedBlockHeightExists(fixedRequest, this.processor.indexedQueryManager);
-        return {
+        return serializeBigInts({
             status: getAttestationStatus(result.status),
             response: result.response,
-        } as AttestationResponse<ConfirmedBlockHeightExists_Response>;
+        }) as AttestationResponse<ConfirmedBlockHeightExists_Response>;
     }
 
     //-$$$<end-constructor> End of custom code section. Do not change this comment.
 
-    public async verifyEncodedRequest(abiEncodedRequest: string): Promise<AttestationResponse<ConfirmedBlockHeightExists_Response>> {
+    public async verifyEncodedRequest(abiEncodedRequest: string): Promise<AttestationResponseDTO<ConfirmedBlockHeightExists_Response>> {
         const requestJSON = this.store.parseRequest<ConfirmedBlockHeightExists_Request>(abiEncodedRequest);
-
         //-$$$<start-verifyEncodedRequest> Start of custom code section. Do not change this comment.
 
         const response = await this.verifyRequest(requestJSON);
@@ -54,7 +64,7 @@ export class XRPConfirmedBlockHeightExistsVerifierService {
         return response;
     }
 
-    public async prepareResponse(request: ConfirmedBlockHeightExists_RequestNoMic): Promise<AttestationResponse<ConfirmedBlockHeightExists_Response>> {
+    public async prepareResponse(request: ConfirmedBlockHeightExists_RequestNoMic): Promise<AttestationResponseDTO<ConfirmedBlockHeightExists_Response>> {
         //-$$$<start-prepareResponse> Start of custom code section. Do not change this comment.
 
         const response = await this.verifyRequest(request);

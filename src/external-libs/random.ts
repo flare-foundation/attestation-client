@@ -40,12 +40,12 @@ export function randSol(typeName: string, seed = "0"): string | boolean {
 
     match = typeName.match(/^uint(\d+)$/);
     if (match) {
-        return seededRandHex(parseInt(match[1]) / 8, seed);
+        return BigInt(seededRandHex(parseInt(match[1]) / 8, seed)).toString();
     }
     match = typeName.match(/^int(\d+)$/);
     if (match) {
         const val = seededRandHex(parseInt(match[1]) / 8, seed);
-        return "0x0" + val.slice(3);
+        return BigInt("0x0" + val.slice(3)).toString();
     }
     if (typeName.match(/^bool$/)) {
         return true;

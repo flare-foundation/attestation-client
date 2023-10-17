@@ -94,12 +94,9 @@ describe(`VerifierRouter tests (${getTestFile(__filename)})`, () => {
 
     let requestBTC = await testPaymentRequest(defStore, setup.BTC.selectedTransaction, BtcTransaction, ChainType.BTC, inUtxo, utxo);
     const attestationBTC = prepareAttestation(defStore, requestBTC, setup.startTime);
-
     let respXRP = await verifierRouter.verifyAttestation(attestationXRP);
-
     assert(respXRP.status === AttestationResponseStatus.VALID, "Wrong server response");
     assert(respXRP.response.requestBody.transactionId === prefix0x(setup.XRP.selectedTransaction.transactionId), "Wrong transaction id");
-
     let respBTC = await verifierRouter.verifyAttestation(attestationBTC);
     // console.log("XRP", attestationXRP.data.request, requestXRP)
     // console.log("BTC", attestationBTC.data.request, requestBTC)
@@ -132,15 +129,15 @@ describe(`VerifierRouter tests (${getTestFile(__filename)})`, () => {
 
     let respXRP = await verifierRouter.verifyAttestation(attestationXRP);
 
-    assert(respXRP.status === AttestationResponseStatus.INDETERMINATE, "Wrong server response");
+    assert(respXRP.status === AttestationResponseStatus.INVALID, "Wrong server response");
 
     let respBTC = await verifierRouter.verifyAttestation(attestationBTC);
     // console.log("XRP", attestationXRP.data.request, requestXRP)
     // console.log("BTC", attestationBTC.data.request, requestBTC)
-    assert(respBTC.status === AttestationResponseStatus.INDETERMINATE, "Wrong server response");
+    assert(respBTC.status === AttestationResponseStatus.INVALID, "Wrong server response");
 
     let respDoge = await verifierRouter.verifyAttestation(attestationDoge);
-    assert(respDoge.status === AttestationResponseStatus.INDETERMINATE, "Wrong server response");
+    assert(respDoge.status === AttestationResponseStatus.INVALID, "Wrong server response");
   });
 
   it(`Should verify attestation BalanceDecreasingTransaction Doge`, async function () {

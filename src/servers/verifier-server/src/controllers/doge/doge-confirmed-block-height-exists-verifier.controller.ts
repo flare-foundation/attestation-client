@@ -11,14 +11,14 @@ import { ConfirmedBlockHeightExists_RequestNoMic, ConfirmedBlockHeightExists_Res
 import { AttestationResponseDTO, EncodedRequestBody, MicResponse } from "../../dtos/generic/generic.dto";
 
 @ApiTags("ConfirmedBlockHeightExists")
-@Controller("DOGE/ConfirmedBlockHeightExists")
+@Controller("ConfirmedBlockHeightExists")
 @UseGuards(AuthGuard("api-key"))
 @ApiSecurity("X-API-KEY")
 export class DOGEConfirmedBlockHeightExistsVerifierController {
     constructor(private readonly verifierService: DOGEConfirmedBlockHeightExistsVerifierService) {}
 
     /**
-     *
+     *s
      * Tries to verify encoded attestation request without checking message integrity code, and if successful it returns response.
      * @param verifierBody
      * @returns

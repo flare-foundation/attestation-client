@@ -11,7 +11,7 @@ import { Payment_RequestNoMic, Payment_Response } from "../../dtos/attestation-t
 import { AttestationResponseDTO, EncodedRequestBody, MicResponse } from "../../dtos/generic/generic.dto";
 
 @ApiTags("Payment")
-@Controller("DOGE/Payment")
+@Controller("Payment")
 @UseGuards(AuthGuard("api-key"))
 @ApiSecurity("X-API-KEY")
 export class DOGEPaymentVerifierController {

@@ -25,7 +25,7 @@ export let compressedTransactionResponseDataSize = 0;
  * @param txData
  * @returns
  */
-function augmentTransactionBase(dbTransaction: IDBTransactionBase, chainType: ChainType, block: BlockBase, txData: TransactionBase): DBTransactionBase {
+function augmentTransactionBase(dbTransaction: IDBTransactionBase, chainType: ChainType, block: BlockBase, txData: TransactionBase<any>): DBTransactionBase {
   const txEntity = new dbTransaction();
 
   txEntity.chainType = chainType;
@@ -73,7 +73,7 @@ function augmentTransactionBase(dbTransaction: IDBTransactionBase, chainType: Ch
  * @param txDataPromise
  * @returns
  */
-export async function augmentTransactionUtxo<T extends UtxoTransaction>(
+export async function augmentTransactionUtxo<T extends UtxoTransaction<any>>(
   dbTransaction: IDBTransactionBase,
   chainType: ChainType,
   block: UtxoBlock,

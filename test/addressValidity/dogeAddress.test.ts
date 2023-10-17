@@ -69,7 +69,7 @@ describe(`Address validity doge, ${getTestFile(__filename)}`, function () {
     };
 
     const attestationType = encodeAttestationName("AddressValidity");
-    const sourceId = encodeAttestationName("XRP");
+    const sourceId = encodeAttestationName("DOGE");
 
     const request: AddressValidity_Request = {
       attestationType,

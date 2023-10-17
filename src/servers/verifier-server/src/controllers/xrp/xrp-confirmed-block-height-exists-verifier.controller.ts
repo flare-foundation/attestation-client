@@ -11,7 +11,7 @@ import { ConfirmedBlockHeightExists_RequestNoMic, ConfirmedBlockHeightExists_Res
 import { AttestationResponseDTO, EncodedRequestBody, MicResponse } from "../../dtos/generic/generic.dto";
 
 @ApiTags("ConfirmedBlockHeightExists")
-@Controller("XRP/ConfirmedBlockHeightExists")
+@Controller("ConfirmedBlockHeightExists")
 @UseGuards(AuthGuard("api-key"))
 @ApiSecurity("X-API-KEY")
 export class XRPConfirmedBlockHeightExistsVerifierController {

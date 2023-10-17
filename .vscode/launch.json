@@ -384,7 +384,7 @@
         "NODE_ENV": "development"
       },
       "runtimeExecutable": "yarn",
-      "runtimeArgs": ["test", "test/verification/miscTests.test.ts"]
+      "runtimeArgs": ["test", "test/verification/verifierRouter.test.ts"]
     },
 
     {

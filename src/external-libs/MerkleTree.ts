@@ -177,7 +177,7 @@ export class MerkleTree {
         if (typeof hashOrIndex === "number") {
             i = hashOrIndex;
         } else if (typeof hashOrIndex === "string") {
-            if(/^0x[0-9a-f]{64}$/i.test(hashOrIndex)) {
+            if (/^0x[0-9a-f]{64}$/i.test(hashOrIndex)) {
                 i = this.binarySearch(hashOrIndex);
             } else {
                 return undefined;

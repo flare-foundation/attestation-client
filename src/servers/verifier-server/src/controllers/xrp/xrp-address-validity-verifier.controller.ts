@@ -11,7 +11,7 @@ import { AddressValidity_RequestNoMic, AddressValidity_Response } from "../../dt
 import { AttestationResponseDTO, EncodedRequestBody, MicResponse } from "../../dtos/generic/generic.dto";
 
 @ApiTags("AddressValidity")
-@Controller("XRP/AddressValidity")
+@Controller("AddressValidity")
 @UseGuards(AuthGuard("api-key"))
 @ApiSecurity("X-API-KEY")
 export class XRPAddressValidityVerifierController {

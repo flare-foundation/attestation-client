@@ -370,7 +370,6 @@ export async function testPaymentRequest(
   } as Payment_Request;
 
   const responseData = await responsePayment(dbTransaction, TransactionClass, request, undefined);
-  console.log(responseData.response);
 
   if (responseData.status === "OK") {
     request.messageIntegrityCode = definitionStore.attestationResponseHash(responseData.response, MIC_SALT);

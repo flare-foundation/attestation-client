@@ -3,8 +3,8 @@
         "attestationType": "0x436f6e6669726d6564426c6f636b486569676874457869737473000000000000",
         "sourceId": "0x4254430000000000000000000000000000000000000000000000000000000000",
         "requestBody": {
-            "blockNumber": "0xb7d50330b45b4a75",
-            "queryWindow": "0xb7d50330b45b4a75"
+            "blockNumber": "13246497386699377269",
+            "queryWindow": "13246497386699377269"
         }
     },
     "response": {
@@ -13,22 +13,22 @@
         "votingRound": "1234",
         "lowestUsedTimestamp": "1234",
         "requestBody": {
-            "blockNumber": "0xb7d50330b45b4a75",
-            "queryWindow": "0xb7d50330b45b4a75"
+            "blockNumber": "13246497386699377269",
+            "queryWindow": "13246497386699377269"
         },
         "responseBody": {
-            "blockTimestamp": "0xb7d50330b45b4a75",
-            "numberOfConfirmations": "0xb7d50330b45b4a75",
-            "lowestQueryWindowBlockNumber": "0xb7d50330b45b4a75",
-            "lowestQueryWindowBlockTimestamp": "0xb7d50330b45b4a75"
+            "blockTimestamp": "13246497386699377269",
+            "numberOfConfirmations": "13246497386699377269",
+            "lowestQueryWindowBlockNumber": "13246497386699377269",
+            "lowestQueryWindowBlockTimestamp": "13246497386699377269"
         }
     },
     "request": {
         "attestationType": "0x436f6e6669726d6564426c6f636b486569676874457869737473000000000000",
         "sourceId": "0x4254430000000000000000000000000000000000000000000000000000000000",
         "requestBody": {
-            "blockNumber": "0xb7d50330b45b4a75",
-            "queryWindow": "0xb7d50330b45b4a75"
+            "blockNumber": "13246497386699377269",
+            "queryWindow": "13246497386699377269"
         },
         "messageIntegrityCode": "0x2f18aeab8bdc11b20dfdeb8170f59d0c1c40076545081d5f6a7abc3e25026926"
     },
@@ -43,14 +43,14 @@
             "votingRound": "1234",
             "lowestUsedTimestamp": "1234",
             "requestBody": {
-                "blockNumber": "0xb7d50330b45b4a75",
-                "queryWindow": "0xb7d50330b45b4a75"
+                "blockNumber": "13246497386699377269",
+                "queryWindow": "13246497386699377269"
             },
             "responseBody": {
-                "blockTimestamp": "0xb7d50330b45b4a75",
-                "numberOfConfirmations": "0xb7d50330b45b4a75",
-                "lowestQueryWindowBlockNumber": "0xb7d50330b45b4a75",
-                "lowestQueryWindowBlockTimestamp": "0xb7d50330b45b4a75"
+                "blockTimestamp": "13246497386699377269",
+                "numberOfConfirmations": "13246497386699377269",
+                "lowestQueryWindowBlockNumber": "13246497386699377269",
+                "lowestQueryWindowBlockTimestamp": "13246497386699377269"
             }
         }
     }

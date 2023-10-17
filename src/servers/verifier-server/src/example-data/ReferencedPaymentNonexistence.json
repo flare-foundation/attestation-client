@@ -3,11 +3,11 @@
         "attestationType": "0x5265666572656e6365645061796d656e744e6f6e6578697374656e6365000000",
         "sourceId": "0x4254430000000000000000000000000000000000000000000000000000000000",
         "requestBody": {
-            "minimalBlockNumber": "0x224eb7cf3c5cd77f",
-            "deadlineBlockNumber": "0x224eb7cf3c5cd77f",
-            "deadlineTimestamp": "0x224eb7cf3c5cd77f",
+            "minimalBlockNumber": "2472115346171811711",
+            "deadlineBlockNumber": "2472115346171811711",
+            "deadlineTimestamp": "2472115346171811711",
             "destinationAddressHash": "0x224eb7cf3c5cd77ff91e466400240b809abfb454083759b68676291735e6b48f",
-            "amount": "0x224eb7cf3c5cd77ff91e466400240b809abfb454083759b68676291735e6b48f",
+            "amount": "15517719529531124355667673725990707880936260978735624290815762587558479312015",
             "standardPaymentReference": "0x224eb7cf3c5cd77ff91e466400240b809abfb454083759b68676291735e6b48f"
         }
     },
@@ -17,28 +17,28 @@
         "votingRound": "1234",
         "lowestUsedTimestamp": "1234",
         "requestBody": {
-            "minimalBlockNumber": "0x224eb7cf3c5cd77f",
-            "deadlineBlockNumber": "0x224eb7cf3c5cd77f",
-            "deadlineTimestamp": "0x224eb7cf3c5cd77f",
+            "minimalBlockNumber": "2472115346171811711",
+            "deadlineBlockNumber": "2472115346171811711",
+            "deadlineTimestamp": "2472115346171811711",
             "destinationAddressHash": "0x224eb7cf3c5cd77ff91e466400240b809abfb454083759b68676291735e6b48f",
-            "amount": "0x224eb7cf3c5cd77ff91e466400240b809abfb454083759b68676291735e6b48f",
+            "amount": "15517719529531124355667673725990707880936260978735624290815762587558479312015",
             "standardPaymentReference": "0x224eb7cf3c5cd77ff91e466400240b809abfb454083759b68676291735e6b48f"
         },
         "responseBody": {
-            "minimalBlockTimestamp": "0x224eb7cf3c5cd77f",
-            "firstOverflowBlockNumber": "0x224eb7cf3c5cd77f",
-            "firstOverflowBlockTimestamp": "0x224eb7cf3c5cd77f"
+            "minimalBlockTimestamp": "2472115346171811711",
+            "firstOverflowBlockNumber": "2472115346171811711",
+            "firstOverflowBlockTimestamp": "2472115346171811711"
         }
     },
     "request": {
         "attestationType": "0x5265666572656e6365645061796d656e744e6f6e6578697374656e6365000000",
         "sourceId": "0x4254430000000000000000000000000000000000000000000000000000000000",
         "requestBody": {
-            "minimalBlockNumber": "0x224eb7cf3c5cd77f",
-            "deadlineBlockNumber": "0x224eb7cf3c5cd77f",
-            "deadlineTimestamp": "0x224eb7cf3c5cd77f",
+            "minimalBlockNumber": "2472115346171811711",
+            "deadlineBlockNumber": "2472115346171811711",
+            "deadlineTimestamp": "2472115346171811711",
             "destinationAddressHash": "0x224eb7cf3c5cd77ff91e466400240b809abfb454083759b68676291735e6b48f",
-            "amount": "0x224eb7cf3c5cd77ff91e466400240b809abfb454083759b68676291735e6b48f",
+            "amount": "15517719529531124355667673725990707880936260978735624290815762587558479312015",
             "standardPaymentReference": "0x224eb7cf3c5cd77ff91e466400240b809abfb454083759b68676291735e6b48f"
         },
         "messageIntegrityCode": "0x815d6590e54d1783b980e8301aa0bc84f4e712e878ba62f9c6024cfd2c51aa0b"
@@ -54,17 +54,17 @@
             "votingRound": "1234",
             "lowestUsedTimestamp": "1234",
             "requestBody": {
-                "minimalBlockNumber": "0x224eb7cf3c5cd77f",
-                "deadlineBlockNumber": "0x224eb7cf3c5cd77f",
-                "deadlineTimestamp": "0x224eb7cf3c5cd77f",
+                "minimalBlockNumber": "2472115346171811711",
+                "deadlineBlockNumber": "2472115346171811711",
+                "deadlineTimestamp": "2472115346171811711",
                 "destinationAddressHash": "0x224eb7cf3c5cd77ff91e466400240b809abfb454083759b68676291735e6b48f",
-                "amount": "0x224eb7cf3c5cd77ff91e466400240b809abfb454083759b68676291735e6b48f",
+                "amount": "15517719529531124355667673725990707880936260978735624290815762587558479312015",
                 "standardPaymentReference": "0x224eb7cf3c5cd77ff91e466400240b809abfb454083759b68676291735e6b48f"
             },
             "responseBody": {
-                "minimalBlockTimestamp": "0x224eb7cf3c5cd77f",
-                "firstOverflowBlockNumber": "0x224eb7cf3c5cd77f",
-                "firstOverflowBlockTimestamp": "0x224eb7cf3c5cd77f"
+                "minimalBlockTimestamp": "2472115346171811711",
+                "firstOverflowBlockNumber": "2472115346171811711",
+                "firstOverflowBlockTimestamp": "2472115346171811711"
             }
         }
     }

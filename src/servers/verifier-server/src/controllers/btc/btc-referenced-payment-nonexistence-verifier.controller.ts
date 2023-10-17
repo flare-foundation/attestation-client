@@ -14,7 +14,7 @@ import {
 import { AttestationResponseDTO, EncodedRequestBody, MicResponse } from "../../dtos/generic/generic.dto";
 
 @ApiTags("ReferencedPaymentNonexistence")
-@Controller("BTC/ReferencedPaymentNonexistence")
+@Controller("ReferencedPaymentNonexistence")
 @UseGuards(AuthGuard("api-key"))
 @ApiSecurity("X-API-KEY")
 export class BTCReferencedPaymentNonexistenceVerifierController {

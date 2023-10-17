@@ -158,21 +158,21 @@ export class ReferencedPaymentNonexistence_ResponseBody {
      */
     @Validate(IsUnsignedIntLike)
     @ApiProperty({ description: `The timestamp of the minimalBlock.`, example: "123" })
-    minimalBlockTimestamp!: string;
+    minimalBlockTimestamp: string;
 
     /**
      * The height of the firstOverflowBlock.
      */
     @Validate(IsUnsignedIntLike)
     @ApiProperty({ description: `The height of the firstOverflowBlock.`, example: "123" })
-    firstOverflowBlockNumber!: string;
+    firstOverflowBlockNumber: string;
 
     /**
      * The timestamp of the firstOverflowBlock.
      */
     @Validate(IsUnsignedIntLike)
     @ApiProperty({ description: `The timestamp of the firstOverflowBlock.`, example: "123" })
-    firstOverflowBlockTimestamp!: string;
+    firstOverflowBlockTimestamp: string;
 }
 export class ReferencedPaymentNonexistence_RequestBody {
     constructor(params: Required<ReferencedPaymentNonexistence_RequestBody>) {
@@ -184,21 +184,21 @@ export class ReferencedPaymentNonexistence_RequestBody {
      */
     @Validate(IsUnsignedIntLike)
     @ApiProperty({ description: `The start block of the search range.`, example: "123" })
-    minimalBlockNumber!: string;
+    minimalBlockNumber: string;
 
     /**
      * The blockNumber to be included in the search range.
      */
     @Validate(IsUnsignedIntLike)
     @ApiProperty({ description: `The blockNumber to be included in the search range.`, example: "123" })
-    deadlineBlockNumber!: string;
+    deadlineBlockNumber: string;
 
     /**
      * The timestamp to be included in the search range.
      */
     @Validate(IsUnsignedIntLike)
     @ApiProperty({ description: `The timestamp to be included in the search range.`, example: "123" })
-    deadlineTimestamp!: string;
+    deadlineTimestamp: string;
 
     /**
      * The standard address hash of the address to which the payment had to be done.
@@ -208,21 +208,21 @@ export class ReferencedPaymentNonexistence_RequestBody {
         description: `The standard address hash of the address to which the payment had to be done.`,
         example: "0x0000000000000000000000000000000000000000000000000000000000000000",
     })
-    destinationAddressHash!: string;
+    destinationAddressHash: string;
 
     /**
      * The requested amount that had to be payed.
      */
     @Validate(IsUnsignedIntLike)
     @ApiProperty({ description: `The requested amount that had to be payed.`, example: "123" })
-    amount!: string;
+    amount: string;
 
     /**
      * The requested standard payment reference.
      */
     @Validate(IsHash32)
     @ApiProperty({ description: `The requested standard payment reference.`, example: "0x0000000000000000000000000000000000000000000000000000000000000000" })
-    standardPaymentReference!: string;
+    standardPaymentReference: string;
 }
 export class ReferencedPaymentNonexistence_Request {
     constructor(params: Required<ReferencedPaymentNonexistence_Request>) {
@@ -234,14 +234,14 @@ export class ReferencedPaymentNonexistence_Request {
      */
     @Validate(IsHash32)
     @ApiProperty({ description: `Id of the attestation type.`, example: "0x5265666572656e6365645061796d656e744e6f6e6578697374656e6365000000" })
-    attestationType!: string;
+    attestationType: string;
 
     /**
      * Id of the data source.
      */
     @Validate(IsHash32)
-    @ApiProperty({ description: `Id of the data source.`, example: "0x0000000000000000000000000000000000000000000000000000000000000000" })
-    sourceId!: string;
+    @ApiProperty({ description: `Id of the data source.`, example: "0x4254430000000000000000000000000000000000000000000000000000000000" })
+    sourceId: string;
 
     /**
      * `MessageIntegrityCode` that is derived from the expected response as defined [here](/specs/attestations/hash-MIC.md#message-integrity-code).
@@ -251,7 +251,7 @@ export class ReferencedPaymentNonexistence_Request {
         description: `'MessageIntegrityCode' that is derived from the expected response as defined [here](/specs/attestations/hash-MIC.md#message-integrity-code).`,
         example: "0x0000000000000000000000000000000000000000000000000000000000000000",
     })
-    messageIntegrityCode!: string;
+    messageIntegrityCode: string;
 
     /**
      * Data defining the request. Type (struct) and interpretation is determined by the `attestationType`.
@@ -262,7 +262,7 @@ export class ReferencedPaymentNonexistence_Request {
     @IsNotEmptyObject()
     @IsObject()
     @ApiProperty({ description: `Data defining the request. Type (struct) and interpretation is determined by the 'attestationType'.` })
-    requestBody!: ReferencedPaymentNonexistence_RequestBody;
+    requestBody: ReferencedPaymentNonexistence_RequestBody;
 }
 export class ReferencedPaymentNonexistence_Response {
     constructor(params: Required<ReferencedPaymentNonexistence_Response>) {
@@ -274,28 +274,28 @@ export class ReferencedPaymentNonexistence_Response {
      */
     @Validate(IsHash32)
     @ApiProperty({ description: `Extracted from the request.`, example: "0x5265666572656e6365645061796d656e744e6f6e6578697374656e6365000000" })
-    attestationType!: string;
+    attestationType: string;
 
     /**
      * Extracted from the request.
      */
     @Validate(IsHash32)
-    @ApiProperty({ description: `Extracted from the request.`, example: "0x0000000000000000000000000000000000000000000000000000000000000000" })
-    sourceId!: string;
+    @ApiProperty({ description: `Extracted from the request.`, example: "0x4254430000000000000000000000000000000000000000000000000000000000" })
+    sourceId: string;
 
     /**
      * The id of the state connector round in which the request was considered.
      */
     @Validate(IsUnsignedIntLike)
     @ApiProperty({ description: `The id of the state connector round in which the request was considered.`, example: "123" })
-    votingRound!: string;
+    votingRound: string;
 
     /**
      * The lowest timestamp used to generate the response.
      */
     @Validate(IsUnsignedIntLike)
     @ApiProperty({ description: `The lowest timestamp used to generate the response.`, example: "123" })
-    lowestUsedTimestamp!: string;
+    lowestUsedTimestamp: string;
 
     /**
      * Extracted from the request.
@@ -306,7 +306,7 @@ export class ReferencedPaymentNonexistence_Response {
     @IsNotEmptyObject()
     @IsObject()
     @ApiProperty({ description: `Extracted from the request.` })
-    requestBody!: ReferencedPaymentNonexistence_RequestBody;
+    requestBody: ReferencedPaymentNonexistence_RequestBody;
 
     /**
      * Data defining the response. The verification rules for the construction of the response body and the type are defined per specific `attestationType`.
@@ -319,7 +319,7 @@ export class ReferencedPaymentNonexistence_Response {
     @ApiProperty({
         description: `Data defining the response. The verification rules for the construction of the response body and the type are defined per specific 'attestationType'.`,
     })
-    responseBody!: ReferencedPaymentNonexistence_ResponseBody;
+    responseBody: ReferencedPaymentNonexistence_ResponseBody;
 }
 export class ReferencedPaymentNonexistence_Proof {
     constructor(params: Required<ReferencedPaymentNonexistence_Proof>) {
@@ -334,7 +334,7 @@ export class ReferencedPaymentNonexistence_Proof {
         description: `Merkle proof corresponding to the attestation response.`,
         example: ["0x0000000000000000000000000000000000000000000000000000000000000000"],
     })
-    merkleProof!: string[];
+    merkleProof: string[];
 
     /**
      * Attestation response.
@@ -345,7 +345,7 @@ export class ReferencedPaymentNonexistence_Proof {
     @IsNotEmptyObject()
     @IsObject()
     @ApiProperty({ description: `Attestation response.` })
-    data!: ReferencedPaymentNonexistence_Response;
+    data: ReferencedPaymentNonexistence_Response;
 }
 
 export class ReferencedPaymentNonexistence_RequestNoMic extends OmitType<ReferencedPaymentNonexistence_Request, "messageIntegrityCode">(

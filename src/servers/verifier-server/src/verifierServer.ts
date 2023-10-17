@@ -30,16 +30,19 @@ export async function runVerifierServer() {
   app.use(helmet());
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
+  const verifierType = process.env.VERIFIER_TYPE?.toUpperCase()
+  const basePath = process.env.APP_BASE_PATH ? `${process.env.APP_BASE_PATH}` : ""
+
   app.setGlobalPrefix(process.env.APP_BASE_PATH ?? "");
   const config = new DocumentBuilder()
-    .setTitle(`Verifier and indexer server (${process.env.VERIFIER_TYPE?.toUpperCase()})`)
+    .setTitle(`Verifier and indexer server (${verifierType})`)
     .setDescription("Verifier and indexer server over an indexer database.")
-    .setBasePath(process.env.APP_BASE_PATH ?? "")
+    .setBasePath(basePath)
     .addApiKey({ type: "apiKey", name: "X-API-KEY", in: "header" }, "X-API-KEY")
     .setVersion("1.0")
     .build();
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup(`${process.env.APP_BASE_PATH ? process.env.APP_BASE_PATH + "/" : ""}api-doc`, app, document);
+  SwaggerModule.setup(`${basePath}/api-doc`, app, document);
 
   const logger = getGlobalLogger("web");
   const configurationService = app.get("VERIFIER_CONFIG") as VerifierConfigurationService;

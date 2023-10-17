@@ -17,10 +17,10 @@
             "sourceAddressIndicator": "0xa0ede36afc22f8b125848860b946f2f09ad13f800cfdd0f249e0332c4a36f4b1"
         },
         "responseBody": {
-            "blockNumber": "0xa0ede36afc22f8b1",
-            "blockTimestamp": "0xa0ede36afc22f8b1",
+            "blockNumber": "11596174664185084081",
+            "blockTimestamp": "11596174664185084081",
             "sourceAddressHash": "0xa0ede36afc22f8b125848860b946f2f09ad13f800cfdd0f249e0332c4a36f4b1",
-            "spentAmount": "0x00ede36afc22f8b125848860b946f2f09ad13f800cfdd0f249e0332c4a36f4b1",
+            "spentAmount": "420312335080629183874363597632555408505323152600964642938889933555957691569",
             "standardPaymentReference": "0xa0ede36afc22f8b125848860b946f2f09ad13f800cfdd0f249e0332c4a36f4b1"
         }
     },
@@ -48,10 +48,10 @@
                 "sourceAddressIndicator": "0xa0ede36afc22f8b125848860b946f2f09ad13f800cfdd0f249e0332c4a36f4b1"
             },
             "responseBody": {
-                "blockNumber": "0xa0ede36afc22f8b1",
-                "blockTimestamp": "0xa0ede36afc22f8b1",
+                "blockNumber": "11596174664185084081",
+                "blockTimestamp": "11596174664185084081",
                 "sourceAddressHash": "0xa0ede36afc22f8b125848860b946f2f09ad13f800cfdd0f249e0332c4a36f4b1",
-                "spentAmount": "0x00ede36afc22f8b125848860b946f2f09ad13f800cfdd0f249e0332c4a36f4b1",
+                "spentAmount": "420312335080629183874363597632555408505323152600964642938889933555957691569",
                 "standardPaymentReference": "0xa0ede36afc22f8b125848860b946f2f09ad13f800cfdd0f249e0332c4a36f4b1"
             }
         }

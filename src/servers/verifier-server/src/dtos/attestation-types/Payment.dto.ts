@@ -158,21 +158,21 @@ export class Payment_ResponseBody {
      */
     @Validate(IsUnsignedIntLike)
     @ApiProperty({ description: `Number of the block in which the transaction is included.`, example: "123" })
-    blockNumber!: string;
+    blockNumber: string;
 
     /**
      * The timestamps of the block in which the transaction is included.
      */
     @Validate(IsUnsignedIntLike)
     @ApiProperty({ description: `The timestamps of the block in which the transaction is included.`, example: "123" })
-    blockTimestamp!: string;
+    blockTimestamp: string;
 
     /**
      * Standard address hash of the source address.
      */
     @Validate(IsHash32)
     @ApiProperty({ description: `Standard address hash of the source address.`, example: "0x0000000000000000000000000000000000000000000000000000000000000000" })
-    sourceAddressHash!: string;
+    sourceAddressHash: string;
 
     /**
      * Standard address hash of the receiving address. Zero 32-byte string if there is no receivingAddress (if `status` is not success).
@@ -182,7 +182,7 @@ export class Payment_ResponseBody {
         description: `Standard address hash of the receiving address. Zero 32-byte string if there is no receivingAddress (if 'status' is not success).`,
         example: "0x0000000000000000000000000000000000000000000000000000000000000000",
     })
-    receivingAddressHash!: string;
+    receivingAddressHash: string;
 
     /**
      * Standard address hash of the intended receiving address. Relevant if the transaction was unsuccessful.
@@ -192,35 +192,35 @@ export class Payment_ResponseBody {
         description: `Standard address hash of the intended receiving address. Relevant if the transaction was unsuccessful.`,
         example: "0x0000000000000000000000000000000000000000000000000000000000000000",
     })
-    intendedReceivingAddressHash!: string;
+    intendedReceivingAddressHash: string;
 
     /**
      * Amount spent by the source address.
      */
     @Validate(IsUnsignedIntLike)
     @ApiProperty({ description: `Amount spent by the source address.`, example: "123" })
-    spentAmount!: string;
+    spentAmount: string;
 
     /**
      * Amount to be spent by the source address. Relevant if the transaction status is not success.
      */
     @Validate(IsUnsignedIntLike)
     @ApiProperty({ description: `Amount to be spent by the source address. Relevant if the transaction status is not success.`, example: "123" })
-    intendedSpentAmount!: string;
+    intendedSpentAmount: string;
 
     /**
      * Amount received by the receiving address.
      */
     @Validate(IsUnsignedIntLike)
     @ApiProperty({ description: `Amount received by the receiving address.`, example: "123" })
-    receivedAmount!: string;
+    receivedAmount: string;
 
     /**
      * Amount intended to be received by the receiving address. Relevant if the transaction was unsuccessful.
      */
     @Validate(IsUnsignedIntLike)
     @ApiProperty({ description: `Amount intended to be received by the receiving address. Relevant if the transaction was unsuccessful.`, example: "123" })
-    intendedReceivedAmount!: string;
+    intendedReceivedAmount: string;
 
     /**
      * Identifier of the transaction as defined [here](/specs/attestations/external-chains/standardPaymentReference.md).
@@ -230,14 +230,14 @@ export class Payment_ResponseBody {
         description: `Identifier of the transaction as defined [here](/specs/attestations/external-chains/standardPaymentReference.md).`,
         example: "0x0000000000000000000000000000000000000000000000000000000000000000",
     })
-    standardPaymentReference!: string;
+    standardPaymentReference: string;
 
     /**
      * Indicator whether only one source and one receiver are involved in the transaction.
      */
     @IsBoolean()
     @ApiProperty({ description: `Indicator whether only one source and one receiver are involved in the transaction.`, example: true })
-    oneToOne!: boolean;
+    oneToOne: boolean;
 
     /**
      * Status of the transaction as described [here](/specs/attestations/external-chains/transactions.md#transaction-success-status):
@@ -247,7 +247,7 @@ export class Payment_ResponseBody {
         description: `Status of the transaction as described [here](/specs/attestations/external-chains/transactions.md#transaction-success-status):`,
         example: "123",
     })
-    status!: string;
+    status: string;
 }
 export class Payment_RequestBody {
     constructor(params: Required<Payment_RequestBody>) {
@@ -259,21 +259,21 @@ export class Payment_RequestBody {
      */
     @Validate(IsHash32)
     @ApiProperty({ description: `Id of the payment transaction.`, example: "0x0000000000000000000000000000000000000000000000000000000000000000" })
-    transactionId!: string;
+    transactionId: string;
 
     /**
      * Index of the transaction input. Always 0 for the non-utxo chains.
      */
     @Validate(IsUnsignedIntLike)
     @ApiProperty({ description: `Index of the transaction input. Always 0 for the non-utxo chains.`, example: "123" })
-    inUtxo!: string;
+    inUtxo: string;
 
     /**
      * Index of the transaction output. Always 0 for the non-utxo chains.
      */
     @Validate(IsUnsignedIntLike)
     @ApiProperty({ description: `Index of the transaction output. Always 0 for the non-utxo chains.`, example: "123" })
-    utxo!: string;
+    utxo: string;
 }
 export class Payment_Request {
     constructor(params: Required<Payment_Request>) {
@@ -285,14 +285,14 @@ export class Payment_Request {
      */
     @Validate(IsHash32)
     @ApiProperty({ description: `Id of the attestation type.`, example: "0x5061796d656e7400000000000000000000000000000000000000000000000000" })
-    attestationType!: string;
+    attestationType: string;
 
     /**
      * Id of the data source.
      */
     @Validate(IsHash32)
-    @ApiProperty({ description: `Id of the data source.`, example: "0x0000000000000000000000000000000000000000000000000000000000000000" })
-    sourceId!: string;
+    @ApiProperty({ description: `Id of the data source.`, example: "0x4254430000000000000000000000000000000000000000000000000000000000" })
+    sourceId: string;
 
     /**
      * `MessageIntegrityCode` that is derived from the expected response as defined [here](/specs/attestations/hash-MIC.md#message-integrity-code).
@@ -302,7 +302,7 @@ export class Payment_Request {
         description: `'MessageIntegrityCode' that is derived from the expected response as defined [here](/specs/attestations/hash-MIC.md#message-integrity-code).`,
         example: "0x0000000000000000000000000000000000000000000000000000000000000000",
     })
-    messageIntegrityCode!: string;
+    messageIntegrityCode: string;
 
     /**
      * Data defining the request. Type (struct) and interpretation is determined by the `attestationType`.
@@ -313,7 +313,7 @@ export class Payment_Request {
     @IsNotEmptyObject()
     @IsObject()
     @ApiProperty({ description: `Data defining the request. Type (struct) and interpretation is determined by the 'attestationType'.` })
-    requestBody!: Payment_RequestBody;
+    requestBody: Payment_RequestBody;
 }
 export class Payment_Response {
     constructor(params: Required<Payment_Response>) {
@@ -325,28 +325,28 @@ export class Payment_Response {
      */
     @Validate(IsHash32)
     @ApiProperty({ description: `Extracted from the request.`, example: "0x5061796d656e7400000000000000000000000000000000000000000000000000" })
-    attestationType!: string;
+    attestationType: string;
 
     /**
      * Extracted from the request.
      */
     @Validate(IsHash32)
-    @ApiProperty({ description: `Extracted from the request.`, example: "0x0000000000000000000000000000000000000000000000000000000000000000" })
-    sourceId!: string;
+    @ApiProperty({ description: `Extracted from the request.`, example: "0x4254430000000000000000000000000000000000000000000000000000000000" })
+    sourceId: string;
 
     /**
      * The id of the state connector round in which the request was considered.
      */
     @Validate(IsUnsignedIntLike)
     @ApiProperty({ description: `The id of the state connector round in which the request was considered.`, example: "123" })
-    votingRound!: string;
+    votingRound: string;
 
     /**
      * The lowest timestamp used to generate the response.
      */
     @Validate(IsUnsignedIntLike)
     @ApiProperty({ description: `The lowest timestamp used to generate the response.`, example: "123" })
-    lowestUsedTimestamp!: string;
+    lowestUsedTimestamp: string;
 
     /**
      * Extracted from the request.
@@ -357,7 +357,7 @@ export class Payment_Response {
     @IsNotEmptyObject()
     @IsObject()
     @ApiProperty({ description: `Extracted from the request.` })
-    requestBody!: Payment_RequestBody;
+    requestBody: Payment_RequestBody;
 
     /**
      * Data defining the response. The verification rules for the construction of the response body and the type are defined per specific `attestationType`.
@@ -370,7 +370,7 @@ export class Payment_Response {
     @ApiProperty({
         description: `Data defining the response. The verification rules for the construction of the response body and the type are defined per specific 'attestationType'.`,
     })
-    responseBody!: Payment_ResponseBody;
+    responseBody: Payment_ResponseBody;
 }
 export class Payment_Proof {
     constructor(params: Required<Payment_Proof>) {
@@ -385,7 +385,7 @@ export class Payment_Proof {
         description: `Merkle proof corresponding to the attestation response.`,
         example: ["0x0000000000000000000000000000000000000000000000000000000000000000"],
     })
-    merkleProof!: string[];
+    merkleProof: string[];
 
     /**
      * Attestation response.
@@ -396,7 +396,7 @@ export class Payment_Proof {
     @IsNotEmptyObject()
     @IsObject()
     @ApiProperty({ description: `Attestation response.` })
-    data!: Payment_Response;
+    data: Payment_Response;
 }
 
 export class Payment_RequestNoMic extends OmitType<Payment_Request, "messageIntegrityCode">(Payment_Request, ["messageIntegrityCode"] as const) {}

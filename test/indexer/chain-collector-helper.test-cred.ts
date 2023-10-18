@@ -55,17 +55,17 @@ describe(`Chain collector helpers, (${getTestFile(__filename)})`, () => {
       utxoBlockProcessor = new BtcBlockProcessor(cachedClient);
     });
 
-    it("Should not read full transaction utxo", async () => {
-      const txGetter = (txid: string) => cachedClient.getTransaction(txid) as Promise<BtcTransaction>;
-      const fullTx = await getFullTransactionUtxo(cachedClient, tx, utxoBlockProcessor, txGetter);
-      expect(fullTx._additionalData.vinouts[0]).to.be.undefined;
-    });
+    // it("Should not read full transaction utxo", async () => {
+    //   const txGetter = (txid: string) => cachedClient.getTransaction(txid) as Promise<BtcTransaction>;
+    //   const fullTx = await getFullTransactionUtxo(cachedClient, tx, utxoBlockProcessor, txGetter);
+    //   expect(fullTx._additionalData.vinouts[0]).to.be.undefined;
+    // });
 
-    it("Should read full transaction utxo", async () => {
-      const txGetter = (txid: string) => cachedClient.getTransaction(txid) as Promise<BtcTransaction>;
-      const fullTx = await getFullTransactionUtxo(cachedClient, txFake, utxoBlockProcessor, txGetter);
-      expect(fullTx._additionalData.vinouts.length).to.be.eq(1);
-    });
+    // it("Should read full transaction utxo", async () => {
+    //   const txGetter = (txid: string) => cachedClient.getTransaction(txid) as Promise<BtcTransaction>;
+    //   const fullTx = await getFullTransactionUtxo(cachedClient, txFake, utxoBlockProcessor, txGetter);
+    //   expect(fullTx._additionalData.vinouts.length).to.be.eq(1);
+    // });
   });
 
   describe("BlockProcessors", () => {

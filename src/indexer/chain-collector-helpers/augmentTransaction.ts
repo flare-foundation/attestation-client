@@ -38,7 +38,7 @@ function augmentTransactionBase(dbTransaction: IDBTransactionBase, chainType: Ch
   //txEntity.response = prepareString(stringify({ data: txData.data, additionalData: txData.additionalData }), 16 * 1024);
 
   // use full response size
-  const data = stringify({ data: txData._data, additionalData: txData._additionalData });
+  const data = stringify({ data: txData._data });
   const compressedData = compressBin(data);
 
   uncompressedTransactionResponseDataSize+=data.length;
@@ -73,7 +73,7 @@ function augmentTransactionBase(dbTransaction: IDBTransactionBase, chainType: Ch
  * @param txDataPromise
  * @returns
  */
-export async function augmentTransactionUtxo<T extends UtxoTransaction<any>>(
+export async function augmentTransactionUtxo<T extends UtxoTransaction>(
   dbTransaction: IDBTransactionBase,
   chainType: ChainType,
   block: UtxoBlock,

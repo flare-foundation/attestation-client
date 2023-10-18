@@ -65,7 +65,7 @@ export async function responsePayment<T extends TransactionBase<any>>(
     return { status: VerificationStatus.SYSTEM_FAILURE };
   }
 
-  const fullTxData = new TransactionClass(parsedData.data, parsedData.additionalData);
+  const fullTxData = new TransactionClass(parsedData.data);
 
   if (BigInt(request.requestBody.inUtxo) < 0 || BigInt(request.requestBody.inUtxo) >= Number.MAX_SAFE_INTEGER) {
     return { status: VerificationStatus.NOT_CONFIRMED };
@@ -80,8 +80,7 @@ export async function responsePayment<T extends TransactionBase<any>>(
 
   let paymentSummary: PaymentSummaryResponse;
   try {
-    const transactionGetter = (txid: string) => client.getTransaction(txid);
-    paymentSummary = await fullTxData.paymentSummary({ transactionGetter, inUtxo: inUtxoNumber, outUtxo: utxoNumber });    
+    paymentSummary = await fullTxData.paymentSummary({ inUtxo: inUtxoNumber, outUtxo: utxoNumber });    
   } catch (e) {
     return { status: VerificationStatus.NOT_CONFIRMED };
   }
@@ -176,8 +175,7 @@ export async function responseBalanceDecreasingTransaction<T extends Transaction
   const fullTxData = new TransactionClass(parsedData.data, parsedData.additionalData);
 
   let balanceDecreasingSummary: BalanceDecreasingSummaryResponse;
-  const transactionGetter = (txid: string) => client.getTransaction(txid);
-  balanceDecreasingSummary = await fullTxData.balanceDecreasingSummary({ transactionGetter, sourceAddressIndicator: request.requestBody.sourceAddressIndicator });
+  balanceDecreasingSummary = await fullTxData.balanceDecreasingSummary( request.requestBody.sourceAddressIndicator );
 
   if (balanceDecreasingSummary.status !== BalanceDecreasingSummaryStatus.Success) {
     return { status: VerificationStatus.NOT_CONFIRMED };

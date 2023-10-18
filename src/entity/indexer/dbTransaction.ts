@@ -3,6 +3,7 @@ import { decompressBin } from "../../utils/compression/compression";
 import { BaseEntity } from "../base/BaseEntity";
 import { TransactionResult } from "../../indexed-query-manager/indexed-query-manager-types";
 import { getGlobalLogger } from "../../utils/logging/logger";
+import { ChainType, IUtxoVinTransactionCoinbase, IUtxoVinTransactionPrevout, IUtxoVoutTransaction } from "@flarenetwork/mcc";
 
 /**
  * Format for storing transaction data in indexer database
@@ -46,27 +47,27 @@ export class DBTransactionBase extends BaseEntity {
 export type IDBTransactionBase = new () => DBTransactionBase;
 
 @Entity({ name: "xrp_transactions0" })
-export class DBTransactionXRP0 extends DBTransactionBase { }
+export class DBTransactionXRP0 extends DBTransactionBase {}
 @Entity({ name: "xrp_transactions1" })
-export class DBTransactionXRP1 extends DBTransactionBase { }
+export class DBTransactionXRP1 extends DBTransactionBase {}
 
 @Entity({ name: "btc_transactions0" })
-export class DBTransactionBTC0 extends DBTransactionBase { }
+export class DBTransactionBTC0 extends DBTransactionBase {}
 @Entity({ name: "btc_transactions1" })
-export class DBTransactionBTC1 extends DBTransactionBase { }
+export class DBTransactionBTC1 extends DBTransactionBase {}
 
 @Entity({ name: "ltc_transactions0" })
-export class DBTransactionLTC0 extends DBTransactionBase { }
+export class DBTransactionLTC0 extends DBTransactionBase {}
 @Entity({ name: "ltc_transactions1" })
-export class DBTransactionLTC1 extends DBTransactionBase { }
+export class DBTransactionLTC1 extends DBTransactionBase {}
 
 @Entity({ name: "doge_transactions0" })
-export class DBTransactionDOGE0 extends DBTransactionBase { }
+export class DBTransactionDOGE0 extends DBTransactionBase {}
 @Entity({ name: "doge_transactions1" })
-export class DBTransactionDOGE1 extends DBTransactionBase { }
+export class DBTransactionDOGE1 extends DBTransactionBase {}
 
 @Entity({ name: "algo_transactions0" })
-export class DBTransactionALGO0 extends DBTransactionBase { }
+export class DBTransactionALGO0 extends DBTransactionBase {}
 @Entity({ name: "algo_transactions1" })
 export class DBTransactionALGO1 extends DBTransactionBase {}
 
@@ -75,7 +76,7 @@ export class DBTransactionALGO1 extends DBTransactionBase {}
 export type IDBDogeTransaction = new () => DBDogeTransaction;
 
 @Entity("doge_indexer_dogetransaction")
-export class DBDogeTransaction{
+export class DBDogeTransaction {
   @PrimaryColumn({ type: "char" })
   transactionId: string;
 
@@ -95,28 +96,77 @@ export class DBDogeTransaction{
   transactionType: string;
 
   @OneToMany(() => DBTransactionOutput, (output) => output.transaction_link_id)
-  transactionoutput_set: DBTransactionOutput[]
+  transactionoutput_set: DBTransactionOutput[];
 
   @OneToMany(() => DBTransactionInputCoinbase, (cb_input) => cb_input.transaction_link_id)
-  transactioninputcoinbase_set: DBTransactionInputCoinbase[]
+  transactioninputcoinbase_set: DBTransactionInputCoinbase[];
 
   @OneToMany(() => DBTransactionInput, (input) => input.transaction_link_id)
-  transactioninput_set: DBTransactionInput[]
+  transactioninput_set: DBTransactionInput[];
 
   toTransactionResult(): TransactionResult {
+    const vout_arr: IUtxoVoutTransaction[] = this.transactionoutput_set.map((transaction_output) => {
+      return {
+        value: 0,
+        n: 0,
+        scriptPubKey: {
+          address: "add",
+          asm: "asm",
+          hex: "hex",
+        },
+      };
+    });
+
+    const vin_arr: IUtxoVinTransactionPrevout[] = this.transactioninput_set
+      .sort((a, b) => {
+        return a.vinN - b.vinN;
+      })
+      .map((transaction_inp) => {
+        return {
+          sequence: 0,
+          txid: "",
+          vout: 0,
+          prevout: {
+            value: 0,
+            scriptPubKey: {
+              address: "add",
+              asm: "asm",
+              hex: "hex",
+            },
+          },
+        };
+      });
+
+    const vin_cb_arr: IUtxoVinTransactionCoinbase[] = this.transactioninputcoinbase_set
+    .sort((a, b) => {
+      return a.vinN - b.vinN;
+    })
+    .map((transaction_inp) => {
+      return {
+        sequence: 0,
+        coinbase: "",
+      };
+    });
+
+    const TXID = this.transactionId
+
     return {
       getResponse() {
-        return "TODO"
+        const response = {
+          txid: TXID,
+          vout: vout_arr,
+          vin: vin_cb_arr.length > 0 ? vin_cb_arr : vin_arr 
+        };
+        return JSON.stringify({data: response});
       },
-      chainType: 0, // TODO: doge chain id
+      chainType: ChainType.DOGE, // TODO: doge chain id
       transactionId: this.transactionId,
       blockNumber: this.blockNumber,
       timestamp: this.timestamp,
       paymentReference: this.paymentReference,
-      response: Buffer.from("TODO"),
-      isNativePayment: this.isNativePayment, 
-      transactionType: this.transactionType
-    }
+      isNativePayment: this.isNativePayment,
+      transactionType: this.transactionType,
+    };
   }
 }
 
@@ -125,7 +175,7 @@ abstract class AbstractTransactionOutput {
   n: number;
 
   // TODO: decimal field 22,8
-  @Column({ type: "decimal"})
+  @Column({ type: "decimal" })
   value: string;
 
   @Column()
@@ -146,13 +196,13 @@ abstract class AbstractTransactionOutput {
 }
 
 @Entity("doge_indexer_transactionoutput")
-export class DBTransactionOutput extends AbstractTransactionOutput{
+export class DBTransactionOutput extends AbstractTransactionOutput {
   @PrimaryColumn({ type: "bigint" })
   id: string;
 
   @ManyToOne((type) => DBDogeTransaction, (transaction) => transaction.transactionoutput_set)
   @JoinColumn({ name: "transaction_link_id" })
-  transaction_link_id: DBDogeTransaction
+  transaction_link_id: DBDogeTransaction;
 }
 
 @Entity("doge_indexer_transactioninputcoinbase")
@@ -162,7 +212,7 @@ export class DBTransactionInputCoinbase {
 
   @ManyToOne((type) => DBDogeTransaction, (transaction) => transaction.transactionoutput_set)
   @JoinColumn({ name: "transaction_link_id" })
-  transaction_link_id: DBDogeTransaction
+  transaction_link_id: DBDogeTransaction;
 
   @Column()
   vinN: number;
@@ -181,7 +231,7 @@ export class DBTransactionInput extends AbstractTransactionOutput {
 
   @ManyToOne((type) => DBDogeTransaction, (transaction) => transaction.transactionoutput_set)
   @JoinColumn({ name: "transaction_link_id" })
-  transaction_link_id: DBDogeTransaction
+  transaction_link_id: DBDogeTransaction;
 
   @Column()
   vinN: number;

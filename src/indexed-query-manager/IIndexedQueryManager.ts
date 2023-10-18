@@ -1,3 +1,4 @@
+import { EntityManager } from "typeorm";
 import {
   BlockHeightSample,
   BlockQueryParams,
@@ -7,12 +8,13 @@ import {
   ConfirmedBlockQueryResponse,
   ConfirmedTransactionQueryRequest,
   ConfirmedTransactionQueryResponse,
+  IndexedQueryManagerOptions,
   RandomTransactionOptions,
   ReferencedTransactionsQueryRequest,
   ReferencedTransactionsQueryResponse,
   TransactionQueryParams,
   TransactionQueryResult,
-  TransactionResult
+  TransactionResult,
 } from "./indexed-query-manager-types";
 
 ////////////////////////////////////////////////////////
@@ -29,32 +31,51 @@ import {
  *   - bottom block number (denoted `B`) and its timestamp
  *   - last confimed block number (denoted `N`) and its timestamp
  *   - highest registered block number (denoted `T`) and the timestamp of its checking
- * - the indexer ensures, that the all blocks and transactions for block in the range [`B`, `N`] are in the database, without repetitions, no gaps. 
+ * - the indexer ensures, that the all blocks and transactions for block in the range [`B`, `N`] are in the database, without repetitions, no gaps.
  * - Queries are carried out in for transactions in the block range [`B`, `N`].
- * 
+ *
  */
 export abstract class IIndexedQueryManager {
+  ////////////////////////////////////////////////////////////
+  // Constructor and common globals
+  ////////////////////////////////////////////////////////////
+
+  protected settings: IndexedQueryManagerOptions;
+
+  constructor(options: IndexedQueryManagerOptions) {
+    if (!options.entityManager) {
+      throw new Error("unsupported without entityManager");
+    }
+    this.settings = options;
+  }
+
+  protected get entityManager(): EntityManager {
+    return this.settings.entityManager;
+  }
 
   ////////////////////////////////////////////////////////////
   // Last confirmed blocks, tips
   ////////////////////////////////////////////////////////////
 
   /**
+   * Returns the number of confirmations required for a transaction and block to be considered confirmed by the indexer.
+   */
+  public numberOfConfirmations(): number {
+    return this.settings.numberOfConfirmations();
+  }
+
+  /**
    * Returns the last confirmed block height (denoted `N`) in the indexer database for which all transactions are in database
    * @returns
    */
   public abstract getLastConfirmedBlockNumber(): Promise<number>;
-  
+
   /**
    * Returns last block height (`T`) and the timestamp of the last sampling by indexer
    * @returns
    */
   public abstract getLatestBlockTimestamp(): Promise<BlockHeightSample | null>;
 
-  /**
-   * Returns the number of confirmations required for a transaction and block to be considered confirmed by the indexer.
-   */
-  public abstract numberOfConfirmations(): number;
   ////////////////////////////////////////////////////////////
   // General confirm transaction and block queries
   ////////////////////////////////////////////////////////////
@@ -130,16 +151,25 @@ export abstract class IIndexedQueryManager {
    */
   public abstract getLastConfirmedBlockStrictlyBeforeTime(timestamp: number): Promise<BlockResult | undefined>;
 
+
+  /**
+   * Gets the first confirmed block that is strictly after timestamp and blockNumber provided in parameters
+   * @param timestamp
+   * @param blockNumber
+   * @returns the block, if it exists, `null` otherwise
+   */
+  protected abstract getFirstConfirmedOverflowBlock(timestamp: number, blockNumber: number): Promise<BlockResult | undefined>;
+
   /**
    * Fetches random transactions selection from the indexer database in a batch, generated according to options.
-   * @param batchSize 
-   * @param options 
+   * @param batchSize
+   * @param options
    */
   public abstract fetchRandomTransactions(batchSize, options: RandomTransactionOptions): Promise<TransactionResult[]>;
 
   /**
    * Random block selection from the indexer database in a batch.
-   * @param batchSize 
+   * @param batchSize
    * @param startTime selection is done for blocks after this timestamp
    */
   public abstract fetchRandomConfirmedBlocks(batchSize, startTime?: number): Promise<BlockResult[]>;

@@ -94,8 +94,14 @@ export class DBDogeTransaction{
   @Column()
   transactionType: string;
 
-  @OneToMany(() => DBTransactionOutput, (photo) => photo.transaction_link_id)
+  @OneToMany(() => DBTransactionOutput, (output) => output.transaction_link_id)
   transactionoutput_set: DBTransactionOutput[]
+
+  @OneToMany(() => DBTransactionInputCoinbase, (cb_input) => cb_input.transaction_link_id)
+  transactioninputcoinbase_set: DBTransactionInputCoinbase[]
+
+  @OneToMany(() => DBTransactionInput, (input) => input.transaction_link_id)
+  transactioninput_set: DBTransactionInput[]
 
   toTransactionResult(): TransactionResult {
     return {
@@ -114,15 +120,7 @@ export class DBDogeTransaction{
   }
 }
 
-@Entity("doge_indexer_transactionoutput")
-export class DBTransactionOutput {
-  @PrimaryColumn({ type: "bigint" })
-  id: string;
-
-  @ManyToOne((type) => DBDogeTransaction, (transaction) => transaction.transactionoutput_set)
-  @JoinColumn({ name: "transaction_link_id" })
-  transaction_link_id: DBDogeTransaction
-
+abstract class AbstractTransactionOutput {
   @Column()
   n: number;
 
@@ -145,4 +143,61 @@ export class DBTransactionOutput {
 
   @Column()
   scriptKeyAddress: string;
+}
+
+@Entity("doge_indexer_transactionoutput")
+export class DBTransactionOutput extends AbstractTransactionOutput{
+  @PrimaryColumn({ type: "bigint" })
+  id: string;
+
+  @ManyToOne((type) => DBDogeTransaction, (transaction) => transaction.transactionoutput_set)
+  @JoinColumn({ name: "transaction_link_id" })
+  transaction_link_id: DBDogeTransaction
+}
+
+@Entity("doge_indexer_transactioninputcoinbase")
+export class DBTransactionInputCoinbase {
+  @PrimaryColumn({ type: "bigint" })
+  id: string;
+
+  @ManyToOne((type) => DBDogeTransaction, (transaction) => transaction.transactionoutput_set)
+  @JoinColumn({ name: "transaction_link_id" })
+  transaction_link_id: DBDogeTransaction
+
+  @Column()
+  vinN: number;
+
+  @Column()
+  vinCoinbase: string;
+
+  @Column()
+  vinSequence: number;
+}
+
+@Entity("doge_indexer_transactioninput")
+export class DBTransactionInput extends AbstractTransactionOutput {
+  @PrimaryColumn({ type: "bigint" })
+  id: string;
+
+  @ManyToOne((type) => DBDogeTransaction, (transaction) => transaction.transactionoutput_set)
+  @JoinColumn({ name: "transaction_link_id" })
+  transaction_link_id: DBDogeTransaction
+
+  @Column()
+  vinN: number;
+
+  @Column()
+  vinPreviousTxid: string;
+
+  @Column()
+  vinVoutIndex: number;
+
+  @Column()
+  vinSequence: number;
+
+  @Column()
+  vinScriptSigAsm: string;
+
+  @Column()
+  vinScriptSigHex: string;
 }

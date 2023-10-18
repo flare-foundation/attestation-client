@@ -32,8 +32,6 @@ import { IIndexedQueryManager } from "./IIndexedQueryManager";
  * A class used to carry out queries on the indexer database such that the upper and lower bounds are synchronized.
  */
 export class IndexedQueryManager extends IIndexedQueryManager {
-  private settings: IndexedQueryManagerOptions;
-
   //Two transaction table entities `transaction0` and `transaction1`
   private transactionTable: IDBTransactionBase[];
 
@@ -41,20 +39,8 @@ export class IndexedQueryManager extends IIndexedQueryManager {
   private blockTable: IDBBlockBase;
 
   constructor(options: IndexedQueryManagerOptions) {
-    super();
-    // assert existence
-    if (!options.entityManager) {
-      throw new Error("unsupported without entityManager");
-    }
-    this.settings = options;
+    super(options);
     this.prepareTables();
-  }
-  public numberOfConfirmations(): number {
-    return this.settings.numberOfConfirmations();
-  }
-
-  private get entityManager(): EntityManager {
-    return this.settings.entityManager;
   }
 
   /**
@@ -261,7 +247,7 @@ export class IndexedQueryManager extends IIndexedQueryManager {
   // Special block queries
   ////////////////////////////////////////////////////////////
 
-  public async getLastConfirmedBlockStrictlyBeforeTime(timestamp: number): Promise<DBBlockBase | undefined> {
+  public async getLastConfirmedBlockStrictlyBeforeTime(timestamp: number): Promise<BlockResult | undefined> {
     const query = this.entityManager
       .createQueryBuilder(this.blockTable, "block")
       .where("block.confirmed = :confirmed", { confirmed: true })
@@ -278,7 +264,7 @@ export class IndexedQueryManager extends IIndexedQueryManager {
    * @param blockNumber
    * @returns the block, if it exists, `null` otherwise
    */
-  private async getFirstConfirmedOverflowBlock(timestamp: number, blockNumber: number): Promise<DBBlockBase | undefined> {
+  protected async getFirstConfirmedOverflowBlock(timestamp: number, blockNumber: number): Promise<BlockResult | undefined> {
     const query = this.entityManager
       .createQueryBuilder(this.blockTable, "block")
       .where("block.confirmed = :confirmed", { confirmed: true })

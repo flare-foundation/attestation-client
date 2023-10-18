@@ -107,12 +107,13 @@ export class DBDogeTransaction {
   toTransactionResult(): TransactionResult {
     const vout_arr: IUtxoVoutTransaction[] = this.transactionoutput_set.map((transaction_output) => {
       return {
-        value: 0,
-        n: 0,
+        // TODO: This may lose precision
+        value: parseFloat(transaction_output.value),
+        n: transaction_output.n,
         scriptPubKey: {
-          address: "add",
-          asm: "asm",
-          hex: "hex",
+          address: transaction_output.scriptKeyAddress ,
+          asm: transaction_output.scriptKeyAsm,
+          hex: transaction_output.scriptKeyHex,
         },
       };
     });
@@ -123,15 +124,16 @@ export class DBDogeTransaction {
       })
       .map((transaction_inp) => {
         return {
-          sequence: 0,
-          txid: "",
-          vout: 0,
+          sequence: transaction_inp.vinSequence,
+          txid: transaction_inp.vinPreviousTxid,
+          vout: transaction_inp.vinVoutIndex,
           prevout: {
-            value: 0,
+            // TODO: This may lose precision
+            value: parseFloat(transaction_inp.value),
             scriptPubKey: {
-              address: "add",
-              asm: "asm",
-              hex: "hex",
+              address: transaction_inp.scriptKeyAddress,
+              asm: transaction_inp.scriptKeyAsm,
+              hex: transaction_inp.scriptKeyHex,
             },
           },
         };
@@ -143,8 +145,8 @@ export class DBDogeTransaction {
     })
     .map((transaction_inp) => {
       return {
-        sequence: 0,
-        coinbase: "",
+        sequence: transaction_inp.vinSequence,
+        coinbase: transaction_inp.vinCoinbase,
       };
     });
 

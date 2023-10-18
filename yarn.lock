@@ -765,10 +765,10 @@
   resolved "https://registry.yarnpkg.com/@fastify/busboy/-/busboy-2.0.0.tgz#f22824caff3ae506b18207bad4126dbc6ccdb6b8"
   integrity sha512-JUFJad5lv7jxj926GPgymrWQxxjPYuJNiNjNMzqT+HiuP6Vl3dk5xzG+8sTX96np0ZAluvaMzPsjhHZ5rNuNQQ==
 
-"@flarenetwork/mcc@3.3.0":
-  version "3.3.0"
-  resolved "https://registry.yarnpkg.com/@flarenetwork/mcc/-/mcc-3.3.0.tgz#596787fd986f9890f4cd151a7ab57cbcd3323f87"
-  integrity sha512-OJPtKpHZN362GORDkyexbZt0UUDMfKAqLtoh4HlGH/MWCSnAYwa92xX1xVr+3fTm215+ozeiG3JaT3SgMPuK5g==
+"@flarenetwork/mcc@3.4.0-beta":
+  version "3.4.0-beta"
+  resolved "https://registry.yarnpkg.com/@flarenetwork/mcc/-/mcc-3.4.0-beta.tgz#9978e5ac9c05b2b3bcf83f19b9667594ba55645e"
+  integrity sha512-u0Bb7cRKCUMhM42Km5MyN2dJnjwIG2Brpjq20lG4qtOq64c3jwecwfQQW2ShoUTW9RlEIzvJu60PD7wFLy4HfQ==
   dependencies:
     "@msgpack/msgpack" "^2.8.0"
     algo-msgpack-with-bigint "2.1.1"

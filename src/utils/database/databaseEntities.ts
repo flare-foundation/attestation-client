@@ -40,7 +40,7 @@ export function indexerEntities(chain: string) {
       entities.push(DBBlockDOGE, DBTransactionDOGE0, DBTransactionDOGE1);
       break;
     case "doge-external":
-      return [DBDogeIndexerBlock, DBDogeTransaction, DBTransactionInput, DBTransactionInputCoinbase, DBTransactionOutput, , TipSyncState];
+      return [DBDogeIndexerBlock, DBDogeTransaction, DBTransactionInput, DBTransactionInputCoinbase, DBTransactionOutput, TipSyncState];
     case "xrp":
       entities.push(DBBlockXRP, DBTransactionXRP0, DBTransactionXRP1);
       break;

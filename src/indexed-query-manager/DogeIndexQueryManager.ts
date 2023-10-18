@@ -113,7 +113,24 @@ export class DogeIndexedQueryManager extends IIndexedQueryManager {
       query = query.andWhere("transaction.transactionId = :txId", { txId: params.transactionId });
     }
 
-    const res = await query.orderBy("transaction.transactionId").leftJoinAndSelect("transaction.transactionoutput_set", "transactionOutput").getMany();
+    if (params.startBlockNumber) {
+      query = query.andWhere("transaction.blockNumber >= :startBlock", { startBlock: params.startBlockNumber });
+    }
+
+    if (params.endBlockNumber) {
+      query = query.andWhere("transaction.blockNumber <= :endBlock", { endBlock: params.endBlockNumber });
+    }
+
+    if (params.paymentReference) {
+      query = query.andWhere("transaction.paymentReference=:ref", { ref: params.paymentReference });
+    }
+
+    // left join all of the inputs and outputs
+    query = query.leftJoinAndSelect("transaction.transactionoutput_set", "transactionOutput")
+    query = query.leftJoinAndSelect("transaction.transactioninputcoinbase_set", "transactionInputCoinbase")
+    query = query.leftJoinAndSelect("transaction.transactioninput_set", "transactionInput")
+
+    const res = await query.getMany();
 
     return {
       result: res.map((val) => val.toTransactionResult()),

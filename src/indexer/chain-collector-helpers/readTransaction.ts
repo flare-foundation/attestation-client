@@ -24,7 +24,7 @@ export enum FullIndexingOptions {
  * @param indexingOption indexing option
  * @returns processed transaction
  */
-export async function getFullTransactionUtxo<B extends FullBlockBase<any>, T extends UtxoTransaction<any>>(
+export async function getFullTransactionUtxo<B extends FullBlockBase<any>, T extends UtxoTransaction>(
   client: CachedMccClient,
   blockTransaction: T,
   processor: LimitingProcessor<B>,
@@ -52,8 +52,6 @@ export async function getFullTransactionUtxo<B extends FullBlockBase<any>, T ext
   }
 
   if (fullIndexing) {
-    await blockTransaction.makeFull(txGetter);
-
     processor.markTopLevelJobDone();
 
     return blockTransaction;

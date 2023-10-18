@@ -23,7 +23,7 @@ export interface TransactionResult {
   blockNumber: number;
   timestamp: number;
   paymentReference: string;
-  response: Buffer;
+  // response: Buffer;
   isNativePayment: boolean; 
   transactionType: string;
 }

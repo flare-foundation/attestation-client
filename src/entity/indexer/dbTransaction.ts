@@ -159,7 +159,7 @@ export class DBDogeTransaction {
           vout: vout_arr,
           vin: vin_cb_arr.length > 0 ? vin_cb_arr : vin_arr 
         };
-        return JSON.stringify({data: response});
+        return JSON.stringify(response);
       },
       chainType: ChainType.DOGE, // TODO: doge chain id
       transactionId: this.transactionId,

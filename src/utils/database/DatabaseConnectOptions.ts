@@ -21,6 +21,11 @@ export class DatabaseConnectOptions {
   @optional() port = 3306;
 
   /**
+   * Database server port number.
+   */
+  @optional() name = "indexerDatabase";
+
+  /**
    * Database name.
    */
   database = "database";

@@ -16,23 +16,49 @@ export async function createTypeOrmOptions(loggerLabel: string): Promise<TypeOrm
   ) {
     // get custom entities
     // TODO: only doge ATM
+    if(verifierType !== "doge"){
+      throw new Error("Currently only DOGE can connect to external postgres db")
+    }
     const entities = indexerEntities(`${verifierType}-external`);
-    console.log("External")
-    console.log(entities)
+    const databaseCredentials = config.indexerDatabase;
+    console.log(databaseCredentials)
     return {
-      name: "db",
+      name: databaseCredentials.name,
       type: "postgres",
-      host: "127.0.0.1",
-      port: 5432,
-      username: "db",
-      password: "secret",
-      database: "db",
+      host: databaseCredentials.host,
+      port: databaseCredentials.port,
+      username: databaseCredentials.username,
+      password: databaseCredentials.password,
+      database: databaseCredentials.database,
       entities: entities,
       synchronize: false,
       migrationsRun: false,
       logging: false,
     }
   }
+
+  // Production connection to external postgres database
+  if(process.env.EXTERNAL === "django") {
+    if(verifierType !== "doge"){
+      throw new Error("Currently only DOGE can connect to external postgres db")
+    }
+    const entities = indexerEntities(`${verifierType}-external`);
+    const databaseCredentials = config.indexerDatabase;
+    return {
+      name: databaseCredentials.name,
+      type: "postgres",
+      host: databaseCredentials.host,
+      port: databaseCredentials.port,
+      username: databaseCredentials.username,
+      password: databaseCredentials.password,
+      database: databaseCredentials.database,
+      entities: entities,
+      synchronize: false,
+      migrationsRun: false,
+      logging: false,
+    }
+  }
+
 
   const entities = indexerEntities(verifierType);
 

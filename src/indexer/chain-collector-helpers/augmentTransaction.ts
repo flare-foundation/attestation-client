@@ -1,18 +1,8 @@
-import {
-  BlockBase,
-  ChainType,
-  TransactionBase,
-  unPrefix0x,
-  UtxoBlock,
-  UtxoTransaction,
-  XrpBlock,
-  XrpTransaction,
-} from "@flarenetwork/mcc";
+import { BlockBase, ChainType, TransactionBase, unPrefix0x, UtxoBlock, UtxoTransaction, XrpBlock, XrpTransaction } from "@flarenetwork/mcc";
 import { stringify } from "safe-stable-stringify";
 import { DBTransactionBase, DBTransactionXRP0, IDBTransactionBase } from "../../entity/indexer/dbTransaction";
 import { compressBin } from "../../utils/compression/compression";
 import { prepareString } from "../../utils/helpers/utils";
-
 
 export let uncompressedTransactionResponseDataSize = 0;
 export let compressedTransactionResponseDataSize = 0;
@@ -38,11 +28,11 @@ function augmentTransactionBase(dbTransaction: IDBTransactionBase, chainType: Ch
   //txEntity.response = prepareString(stringify({ data: txData.data, additionalData: txData.additionalData }), 16 * 1024);
 
   // use full response size
-  const data = stringify({ data: txData._data });
+  const data = stringify(txData._data);
   const compressedData = compressBin(data);
 
-  uncompressedTransactionResponseDataSize+=data.length;
-  compressedTransactionResponseDataSize+=compressedData.length;
+  uncompressedTransactionResponseDataSize += data.length;
+  compressedTransactionResponseDataSize += compressedData.length;
 
   txEntity.response = compressedData;
 

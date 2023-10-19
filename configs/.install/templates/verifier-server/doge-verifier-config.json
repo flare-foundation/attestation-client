@@ -19,6 +19,7 @@
       "ReferencedPaymentNonexistence"
    ],
    "indexerDatabase": {
+      "name": "$(DOGEIndexerDatabaseName)",
       "host": "$(DOGEIndexerDatabaseHost)",
       "port": $(DOGEIndexerDatabasePort),
       "database": "$(DOGEIndexerDatabase)",

@@ -176,8 +176,7 @@ abstract class AbstractTransactionOutput {
   @Column()
   n: number;
 
-  // TODO: decimal field 22,8
-  @Column({ type: "decimal" })
+  @Column()
   value: string;
 
   @Column()

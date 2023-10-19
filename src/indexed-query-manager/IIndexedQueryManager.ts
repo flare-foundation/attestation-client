@@ -113,8 +113,16 @@ export abstract class IIndexedQueryManager {
    * @returns search status, required confirmed block, if found, and lower and upper boundary blocks, if required by
    * query parameters.
    */
-  public abstract getConfirmedBlock(params: ConfirmedBlockQueryRequest): Promise<ConfirmedBlockQueryResponse>;
-
+  public async getConfirmedBlock(params: ConfirmedBlockQueryRequest): Promise<ConfirmedBlockQueryResponse> {
+    const blockQueryResult = await this.queryBlock({
+      blockNumber: params.blockNumber,
+      confirmed: true,
+    });
+    return {
+      status: blockQueryResult.result ? "OK" : "NOT_EXIST",
+      block: blockQueryResult.result,
+    };
+  }
   ////////////////////////////////////////////////////////////
   // Confirmed transaction query
   ////////////////////////////////////////////////////////////
@@ -126,8 +134,17 @@ export abstract class IIndexedQueryManager {
    * transaction block, if found,
    * lower and upper boundary blocks, if required by query parameters.
    */
-  public abstract getConfirmedTransaction(params: ConfirmedTransactionQueryRequest): Promise<ConfirmedTransactionQueryResponse>;
+  public async getConfirmedTransaction(params: ConfirmedTransactionQueryRequest): Promise<ConfirmedTransactionQueryResponse> {
+    const transactionsQueryResult = await this.queryTransactions({
+      transactionId: params.txId,
+    } as TransactionQueryParams);
+    const transactions = transactionsQueryResult.result || [];
 
+    return {
+      status: transactions.length > 0 ? "OK" : "NOT_EXIST",
+      transaction: transactions.length > 0 ? transactions[0] : undefined,
+    };
+  }
   ////////////////////////////////////////////////////////////
   // Referenced transactions query
   ////////////////////////////////////////////////////////////
@@ -138,8 +155,35 @@ export abstract class IIndexedQueryManager {
    * @returns search status, list of transactions meeting query criteria, and lower and upper boundary blocks, if required by
    * query parameters.
    */
-  public abstract getReferencedTransactions(params: ReferencedTransactionsQueryRequest): Promise<ReferencedTransactionsQueryResponse>;
+  public async getReferencedTransactions(params: ReferencedTransactionsQueryRequest): Promise<ReferencedTransactionsQueryResponse> {
+    const firstOverflowBlock = await this.getFirstConfirmedOverflowBlock(params.deadlineBlockTimestamp, params.deadlineBlockNumber);
+    if (!firstOverflowBlock) {
+      return {
+        status: "NO_OVERFLOW_BLOCK",
+      };
+    }
 
+    const transactionsQueryResult = await this.queryTransactions({
+      startBlockNumber: params.minimalBlockNumber,
+      endBlockNumber: firstOverflowBlock.blockNumber - 1,
+      paymentReference: params.paymentReference,
+    } as TransactionQueryParams);
+
+    // Too small query window
+    if (!transactionsQueryResult.startBlock) {
+      return {
+        status: "DATA_AVAILABILITY_FAILURE",
+      };
+    }
+
+    const transactions = transactionsQueryResult.result;
+    return {
+      status: "OK",
+      transactions,
+      firstOverflowBlock,
+      minimalBlock: transactionsQueryResult.startBlock,
+    };
+  }
   ////////////////////////////////////////////////////////////
   // Special block queries
   ////////////////////////////////////////////////////////////

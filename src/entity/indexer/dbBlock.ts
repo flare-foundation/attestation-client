@@ -54,10 +54,10 @@ export class DBDogeIndexerBlock {
   blockHash!: string;
 
   @Column()
-  blockNumber!: number;
+  blockNumber: number;
 
   @Column()
-  timestamp!: number;
+  timestamp: number;
 
   @Column()
   transactions: number;

@@ -42,6 +42,6 @@
       "syncReadAhead":10,
       "blockCollecting":"tips",
       "minimalStorageHistoryDays":2,
-      "minimalStorageHistoryBlocks":100,
+      "minimalStorageHistoryBlocks":100
   }
 }

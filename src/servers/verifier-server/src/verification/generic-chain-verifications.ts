@@ -65,7 +65,7 @@ export async function responsePayment<T extends TransactionBase<any>>(
     return { status: VerificationStatus.SYSTEM_FAILURE };
   }
 
-  const fullTxData = new TransactionClass(parsedData.data);
+  const fullTxData = new TransactionClass(parsedData);
 
   if (BigInt(request.requestBody.inUtxo) < 0 || BigInt(request.requestBody.inUtxo) >= Number.MAX_SAFE_INTEGER) {
     return { status: VerificationStatus.NOT_CONFIRMED };

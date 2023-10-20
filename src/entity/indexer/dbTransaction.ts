@@ -3,7 +3,8 @@ import { decompressBin } from "../../utils/compression/compression";
 import { BaseEntity } from "../base/BaseEntity";
 import { TransactionResult } from "../../indexed-query-manager/indexed-query-manager-types";
 import { getGlobalLogger } from "../../utils/logging/logger";
-import { ChainType, IUtxoVinTransactionCoinbase, IUtxoVinTransactionPrevout, IUtxoVoutTransaction } from "@flarenetwork/mcc";
+import { ChainType, IUtxoGetTransactionRes, IUtxoVinTransactionCoinbase, IUtxoVinTransactionPrevout, IUtxoVoutTransaction } from "@flarenetwork/mcc";
+import { ApiDBTransaction } from "../../servers/verifier-server/src/dtos/indexer/ApiDbTransaction";
 
 /**
  * Format for storing transaction data in indexer database
@@ -104,14 +105,16 @@ export class DBDogeTransaction {
   @OneToMany(() => DBTransactionInput, (input) => input.transaction_link_id)
   transactioninput_set: DBTransactionInput[];
 
-  toTransactionResult(): TransactionResult {
+  // Transaction methods
+
+  private get response(): IUtxoGetTransactionRes {
     const vout_arr: IUtxoVoutTransaction[] = this.transactionoutput_set.map((transaction_output) => {
       return {
         // TODO: This may lose precision
         value: parseFloat(transaction_output.value),
         n: transaction_output.n,
         scriptPubKey: {
-          address: transaction_output.scriptKeyAddress ,
+          address: transaction_output.scriptKeyAddress,
           asm: transaction_output.scriptKeyAsm,
           hex: transaction_output.scriptKeyHex,
         },
@@ -140,28 +143,53 @@ export class DBDogeTransaction {
       });
 
     const vin_cb_arr: IUtxoVinTransactionCoinbase[] = this.transactioninputcoinbase_set
-    .sort((a, b) => {
-      return a.vinN - b.vinN;
-    })
-    .map((transaction_inp) => {
-      return {
-        sequence: transaction_inp.vinSequence,
-        coinbase: transaction_inp.vinCoinbase,
-      };
-    });
+      .sort((a, b) => {
+        return a.vinN - b.vinN;
+      })
+      .map((transaction_inp) => {
+        return {
+          sequence: transaction_inp.vinSequence,
+          coinbase: transaction_inp.vinCoinbase,
+        };
+      });
 
-    const TXID = this.transactionId
+    const res_no_vin = {
+      txid: this.transactionId,
+      time: this.timestamp,
+      vout: vout_arr,
+      // non necessary stuff
+      // TODO: Do we need them / update mcc with minimal required data
+      blocktime: this.timestamp,
+      hash: this.transactionId, // TODO: not always the same
+      version: 1,
+      size: 0,
+      vsize: 0,
+      weight: 0,
+      locktime: 0,
+      hex: "",
+      blockhash: "",
+      confirmations: 0,
+    };
+
+    if (vin_cb_arr.length > 0) {
+      return {
+        ...res_no_vin,
+        vin: vin_cb_arr,
+      };
+    }
 
     return {
+      ...res_no_vin,
+      vin: vin_arr,
+    };
+  }
+
+  toTransactionResult(): TransactionResult {
+    return {
       getResponse() {
-        const response = {
-          txid: TXID,
-          vout: vout_arr,
-          vin: vin_cb_arr.length > 0 ? vin_cb_arr : vin_arr 
-        };
-        return JSON.stringify(response);
+        return JSON.stringify(this.response);
       },
-      chainType: ChainType.DOGE, // TODO: doge chain id
+      chainType: ChainType.DOGE,
       transactionId: this.transactionId,
       blockNumber: this.blockNumber,
       timestamp: this.timestamp,
@@ -169,6 +197,27 @@ export class DBDogeTransaction {
       isNativePayment: this.isNativePayment,
       transactionType: this.transactionType,
     };
+  }
+
+  toApiDBTransaction(returnResponse: boolean = false): ApiDBTransaction {
+    const baseRes = {
+      id: 0,
+      chainType: ChainType.DOGE,
+      transactionId: this.transactionId,
+      blockNumber: this.blockNumber,
+      timestamp: this.timestamp,
+      paymentReference: this.paymentReference,
+      isNativePayment: this.isNativePayment,
+      transactionType: this.transactionType,
+      response: ""
+    };
+    if (returnResponse) {
+      return {
+        ...baseRes,
+        response: JSON.stringify(this.response),
+      };
+    }
+    return baseRes;
   }
 }
 

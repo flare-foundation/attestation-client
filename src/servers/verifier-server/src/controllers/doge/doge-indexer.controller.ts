@@ -9,6 +9,7 @@ import { BlockRange } from "../../dtos/indexer/BlockRange.dto";
 import { ApiDBTransaction } from "../../dtos/indexer/ApiDbTransaction";
 import { ApiDBBlock } from "../../dtos/indexer/ApiDbBlock";
 import { QueryTransaction } from "../../dtos/indexer/QueryTransaction.dto";
+import { ExternalIndexerEngineService } from "../../services/external-indexer.service";
 
 @ApiTags("Indexer")
 @Controller("api/indexer")
@@ -16,7 +17,7 @@ import { QueryTransaction } from "../../dtos/indexer/QueryTransaction.dto";
 @ApiSecurity("X-API-KEY")
 export class DOGEIndexerController {
   logger = getGlobalLogger();
-  constructor(private indexerEngine: IndexerEngineService) {}
+  constructor(private indexerEngine: ExternalIndexerEngineService) {}
 
   /**
    * Gets the state entries from the indexer database.
@@ -24,7 +25,8 @@ export class DOGEIndexerController {
    */
   @Get("state")
   public async indexerState(): Promise<ApiResponseWrapper<ApiDBState[]>> {
-    return handleApiResponse(this.indexerEngine.getStateSetting(), this.logger);
+    throw new Error("Not implemented")
+    // return handleApiResponse(this.indexerEngine.getStateSetting(), this.logger);
   }
 
   /**
@@ -101,7 +103,7 @@ export class DOGEIndexerController {
   @Get("transactions")
   public async transactionsWithinBlockRange(@Query() query: QueryTransaction): Promise<ApiResponseWrapper<ApiDBTransaction[]>> {
     return handleApiResponse(
-      this.indexerEngine.getTransactionsWithinBlockRange(query.from, query.to, query.paymentReference, query.limit, query.offset, query.returnResponse),
+      this.indexerEngine.getTransactionsWithinBlockRange(query),
       this.logger
     );
   }

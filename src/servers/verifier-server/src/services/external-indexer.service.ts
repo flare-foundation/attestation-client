@@ -1,7 +1,7 @@
 import { unPrefix0x } from "@flarenetwork/mcc";
 import { Inject, Injectable } from "@nestjs/common";
 import { InjectEntityManager } from "@nestjs/typeorm";
-import { EntityManager, IsNull } from "typeorm";
+import { EntityManager, IsNull, SelectQueryBuilder } from "typeorm";
 import { DBBlockBase, DBDogeIndexerBlock, IDEDogeIndexerBlock } from "../../../../entity/indexer/dbBlock";
 import { DBState, ITipSyncState, TipSyncState } from "../../../../entity/indexer/dbState";
 import { ExternalDBVerifierConfigurationService, VerifierConfigurationService } from "./verifier-configuration.service";
@@ -29,9 +29,8 @@ export class ExternalIndexerEngineService extends IIndexerEngineService {
     this.tipState = TipSyncState;
   }
 
-  private transactionBaseQuery() {
-    return this.manager
-      .createQueryBuilder(this.transactionTable, "transaction")
+  private joinTransactionQuery(query: SelectQueryBuilder<DBDogeTransaction>) {
+    return query
       .leftJoinAndSelect("transaction.transactionoutput_set", "transactionOutput")
       .leftJoinAndSelect("transaction.transactioninputcoinbase_set", "transactionInputCoinbase")
       .leftJoinAndSelect("transaction.transactioninput_set", "transactionInput");
@@ -70,7 +69,9 @@ export class ExternalIndexerEngineService extends IIndexerEngineService {
    * @returns
    */
   public async getTransaction(txHash: string): Promise<ApiDBTransaction> | null {
-    const query = this.transactionBaseQuery().andWhere("transaction.transactionId = :txHash", { txHash });
+    const query = this.joinTransactionQuery(
+      this.manager.createQueryBuilder(this.transactionTable, "transaction").andWhere("transaction.transactionId = :txHash", { txHash })
+    );
     const res = await query.getOne();
     if (res === null) {
       return null;
@@ -160,7 +161,7 @@ export class ExternalIndexerEngineService extends IIndexerEngineService {
     theLimit = Math.min(theLimit, this.configService.config.indexerServerPageLimit);
     let theOffset = offset ?? 0;
 
-    let query = this.transactionBaseQuery();
+    let query = this.manager.createQueryBuilder(this.transactionTable, "transaction");
     if (from !== undefined) {
       query = query.andWhere("transaction.blockNumber >= :from", { from });
     }
@@ -171,6 +172,9 @@ export class ExternalIndexerEngineService extends IIndexerEngineService {
       query = query.andWhere("transaction.paymentReference = :reference", { reference: unPrefix0x(paymentReference) });
     }
     query = query.orderBy("transaction.blockNumber", "ASC").addOrderBy("transaction.transactionId", "ASC").limit(theLimit).offset(theOffset);
+    if (returnResponse) {
+      query = this.joinTransactionQuery(query);
+    }
     const results = await query.getMany();
     return results.map((res) => {
       return res.toApiDBTransaction(returnResponse);

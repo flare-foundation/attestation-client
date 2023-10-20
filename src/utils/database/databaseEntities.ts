@@ -1,8 +1,17 @@
+import {
+  DBDogeIndexerBlock,
+  DBDogeTransaction,
+  DBTransactionInput,
+  DBTransactionInputCoinbase,
+  DBTransactionOutput,
+  TipSyncState,
+} from "../../entity-external/DBDogeIndexerBlock";
 import { DBAttestationRequest } from "../../entity/attester/dbAttestationRequest";
 import { DBRoundResult } from "../../entity/attester/dbRoundResult";
 import { DBVotingRoundResult } from "../../entity/attester/dbVotingRoundResult";
-import { DBBlockBase, DBBlockBTC, DBBlockLTC, DBBlockDOGE, DBBlockXRP, DBBlockALGO, DBDogeIndexerBlock } from "../../entity/indexer/dbBlock";
-import { DBState, TipSyncState } from "../../entity/indexer/dbState";
+import { DBBlockBase, DBBlockBTC, DBBlockLTC, DBBlockDOGE, DBBlockXRP, DBBlockALGO } from "../../entity/indexer/dbBlock";
+import { DBState } from "../../entity/indexer/dbState";
+
 import {
   DBTransactionBase,
   DBTransactionBTC0,
@@ -15,10 +24,6 @@ import {
   DBTransactionXRP1,
   DBTransactionALGO0,
   DBTransactionALGO1,
-  DBDogeTransaction,
-  DBTransactionOutput,
-  DBTransactionInputCoinbase,
-  DBTransactionInput,
 } from "../../entity/indexer/dbTransaction";
 
 /**

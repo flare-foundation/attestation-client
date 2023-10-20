@@ -1,26 +1,23 @@
-import { MCC } from "@flarenetwork/mcc";
-import { EntityManager } from "typeorm";
-import { DBBlockBase, DBDogeIndexerBlock, IDBBlockBase, IDEDogeIndexerBlock } from "../entity/indexer/dbBlock";
-import { DBState, ITipSyncState, TipSyncState } from "../entity/indexer/dbState";
-import { DBDogeTransaction, DBTransactionBase, IDBDogeTransaction, IDBTransactionBase } from "../entity/indexer/dbTransaction";
-import { prepareIndexerTables } from "../indexer/indexer-utils";
+import {
+  DBDogeIndexerBlock,
+  DBDogeTransaction,
+  IDBDogeTransaction,
+  IDEDogeIndexerBlock,
+  ITipSyncState,
+  TipSyncState,
+} from "../entity-external/DBDogeIndexerBlock";
+import { DBTransactionBase } from "../entity/indexer/dbTransaction";
+import { IIndexedQueryManager } from "./IIndexedQueryManager";
 import {
   BlockHeightSample,
   BlockQueryParams,
   BlockQueryResult,
   BlockResult,
-  ConfirmedBlockQueryRequest,
-  ConfirmedBlockQueryResponse,
-  ConfirmedTransactionQueryRequest,
-  ConfirmedTransactionQueryResponse,
   IndexedQueryManagerOptions,
   RandomTransactionOptions,
-  ReferencedTransactionsQueryRequest,
-  ReferencedTransactionsQueryResponse,
   TransactionQueryParams,
   TransactionQueryResult,
 } from "./indexed-query-manager-types";
-import { IIndexedQueryManager } from "./IIndexedQueryManager";
 
 ////////////////////////////////////////////////////////
 // IndexedQueryManger - a class used to carry out
@@ -126,9 +123,9 @@ export class DogeIndexedQueryManager extends IIndexedQueryManager {
     }
 
     // left join all of the inputs and outputs
-    query = query.leftJoinAndSelect("transaction.transactionoutput_set", "transactionOutput")
-    query = query.leftJoinAndSelect("transaction.transactioninputcoinbase_set", "transactionInputCoinbase")
-    query = query.leftJoinAndSelect("transaction.transactioninput_set", "transactionInput")
+    query = query.leftJoinAndSelect("transaction.transactionoutput_set", "transactionOutput");
+    query = query.leftJoinAndSelect("transaction.transactioninputcoinbase_set", "transactionInputCoinbase");
+    query = query.leftJoinAndSelect("transaction.transactioninput_set", "transactionInput");
 
     const res = await query.getMany();
 

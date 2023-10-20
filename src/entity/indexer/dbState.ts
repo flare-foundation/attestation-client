@@ -18,25 +18,3 @@ export class DBState {
   @Column({ nullable: true })
   comment: string = "";
 }
-
-// External Postgres Database Entities (DOGE) (read only)
-
-export type ITipSyncState = new () => TipSyncState;
-
-@Entity("doge_indexer_tipsyncstate")
-export class TipSyncState {
-  @PrimaryColumn({ type: "bigint" })
-  id: string;
-
-  @Column()
-  syncState: string;
-
-  @Column()
-  latestTipHeight: number;
-
-  @Column()
-  latestIndexedHeight: number;
-
-  @Column()
-  timestamp: number;
-}

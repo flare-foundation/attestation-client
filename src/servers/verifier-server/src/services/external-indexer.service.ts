@@ -1,16 +1,21 @@
 import { unPrefix0x } from "@flarenetwork/mcc";
 import { Inject, Injectable } from "@nestjs/common";
 import { InjectEntityManager } from "@nestjs/typeorm";
-import { EntityManager, IsNull, SelectQueryBuilder } from "typeorm";
-import { DBBlockBase, DBDogeIndexerBlock, IDEDogeIndexerBlock } from "../../../../entity/indexer/dbBlock";
-import { DBState, ITipSyncState, TipSyncState } from "../../../../entity/indexer/dbState";
-import { ExternalDBVerifierConfigurationService, VerifierConfigurationService } from "./verifier-configuration.service";
+
+import { EntityManager, SelectQueryBuilder } from "typeorm";
+import { ApiDBBlock } from "../dtos/indexer/ApiDbBlock";
 import { ApiDBTransaction } from "../dtos/indexer/ApiDbTransaction";
 import { BlockRange } from "../dtos/indexer/BlockRange.dto";
 import { IIndexerEngineService, getTransactionsWithinBlockRangeProps } from "./indexer-engine.service";
-import { DBDogeTransaction, IDBDogeTransaction } from "../../../../entity/indexer/dbTransaction";
-import { BlockResult } from "../../../../indexed-query-manager/indexed-query-manager-types";
-import { ApiDBBlock } from "../dtos/indexer/ApiDbBlock";
+import { ExternalDBVerifierConfigurationService } from "./verifier-configuration.service";
+import {
+  DBDogeIndexerBlock,
+  DBDogeTransaction,
+  IDBDogeTransaction,
+  IDEDogeIndexerBlock,
+  ITipSyncState,
+  TipSyncState,
+} from "../../../../entity-external/DBDogeIndexerBlock";
 
 @Injectable()
 export class ExternalIndexerEngineService extends IIndexerEngineService {

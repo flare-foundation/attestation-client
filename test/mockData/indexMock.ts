@@ -2,9 +2,16 @@ import {
   BtcBlockHeader,
   BtcFullBlock,
   BtcTransaction,
-  ChainType, DogeFullBlock, IUtxoGetBlockRes,
-  IXrpGetBlockRes, IXrpGetTransactionRes,
-  XrpBlock, XrpFullBlock, XrpNodeStatus, XrpTransaction
+  ChainType,
+  DogeFullBlock,
+  IUtxoGetBlockRes,
+  IUtxoGetTransactionRes,
+  IXrpGetBlockRes,
+  IXrpGetTransactionRes,
+  XrpBlock,
+  XrpFullBlock,
+  XrpNodeStatus,
+  XrpTransaction,
 } from "@flarenetwork/mcc";
 import { DBBlockBTC } from "../../src/entity/indexer/dbBlock";
 import { DBTransactionBTC0, DBTransactionBTC1 } from "../../src/entity/indexer/dbTransaction";
@@ -14,7 +21,6 @@ import * as resBTCBlock from "../mockData/BTCBlock.json";
 import * as resBTCBlockAlt from "../mockData/BTCBlockAlt.json";
 import * as resBTCTx from "../mockData/BTCTx.json";
 import * as resBTCTxAlt from "../mockData/BTCTxAlt.json";
-import * as resBTCTxFake from "../mockData/BTCTxFake.json";
 import * as resDOGEBlock from "../mockData/DOGEBlock.json";
 import * as resXRPBlock from "../mockData/XRPBlock.json";
 import * as resXRPBlockAlt from "../mockData/XRPBlockAlt.json";
@@ -29,12 +35,10 @@ import * as resXRPBlock614 from "../mockData/XRPBlock614.json";
 
 import * as resLTCBlockHeader from "../mockData/LTCBlockHeaderFake.json";
 
-
-export const TestBlockBTC = new BtcFullBlock(resBTCBlock);
-export const TestTxBTC = new BtcTransaction(resBTCTx);
+export const TestBlockBTC = new BtcFullBlock(resBTCBlock as unknown as IUtxoGetBlockRes);
+export const TestTxBTC = new BtcTransaction(resBTCTx as unknown as IUtxoGetTransactionRes);
 export const TestBlockBTCAlt = new BtcFullBlock(resBTCBlockAlt as unknown as IUtxoGetBlockRes);
-export const TestTxBTCAlt = new BtcTransaction(resBTCTxAlt);
-export const TestTxBTCFake = new BtcTransaction(resBTCTxFake);
+export const TestTxBTCAlt = new BtcTransaction(resBTCTxAlt as unknown as IUtxoGetTransactionRes);
 
 export const TestBlockDOGE = new DogeFullBlock(resDOGEBlock as unknown as IUtxoGetBlockRes);
 

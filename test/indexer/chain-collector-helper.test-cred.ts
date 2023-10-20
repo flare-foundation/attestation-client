@@ -12,7 +12,7 @@ import { Interlacing } from "../../src/indexer/interlacing";
 import { DatabaseConnectOptions } from "../../src/utils/database/DatabaseConnectOptions";
 import { DatabaseService } from "../../src/utils/database/DatabaseService";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
-import { TestBlockBTC, TestTxBTC, TestTxBTCFake } from "../mockData/indexMock";
+import { TestBlockBTC, TestTxBTC } from "../mockData/indexMock";
 import { getTestFile } from "../test-utils/test-utils";
 
 chai.use(chaiAsPromised);
@@ -47,7 +47,6 @@ describe(`Chain collector helpers, (${getTestFile(__filename)})`, () => {
     const interlacing = new Interlacing();
     let utxoBlockProcessor: BtcBlockProcessor;
     const tx = TestTxBTC;
-    const txFake = TestTxBTCFake;
     before(async () => {
       await dataService.connect();
       await interlacing.initialize(getGlobalLogger(), dataService, ChainType.BTC, 3600, 12);

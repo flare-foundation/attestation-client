@@ -1,6 +1,4 @@
 import { Column, Entity, Index, PrimaryColumn } from "typeorm";
-import { BlockResult } from "../../indexed-query-manager/indexed-query-manager-types";
-import { ApiDBBlock } from "../../servers/verifier-server/src/dtos/indexer/ApiDbBlock";
 
 /**
  * Format for storing block data in indexer database
@@ -47,49 +45,3 @@ export class DBBlockXRP extends DBBlockBase {}
 
 @Entity({ name: "algo_block" })
 export class DBBlockALGO extends DBBlockBase {}
-
-// External Postgres Database Entities (DOGE) (read only)
-@Entity("doge_indexer_dogeblock")
-export class DBDogeIndexerBlock {
-  @PrimaryColumn({ type: "char" })
-  blockHash!: string;
-
-  @Column()
-  blockNumber: number;
-
-  @Column()
-  timestamp: number;
-
-  @Column()
-  transactions: number;
-
-  @Column()
-  confirmed: boolean;
-
-  @Column()
-  previousBlockHash: string;
-
-  toBlockResult(): BlockResult {
-    return {
-      blockNumber: this.blockNumber,
-      blockHash: this.blockHash,
-      timestamp: this.timestamp,
-      transactions: this.transactions,
-      confirmed: this.confirmed,
-    };
-  }
-
-  toApiDBBlock(): ApiDBBlock {
-    return {
-      blockNumber: this.blockNumber,
-      blockHash: this.blockHash,
-      timestamp: this.timestamp,
-      transactions: this.transactions,
-      confirmed: this.confirmed,
-      numberOfConfirmations: 0,
-      previousBlockHash: this.previousBlockHash,
-    };
-  }
-}
-
-export type IDEDogeIndexerBlock = new () => DBDogeIndexerBlock;

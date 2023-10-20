@@ -361,7 +361,7 @@ export async function responseReferencedPaymentNonExistence<T extends Transactio
         if (!paymentSummary.response) {
           throw new Error("critical error: should always have response");
         }
-        if (paymentSummary.response.intendedReceivingAmount.gte(toBN(request.requestBody.amount.toString()))) {
+        if (paymentSummary.response.intendedReceivingAmount >= BigInt(request.requestBody.amount.toString())) {
           if (paymentSummary.response.transactionStatus !== TransactionSuccessStatus.SENDER_FAILURE) {
             // it must be SUCCESS or RECEIVER_FAULT, so the sender sent it correctly
             return { status: VerificationStatus.REFERENCED_TRANSACTION_EXISTS };

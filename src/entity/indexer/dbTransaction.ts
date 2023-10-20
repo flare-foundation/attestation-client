@@ -110,8 +110,7 @@ export class DBDogeTransaction {
   private get response(): IUtxoGetTransactionRes {
     const vout_arr: IUtxoVoutTransaction[] = this.transactionoutput_set.map((transaction_output) => {
       return {
-        // TODO: This may lose precision
-        value: parseFloat(transaction_output.value),
+        value: transaction_output.value,
         n: transaction_output.n,
         scriptPubKey: {
           address: transaction_output.scriptKeyAddress,
@@ -131,8 +130,7 @@ export class DBDogeTransaction {
           txid: transaction_inp.vinPreviousTxid,
           vout: transaction_inp.vinVoutIndex,
           prevout: {
-            // TODO: This may lose precision
-            value: parseFloat(transaction_inp.value),
+            value: transaction_inp.value,
             scriptPubKey: {
               address: transaction_inp.scriptKeyAddress,
               asm: transaction_inp.scriptKeyAsm,

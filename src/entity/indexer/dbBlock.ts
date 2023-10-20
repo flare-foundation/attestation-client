@@ -1,5 +1,6 @@
 import { Column, Entity, Index, PrimaryColumn } from "typeorm";
 import { BlockResult } from "../../indexed-query-manager/indexed-query-manager-types";
+import { ApiDBBlock } from "../../servers/verifier-server/src/dtos/indexer/ApiDbBlock";
 
 /**
  * Format for storing block data in indexer database
@@ -75,6 +76,18 @@ export class DBDogeIndexerBlock {
       timestamp: this.timestamp,
       transactions: this.transactions,
       confirmed: this.confirmed,
+    };
+  }
+
+  toApiDBBlock(): ApiDBBlock {
+    return {
+      blockNumber: this.blockNumber,
+      blockHash: this.blockHash,
+      timestamp: this.timestamp,
+      transactions: this.transactions,
+      confirmed: this.confirmed,
+      numberOfConfirmations: 0,
+      previousBlockHash: this.previousBlockHash,
     };
   }
 }

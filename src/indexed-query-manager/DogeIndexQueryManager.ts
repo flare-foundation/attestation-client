@@ -1,3 +1,4 @@
+import { ZERO_PAYMENT_REFERENCE } from "../../test/indexed-query-manager/utils/indexerTestDataGenerator";
 import {
   DBDogeIndexerBlock,
   DBDogeTransaction,
@@ -17,6 +18,7 @@ import {
   RandomTransactionOptions,
   TransactionQueryParams,
   TransactionQueryResult,
+  TransactionResult,
 } from "./indexed-query-manager-types";
 
 ////////////////////////////////////////////////////////
@@ -197,55 +199,37 @@ export class DogeIndexedQueryManager extends IIndexedQueryManager {
     return (await query.getOne()).toBlockResult();
   }
 
-  public async fetchRandomTransactions(batchSize = 100, options: RandomTransactionOptions): Promise<DBTransactionBase[]> {
-    // let result: DBTransactionBase[] = [];
-    // let maxReps = 10;
-    // while (result.length === 0) {
-    //   let tableId = 0;
-    //   if (process.env.TEST_CREDENTIALS) {
-    //     tableId = 0;
-    //   } else {
-    //     tableId = Math.round(Math.random());
-    //   }
+  public async fetchRandomTransactions(batchSize = 100, options: RandomTransactionOptions): Promise<TransactionResult[]> {
+    const txCount = await this.entityManager.createQueryBuilder(this.transactionTable, "transaction").getCount();
 
-    //   const table = this.transactionTable[tableId];
+    if (txCount === 0) {
+      return [];
+    }
 
-    //   const maxQuery = this.entityManager.createQueryBuilder(table, "transaction").select("MAX(transaction.id)", "max");
-    //   const res = await maxQuery.getRawOne();
-    //   if (!res.max) {
-    //     maxReps--;
-    //     if (maxReps === 0) {
-    //       return [];
-    //     }
-    //     continue;
-    //   }
-    //   const randN = Math.floor(Math.random() * res.max);
-    //   let query = this.entityManager.createQueryBuilder(table, "transaction").andWhere("transaction.id > :max", { max: randN });
-    //   // .andWhere("transaction.id < :upper", {upper: randN + 100000})
+    const randN = Math.floor(Math.random() * txCount);
 
-    //   if (options.mustHavePaymentReference) {
-    //     query = query.andWhere("transaction.paymentReference != ''");
-    //   }
-    //   if (options.mustNotHavePaymentReference) {
-    //     query = query.andWhere("transaction.paymentReference == ''");
-    //   }
-    //   if (options.mustBeNativePayment) {
-    //     query = query.andWhere("transaction.isNativePayment = 1");
-    //   }
-    //   if (options.mustNotBeNativePayment) {
-    //     query = query.andWhere("transaction.isNativePayment = 0");
-    //   }
-    //   if (options.startTime) {
-    //     query = query.andWhere("transaction.timestamp >= :startTime", { startTime: options.startTime });
-    //   }
-    //   query = query
-    //     //.orderBy("transaction.id")
-    //     .limit(batchSize);
-    //   result = (await query.getMany()) as DBTransactionBase[];
-    // }
+    let query = this.entityManager.createQueryBuilder(this.transactionTable, "transaction");
 
-    // return result;
-    throw new Error("Not implemented");
+    ZERO_PAYMENT_REFERENCE;
+
+    if (options.mustHavePaymentReference) {
+      query = query.andWhere(`transaction.paymentReference != ${ZERO_PAYMENT_REFERENCE}`);
+    }
+    if (options.mustNotHavePaymentReference) {
+      query = query.andWhere(`transaction.paymentReference == ${ZERO_PAYMENT_REFERENCE}`);
+    }
+    if (options.mustBeNativePayment) {
+      query = query.andWhere("transaction.isNativePayment = 1");
+    }
+    if (options.mustNotBeNativePayment) {
+      query = query.andWhere("transaction.isNativePayment = 0");
+    }
+    if (options.startTime) {
+      query = query.andWhere("transaction.timestamp >= :startTime", { startTime: options.startTime });
+    }
+    query = query.limit(batchSize).offset(Math.min(randN, txCount - batchSize));
+
+    return (await query.getMany()).map((trans) => trans.toTransactionResult());
   }
 
   public async fetchRandomConfirmedBlocks(batchSize = 100, startTime?: number): Promise<BlockResult[]> {

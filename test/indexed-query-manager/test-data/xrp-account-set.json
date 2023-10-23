@@ -1,40 +1,38 @@
 {
-   "data": {
-      "result": {
-         "Account": "r3TQUC9gNvbjXw3hFkLg5R8v8pGFsDsYsL",
-         "Fee": "12",
-         "LastLedgerSequence": 33157135,
-         "Sequence": 15802588,
-         "SigningPubKey": "022DE6752F92D552BCBB69AFDAF7948D1880E990DFB3D678AA1BE79FB41551256A",
-         "TransactionType": "AccountSet",
-         "TxnSignature": "3044022100E097598D656FF333A71496EE827F74B377D56BF57C4451BB3AB0D7B3E24A806C021F5C63645F4599C9B2486D1F5DE941448CED0C7FB4F775A7EA7768AC93417D74",
-         "date": 722694982,
-         "hash": "AB529CC5AF61850C0349DD4D6ECF26AA87C454221C0B5FCF00A9112CFD965F87",
-         "meta": {
-            "AffectedNodes": [
-               {
-                  "ModifiedNode": {
-                     "FinalFields": {
-                        "Account": "r3TQUC9gNvbjXw3hFkLg5R8v8pGFsDsYsL",
-                        "Balance": "999951615",
-                        "Flags": 0,
-                        "OwnerCount": 0,
-                        "Sequence": 15802589
-                     },
-                     "LedgerEntryType": "AccountRoot",
-                     "LedgerIndex": "693D629F1EC3E1433DE1B80277CD20EBD45C60870598E61828DC8AF424EA4DAE",
-                     "PreviousFields": {
-                        "Balance": "999951627",
-                        "Sequence": 15802588
-                     },
-                     "PreviousTxnID": "08D4B82DA7FDBC2E00112538B254EDE188F9A91A4CC36CB8B99C0F3F1AD292D6",
-                     "PreviousTxnLgrSeq": 33130409
-                  }
-               }
-            ],
-            "TransactionIndex": 2,
-            "TransactionResult": "tesSUCCESS"
-         }
-      }
-   }
+  "result": {
+    "Account": "r3TQUC9gNvbjXw3hFkLg5R8v8pGFsDsYsL",
+    "Fee": "12",
+    "LastLedgerSequence": 33157135,
+    "Sequence": 15802588,
+    "SigningPubKey": "022DE6752F92D552BCBB69AFDAF7948D1880E990DFB3D678AA1BE79FB41551256A",
+    "TransactionType": "AccountSet",
+    "TxnSignature": "3044022100E097598D656FF333A71496EE827F74B377D56BF57C4451BB3AB0D7B3E24A806C021F5C63645F4599C9B2486D1F5DE941448CED0C7FB4F775A7EA7768AC93417D74",
+    "date": 722694982,
+    "hash": "AB529CC5AF61850C0349DD4D6ECF26AA87C454221C0B5FCF00A9112CFD965F87",
+    "meta": {
+      "AffectedNodes": [
+        {
+          "ModifiedNode": {
+            "FinalFields": {
+              "Account": "r3TQUC9gNvbjXw3hFkLg5R8v8pGFsDsYsL",
+              "Balance": "999951615",
+              "Flags": 0,
+              "OwnerCount": 0,
+              "Sequence": 15802589
+            },
+            "LedgerEntryType": "AccountRoot",
+            "LedgerIndex": "693D629F1EC3E1433DE1B80277CD20EBD45C60870598E61828DC8AF424EA4DAE",
+            "PreviousFields": {
+              "Balance": "999951627",
+              "Sequence": 15802588
+            },
+            "PreviousTxnID": "08D4B82DA7FDBC2E00112538B254EDE188F9A91A4CC36CB8B99C0F3F1AD292D6",
+            "PreviousTxnLgrSeq": 33130409
+          }
+        }
+      ],
+      "TransactionIndex": 2,
+      "TransactionResult": "tesSUCCESS"
+    }
+  }
 }

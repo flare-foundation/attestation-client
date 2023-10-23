@@ -32,6 +32,13 @@
                ],
                "url": "$(BTCVerifierRouterClientUrl)/ReferencedPaymentNonexistence",
                "apiKey": "$(BTCVerifierRouterClientApiKey)"
+            },
+            {
+               "attestationTypes": [
+                  "AddressValidity"
+               ],
+               "url": "$(BTCVerifierRouterClientUrl)/AddressValidity",
+               "apiKey": "$(BTCVerifierRouterClientApiKey)"
             }
          ]
       },
@@ -64,6 +71,13 @@
                   "ReferencedPaymentNonexistence"
                ],
                "url": "$(DOGEVerifierRouterClientUrl)/ReferencedPaymentNonexistence",
+               "apiKey": "$(DOGEVerifierRouterClientApiKey)"
+            },
+            {
+               "attestationTypes": [
+                  "AddressValidity"
+               ],
+               "url": "$(DOGEVerifierRouterClientUrl)/AddressValidity",
                "apiKey": "$(DOGEVerifierRouterClientApiKey)"
             }
          ]
@@ -98,6 +112,37 @@
                ],
                "url": "$(XRPVerifierRouterClientUrl)/ReferencedPaymentNonexistence",
                "apiKey": "$(XRPVerifierRouterClientApiKey)"
+            },
+            {
+               "attestationTypes": [
+                  "AddressValidity"
+               ],
+               "url": "$(XRPVerifierRouterClientUrl)/AddressValidity",
+               "apiKey": "$(XRPVerifierRouterClientApiKey)"
+            }
+         ]
+      },
+      {
+         "sourceId": "ETH",
+         "routes": [
+            {
+               "attestationTypes": [
+                  "EVMTransaction"
+               ],
+               "url": "$(ETHVerifierRouterClientUrl)/EVMTransaction",
+               "apiKey": "$(ETHVerifierRouterClientApiKey)"
+            }
+         ]
+      },
+      {
+         "sourceId": "FLR",
+         "routes": [
+            {
+               "attestationTypes": [
+                  "EVMTransaction"
+               ],
+               "url": "$(FLRVerifierRouterClientUrl)/EVMTransaction",
+               "apiKey": "$(FLRVerifierRouterClientApiKey)"
             }
          ]
       }

@@ -17,10 +17,11 @@ import { DOGEConfirmedBlockHeightExistsVerifierService } from "./services/doge/d
 import { DOGEPaymentVerifierService } from "./services/doge/doge-payment-verifier.service";
 import { DOGEReferencedPaymentNonexistenceVerifierService } from "./services/doge/doge-referenced-payment-nonexistence-verifier.service";
 import { IndexerEngineService } from "./services/indexer-engine.service";
-import { VerifierConfigurationService } from "./services/verifier-configuration.service";
+import { ExternalDBVerifierConfigurationService, VerifierConfigurationService } from "./services/verifier-configuration.service";
 import { DOGEProcessorService } from "./services/verifier-processors/doge-processor.service";
 import { WsCommandProcessorService } from "./services/ws-command-processor.service";
 import { createTypeOrmOptions } from "./utils/db-config";
+import { ExternalIndexerEngineService } from "./services/external-indexer.service";
 
 @Module({
     imports: [
@@ -43,14 +44,14 @@ import { createTypeOrmOptions } from "./utils/db-config";
         {
             provide: "VERIFIER_CONFIG",
             useFactory: async () => {
-                const config = new VerifierConfigurationService();
+                const config = new ExternalDBVerifierConfigurationService();
                 await config.initialize();
                 return config;
             },
         },
         {
             provide: "VERIFIER_PROCESSOR",
-            useFactory: async (config: VerifierConfigurationService, manager: EntityManager) => new DOGEProcessorService(config, manager),
+            useFactory: async (config: ExternalDBVerifierConfigurationService, manager: EntityManager) => new DOGEProcessorService(config, manager),
             inject: [
                 { token: "VERIFIER_CONFIG", optional: false },
                 { token: getEntityManagerToken("indexerDatabase"), optional: false },
@@ -59,7 +60,7 @@ import { createTypeOrmOptions } from "./utils/db-config";
         WsCommandProcessorService,
         WsServerGateway,
         WsCommandProcessorService,
-        IndexerEngineService,
+        ExternalIndexerEngineService,
         HeaderApiKeyStrategy,
         DOGEPaymentVerifierService,
         DOGEBalanceDecreasingTransactionVerifierService,

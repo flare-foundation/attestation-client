@@ -1,6 +1,7 @@
 // yarn test test/indexer/blockValidityCheck.test-slow.ts
 
-import { BlockBase, ChainType, FullBlockBase, IXrpGetBlockRes, MCC, XrpFullBlock, XrpTransaction, traceManager } from "@flarenetwork/mcc";
+import { BlockBase, ChainType, MCC, XrpFullBlock, XrpTransaction, traceManager } from "@flarenetwork/mcc";
+import { XRPImplementation } from "@flarenetwork/mcc/dist/src/chain-clients/XrpRpcImplementation";
 import chai, { expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
 import sinon from "sinon";
@@ -11,8 +12,7 @@ import { Indexer } from "../../src/indexer/indexer";
 import { setRetryFailureCallback } from "../../src/utils/helpers/promiseTimeout";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
 import { TestLogger } from "../../src/utils/logging/testLogger";
-import { getTestFile, TERMINATION_TOKEN } from "../test-utils/test-utils";
-import { XRPImplementation } from "@flarenetwork/mcc/dist/src/chain-clients/XrpRpcImplementation";
+import { TERMINATION_TOKEN, getTestFile } from "../test-utils/test-utils";
 
 chai.use(chaiAsPromised);
 
@@ -21,7 +21,6 @@ const XRPMccConnection = {
 };
 
 class MockXRPImplementation extends XRPImplementation {
-  
   async getFullBlock(blockNumberOrHash: number | string): Promise<MockXrpBlock> {
     const block = await super.getFullBlock(blockNumberOrHash);
 
@@ -30,7 +29,6 @@ class MockXRPImplementation extends XRPImplementation {
 }
 
 class MockXrpBlock extends XrpFullBlock {
-
   protected get data() {
     return this._data;
   }

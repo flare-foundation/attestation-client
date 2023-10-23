@@ -1,0 +1,596 @@
+{
+  "name": "EVMTransaction",
+  "fullComment": " @custom:name EVMTransaction\n @custom:id 0x06\n @custom:supported ETH\n @author Flare\n @notice The purpose of this type is to relay transactions from an evm chain to FLARE chain.\n This type is only relevant for the evm-compatible chains.\n @custom:verification If transaction with `transactionId` is contained a block on main branch with at least `requiredConfirmations`, the specified data is relayed.\n If an indicated event does not exist, the request is rejected.\n @custom:lut `timestamp`",
+  "description": "The purpose of this type is to relay transactions from an evm chain to FLARE chain.\n This type is only relevant for the evm-compatible chains.",
+  "supported": [
+  "ETH",
+  "FLR"
+  ],
+  "verification": "If transaction with `transactionId` is contained a block on main branch with at least `requiredConfirmations`, the specified data is relayed.\n If an indicated event does not exist, the request is rejected.",
+  "lut": "`timestamp`",
+  "proof": {
+  "name": "Proof",
+  "description": "Toplevel proof",
+  "above": "",
+  "below": "",
+  "fullComment": " @notice Toplevel proof\n @param merkleProof Merkle proof corresponding to the attestation response.\n @param data Attestation response.",
+  "params": [
+  {
+  "name": "merkleProof",
+  "type": "bytes32[]",
+  "typeSimple": "bytes32[]",
+  "comment": "Merkle proof corresponding to the attestation response."
+  },
+  {
+  "name": "data",
+  "type": "struct EVMTransaction.Response",
+  "typeSimple": "Response",
+  "comment": "Attestation response."
+  }
+  ]
+  },
+  "request": {
+  "name": "Request",
+  "description": "Toplevel request",
+  "above": "",
+  "below": "",
+  "fullComment": " @notice Toplevel request\n @param attestationType Attestation type id as defined for each attestation type on [this repo](https://gitlab.com/flarenetwork/state-connector-protocol/)\n @param sourceId  Id of the data source.\n @param messageIntegrityCode `MessageIntegrityCode` that is derived from the expected response as defined [here](/specs/attestations/hash-MIC.md#message-integrity-code).\n @param requestBody Data defining the request. Type (struct) and interpretation is determined by the `attestationType`.",
+  "params": [
+  {
+  "name": "attestationType",
+  "type": "bytes32",
+  "typeSimple": "bytes32",
+  "comment": "Attestation type id as defined for each attestation type on [this repo](https://gitlab.com/flarenetwork/state-connector-protocol/)"
+  },
+  {
+  "name": "sourceId",
+  "type": "bytes32",
+  "typeSimple": "bytes32",
+  "comment": "Id of the data source."
+  },
+  {
+  "name": "messageIntegrityCode",
+  "type": "bytes32",
+  "typeSimple": "bytes32",
+  "comment": "`MessageIntegrityCode` that is derived from the expected response as defined [here](/specs/attestations/hash-MIC.md#message-integrity-code)."
+  },
+  {
+  "name": "requestBody",
+  "type": "struct EVMTransaction.RequestBody",
+  "typeSimple": "RequestBody",
+  "comment": "Data defining the request. Type (struct) and interpretation is determined by the `attestationType`."
+  }
+  ]
+  },
+  "response": {
+  "name": "Response",
+  "description": "Toplevel response",
+  "above": "",
+  "below": "",
+  "fullComment": " @notice Toplevel response\n @param attestationType Extracted from the request.\n @param sourceId Extracted from the request.\n @param votingRound The id of the state connector round in which the request was considered.\n @param lowestUsedTimestamp The lowest timestamp used to generate the response.\n @param requestBody Extracted from the request.\n @param responseBody Data defining the response. The verification rules for the construction of the response body and the type are defined per specific `attestationType`.",
+  "params": [
+  {
+  "name": "attestationType",
+  "type": "bytes32",
+  "typeSimple": "bytes32",
+  "comment": "Extracted from the request."
+  },
+  {
+  "name": "sourceId",
+  "type": "bytes32",
+  "typeSimple": "bytes32",
+  "comment": "Extracted from the request."
+  },
+  {
+  "name": "votingRound",
+  "type": "uint64",
+  "typeSimple": "uint64",
+  "comment": "The id of the state connector round in which the request was considered."
+  },
+  {
+  "name": "lowestUsedTimestamp",
+  "type": "uint64",
+  "typeSimple": "uint64",
+  "comment": "The lowest timestamp used to generate the response."
+  },
+  {
+  "name": "requestBody",
+  "type": "struct EVMTransaction.RequestBody",
+  "typeSimple": "RequestBody",
+  "comment": "Extracted from the request."
+  },
+  {
+  "name": "responseBody",
+  "type": "struct EVMTransaction.ResponseBody",
+  "typeSimple": "ResponseBody",
+  "comment": "Data defining the response. The verification rules for the construction of the response body and the type are defined per specific `attestationType`."
+  }
+  ]
+  },
+  "requestBody": {
+  "name": "RequestBody",
+  "description": "Request body for EVM transaction attestation type",
+  "above": "",
+  "below": "Note that events (logs) are indexed in block not in each transaction. The contract that uses the attestation should specify the order of event logs as needed and the requestor should sort `logIndices`\n with respect to the set specifications. If possible, the contact should only require one `logIndex`.",
+  "fullComment": " @notice Request body for EVM transaction attestation type\n @custom:below Note that events (logs) are indexed in block not in each transaction. The contract that uses the attestation should specify the order of event logs as needed and the requestor should sort `logIndices`\n with respect to the set specifications. If possible, the contact should only require one `logIndex`.\n @param transactionHash Hash of the transaction(transactionHash).\n @param requiredConfirmations The height at which a block is considered confirmed by the requestor.\n @param provideInput If true, \"input\" field is included in the response.\n @param listEvents If true, events indicated by `logIndices` are included in the response. Otherwise, no events are included in the response.\n @param logIndices If listEvents is false, this should be an empty list, otherwise, the request is rejected. If listEvents is true, this is the list of indices (logIndex) of the events to be relayed (sorted by the requestor). The array should contain at most 50 indices. If empty, it indicates all events in order capped by 50.",
+  "params": [
+  {
+  "name": "transactionHash",
+  "type": "bytes32",
+  "typeSimple": "bytes32",
+  "comment": "Hash of the transaction(transactionHash)."
+  },
+  {
+  "name": "requiredConfirmations",
+  "type": "uint16",
+  "typeSimple": "uint16",
+  "comment": "The height at which a block is considered confirmed by the requestor."
+  },
+  {
+  "name": "provideInput",
+  "type": "bool",
+  "typeSimple": "bool",
+  "comment": "If true, \"input\" field is included in the response."
+  },
+  {
+  "name": "listEvents",
+  "type": "bool",
+  "typeSimple": "bool",
+  "comment": "If true, events indicated by `logIndices` are included in the response. Otherwise, no events are included in the response."
+  },
+  {
+  "name": "logIndices",
+  "type": "uint32[]",
+  "typeSimple": "uint32[]",
+  "comment": "If listEvents is false, this should be an empty list, otherwise, the request is rejected. If listEvents is true, this is the list of indices (logIndex) of the events to be relayed (sorted by the requestor). The array should contain at most 50 indices. If empty, it indicates all events in order capped by 50."
+  }
+  ]
+  },
+  "responseBody": {
+  "name": "ResponseBody",
+  "description": "Response body for EVM transaction attestation type",
+  "above": "",
+  "below": "Some field description are elaborated [here](https://ethereum.org/en/developers/docs/apis/json-rpc/#eth_gettransactionbyhash).",
+  "fullComment": " @notice Response body for EVM transaction attestation type\n @custom:below Some field description are elaborated [here](https://ethereum.org/en/developers/docs/apis/json-rpc/#eth_gettransactionbyhash).\n @param blockNumber Number of the block in which the transaction is included.\n @param timestamp Timestamp of the block in which the transaction is included.\n @param sourceAddress The address (from) that signed the transaction.\n @param isDeployment Indicate whether it is a contract creation transaction.\n @param receivingAddress The address (to) of the receiver of the initial transaction. Zero address if `isDeployment` is true.\n @param value The value transferred by the initial transaction in wei.\n @param input If `provideInput`, this is the data send along with the initial transaction. Otherwise it is the default value `0x00`.\n @param status Status of the transaction 1 - success, 0 - failure.\n @param events If `listEvents` is true, an array of the requested events. Sorted by the logIndex in the same order as `logIndices`. Otherwise, an empty array.",
+  "params": [
+  {
+  "name": "blockNumber",
+  "type": "uint64",
+  "typeSimple": "uint64",
+  "comment": "Number of the block in which the transaction is included."
+  },
+  {
+  "name": "timestamp",
+  "type": "uint64",
+  "typeSimple": "uint64",
+  "comment": "Timestamp of the block in which the transaction is included."
+  },
+  {
+  "name": "sourceAddress",
+  "type": "address",
+  "typeSimple": "address",
+  "comment": "The address (from) that signed the transaction."
+  },
+  {
+  "name": "isDeployment",
+  "type": "bool",
+  "typeSimple": "bool",
+  "comment": "Indicate whether it is a contract creation transaction."
+  },
+  {
+  "name": "receivingAddress",
+  "type": "address",
+  "typeSimple": "address",
+  "comment": "The address (to) of the receiver of the initial transaction. Zero address if `isDeployment` is true."
+  },
+  {
+  "name": "value",
+  "type": "uint256",
+  "typeSimple": "uint256",
+  "comment": "The value transferred by the initial transaction in wei."
+  },
+  {
+  "name": "input",
+  "type": "bytes",
+  "typeSimple": "bytes",
+  "comment": "If `provideInput`, this is the data send along with the initial transaction. Otherwise it is the default value `0x00`."
+  },
+  {
+  "name": "status",
+  "type": "uint8",
+  "typeSimple": "uint8",
+  "comment": "Status of the transaction 1 - success, 0 - failure."
+  },
+  {
+  "name": "events",
+  "type": "struct EVMTransaction.Event[]",
+  "typeSimple": "Event[]",
+  "comment": "If `listEvents` is true, an array of the requested events. Sorted by the logIndex in the same order as `logIndices`. Otherwise, an empty array."
+  }
+  ]
+  },
+  "requestStructs": [],
+  "responseStructs": [
+  {
+  "name": "Event",
+  "description": "Event log record",
+  "above": "An `Event` is a struct with the following fields:",
+  "below": "For additional description of event log, see [here](https://ethereum.org/en/developers/docs/apis/json-rpc/#eth_getfilterchanges).",
+  "fullComment": " @notice Event log record\n @custom:above An `Event` is a struct with the following fields:\n @custom:below For additional description of event log, see [here](https://ethereum.org/en/developers/docs/apis/json-rpc/#eth_getfilterchanges).\n @param logIndex The consecutive number of the event in block.\n @param emitterAddress The address of the contract that emitted the event.\n @param topics An array of up to 4 32-byte strings of indexed log arguments. The first string is the signature of the event.\n @param data Concatenated 32-byte strings of non-indexed log arguments. At least 32 bytes long.\n @param removed It is true if log was removed due to a chain reorganization and false if it is a valid log.",
+  "params": [
+  {
+  "name": "logIndex",
+  "type": "uint32",
+  "typeSimple": "uint32",
+  "comment": "The consecutive number of the event in block."
+  },
+  {
+  "name": "emitterAddress",
+  "type": "address",
+  "typeSimple": "address",
+  "comment": "The address of the contract that emitted the event."
+  },
+  {
+  "name": "topics",
+  "type": "bytes32[]",
+  "typeSimple": "bytes32[]",
+  "comment": "An array of up to 4 32-byte strings of indexed log arguments. The first string is the signature of the event."
+  },
+  {
+  "name": "data",
+  "type": "bytes",
+  "typeSimple": "bytes",
+  "comment": "Concatenated 32-byte strings of non-indexed log arguments. At least 32 bytes long."
+  },
+  {
+  "name": "removed",
+  "type": "bool",
+  "typeSimple": "bool",
+  "comment": "It is true if log was removed due to a chain reorganization and false if it is a valid log."
+  }
+  ]
+  }
+  ],
+  "requestAbi": {
+  "components": [
+  {
+  "internalType": "bytes32",
+  "name": "attestationType",
+  "type": "bytes32"
+  },
+  {
+  "internalType": "bytes32",
+  "name": "sourceId",
+  "type": "bytes32"
+  },
+  {
+  "internalType": "bytes32",
+  "name": "messageIntegrityCode",
+  "type": "bytes32"
+  },
+  {
+  "components": [
+  {
+  "internalType": "bytes32",
+  "name": "transactionHash",
+  "type": "bytes32"
+  },
+  {
+  "internalType": "uint16",
+  "name": "requiredConfirmations",
+  "type": "uint16"
+  },
+  {
+  "internalType": "bool",
+  "name": "provideInput",
+  "type": "bool"
+  },
+  {
+  "internalType": "bool",
+  "name": "listEvents",
+  "type": "bool"
+  },
+  {
+  "internalType": "uint32[]",
+  "name": "logIndices",
+  "type": "uint32[]"
+  }
+  ],
+  "internalType": "struct EVMTransaction.RequestBody",
+  "name": "requestBody",
+  "type": "tuple"
+  }
+  ],
+  "internalType": "struct EVMTransaction.Request",
+  "name": "_request",
+  "type": "tuple"
+  },
+  "responseAbi": {
+  "components": [
+  {
+  "internalType": "bytes32",
+  "name": "attestationType",
+  "type": "bytes32"
+  },
+  {
+  "internalType": "bytes32",
+  "name": "sourceId",
+  "type": "bytes32"
+  },
+  {
+  "internalType": "uint64",
+  "name": "votingRound",
+  "type": "uint64"
+  },
+  {
+  "internalType": "uint64",
+  "name": "lowestUsedTimestamp",
+  "type": "uint64"
+  },
+  {
+  "components": [
+  {
+  "internalType": "bytes32",
+  "name": "transactionHash",
+  "type": "bytes32"
+  },
+  {
+  "internalType": "uint16",
+  "name": "requiredConfirmations",
+  "type": "uint16"
+  },
+  {
+  "internalType": "bool",
+  "name": "provideInput",
+  "type": "bool"
+  },
+  {
+  "internalType": "bool",
+  "name": "listEvents",
+  "type": "bool"
+  },
+  {
+  "internalType": "uint32[]",
+  "name": "logIndices",
+  "type": "uint32[]"
+  }
+  ],
+  "internalType": "struct EVMTransaction.RequestBody",
+  "name": "requestBody",
+  "type": "tuple"
+  },
+  {
+  "components": [
+  {
+  "internalType": "uint64",
+  "name": "blockNumber",
+  "type": "uint64"
+  },
+  {
+  "internalType": "uint64",
+  "name": "timestamp",
+  "type": "uint64"
+  },
+  {
+  "internalType": "address",
+  "name": "sourceAddress",
+  "type": "address"
+  },
+  {
+  "internalType": "bool",
+  "name": "isDeployment",
+  "type": "bool"
+  },
+  {
+  "internalType": "address",
+  "name": "receivingAddress",
+  "type": "address"
+  },
+  {
+  "internalType": "uint256",
+  "name": "value",
+  "type": "uint256"
+  },
+  {
+  "internalType": "bytes",
+  "name": "input",
+  "type": "bytes"
+  },
+  {
+  "internalType": "uint8",
+  "name": "status",
+  "type": "uint8"
+  },
+  {
+  "components": [
+  {
+  "internalType": "uint32",
+  "name": "logIndex",
+  "type": "uint32"
+  },
+  {
+  "internalType": "address",
+  "name": "emitterAddress",
+  "type": "address"
+  },
+  {
+  "internalType": "bytes32[]",
+  "name": "topics",
+  "type": "bytes32[]"
+  },
+  {
+  "internalType": "bytes",
+  "name": "data",
+  "type": "bytes"
+  },
+  {
+  "internalType": "bool",
+  "name": "removed",
+  "type": "bool"
+  }
+  ],
+  "internalType": "struct EVMTransaction.Event[]",
+  "name": "events",
+  "type": "tuple[]"
+  }
+  ],
+  "internalType": "struct EVMTransaction.ResponseBody",
+  "name": "responseBody",
+  "type": "tuple"
+  }
+  ],
+  "internalType": "struct EVMTransaction.Response",
+  "name": "_response",
+  "type": "tuple"
+  },
+  "proofAbi": {
+  "components": [
+  {
+  "internalType": "bytes32[]",
+  "name": "merkleProof",
+  "type": "bytes32[]"
+  },
+  {
+  "components": [
+  {
+  "internalType": "bytes32",
+  "name": "attestationType",
+  "type": "bytes32"
+  },
+  {
+  "internalType": "bytes32",
+  "name": "sourceId",
+  "type": "bytes32"
+  },
+  {
+  "internalType": "uint64",
+  "name": "votingRound",
+  "type": "uint64"
+  },
+  {
+  "internalType": "uint64",
+  "name": "lowestUsedTimestamp",
+  "type": "uint64"
+  },
+  {
+  "components": [
+  {
+  "internalType": "bytes32",
+  "name": "transactionHash",
+  "type": "bytes32"
+  },
+  {
+  "internalType": "uint16",
+  "name": "requiredConfirmations",
+  "type": "uint16"
+  },
+  {
+  "internalType": "bool",
+  "name": "provideInput",
+  "type": "bool"
+  },
+  {
+  "internalType": "bool",
+  "name": "listEvents",
+  "type": "bool"
+  },
+  {
+  "internalType": "uint32[]",
+  "name": "logIndices",
+  "type": "uint32[]"
+  }
+  ],
+  "internalType": "struct EVMTransaction.RequestBody",
+  "name": "requestBody",
+  "type": "tuple"
+  },
+  {
+  "components": [
+  {
+  "internalType": "uint64",
+  "name": "blockNumber",
+  "type": "uint64"
+  },
+  {
+  "internalType": "uint64",
+  "name": "timestamp",
+  "type": "uint64"
+  },
+  {
+  "internalType": "address",
+  "name": "sourceAddress",
+  "type": "address"
+  },
+  {
+  "internalType": "bool",
+  "name": "isDeployment",
+  "type": "bool"
+  },
+  {
+  "internalType": "address",
+  "name": "receivingAddress",
+  "type": "address"
+  },
+  {
+  "internalType": "uint256",
+  "name": "value",
+  "type": "uint256"
+  },
+  {
+  "internalType": "bytes",
+  "name": "input",
+  "type": "bytes"
+  },
+  {
+  "internalType": "uint8",
+  "name": "status",
+  "type": "uint8"
+  },
+  {
+  "components": [
+  {
+  "internalType": "uint32",
+  "name": "logIndex",
+  "type": "uint32"
+  },
+  {
+  "internalType": "address",
+  "name": "emitterAddress",
+  "type": "address"
+  },
+  {
+  "internalType": "bytes32[]",
+  "name": "topics",
+  "type": "bytes32[]"
+  },
+  {
+  "internalType": "bytes",
+  "name": "data",
+  "type": "bytes"
+  },
+  {
+  "internalType": "bool",
+  "name": "removed",
+  "type": "bool"
+  }
+  ],
+  "internalType": "struct EVMTransaction.Event[]",
+  "name": "events",
+  "type": "tuple[]"
+  }
+  ],
+  "internalType": "struct EVMTransaction.ResponseBody",
+  "name": "responseBody",
+  "type": "tuple"
+  }
+  ],
+  "internalType": "struct EVMTransaction.Response",
+  "name": "data",
+  "type": "tuple"
+  }
+  ],
+  "internalType": "struct EVMTransaction.Proof",
+  "name": "_proof",
+  "type": "tuple"
+  }
+  }

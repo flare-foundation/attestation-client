@@ -30,7 +30,8 @@ const BTC_TYPES_COUNT = 4;
 const BTC_PAYMENT = fs.readFileSync(`${TEST_DATA_PATH}/btc-payment.json`).toString();
 const BTC_PAYMENT_MANY_INPUTS = fs.readFileSync(`${TEST_DATA_PATH}/btc-payment-many-inputs.json`).toString();
 const BTC_PAYMENT_WITH_REFERENCE_1 = fs.readFileSync(`${TEST_DATA_PATH}/btc-payment-with-reference-1.json`).toString();
-const BTC_PAYMENT_WITH_REFERENCE_2 = fs.readFileSync(`${TEST_DATA_PATH}/btc-payment-with-reference-2.json`).toString();
+const BTC_PAYMENT_WITH_REFERENCE_2 = BTC_PAYMENT_WITH_REFERENCE_1;
+//const BTC_PAYMENT_WITH_REFERENCE_2 = fs.readFileSync(`${TEST_DATA_PATH}/btc-payment-with-reference-2.json`).toString();
 
 const XRP_TYPES_COUNT = 4;
 const XRP_PAYMENT = fs.readFileSync(`${TEST_DATA_PATH}/xrp-payment.json`).toString();
@@ -42,7 +43,8 @@ const DOGE_TYPES_COUNT = 4;
 const DOGE_PAYMENT = fs.readFileSync(`${TEST_DATA_PATH}/btc-payment.json`).toString();
 const DOGE_PAYMENT_MANY_INPUTS = fs.readFileSync(`${TEST_DATA_PATH}/btc-payment-many-inputs.json`).toString();
 const DOGE_PAYMENT_WITH_REFERENCE_1 = fs.readFileSync(`${TEST_DATA_PATH}/btc-payment-with-reference-1.json`).toString();
-const DOGE_PAYMENT_WITH_REFERENCE_2 = fs.readFileSync(`${TEST_DATA_PATH}/btc-payment-with-reference-2.json`).toString();
+const DOGE_PAYMENT_WITH_REFERENCE_2 = DOGE_PAYMENT_WITH_REFERENCE_1;
+//const DOGE_PAYMENT_WITH_REFERENCE_2 = fs.readFileSync(`${TEST_DATA_PATH}/btc-payment-with-reference-2.json`).toString();
 
 export const ZERO_PAYMENT_REFERENCE = "0000000000000000000000000000000000000000000000000000000000000000";
 const BTC_IN_SATOSHI = 100000000;
@@ -90,9 +92,10 @@ function addBtcTransactionResponse(transaction: TransactionResult, transactionIn
       throw new Error("Impossible option");
   }
   let json = JSON.parse(txStr);
-  json.data.txid = unPrefix0x(transaction.transactionId);
+  json.txid = unPrefix0x(transaction.transactionId);
   if (paymentReference) {
-    setFirstOPReturn(json.data.vout, paymentReference);
+    setFirstOPReturn(json.vout, paymentReference);
+
     transaction.paymentReference = paymentReference;
   } else {
     transaction.paymentReference = unPrefix0x(toHex(0, 32));
@@ -122,10 +125,10 @@ function addXrpTransactionResponse(transaction: TransactionResult, transactionIn
       throw new Error("Impossible option");
   }
   let json = JSON.parse(txStr);
-  json.data.result.hash = unPrefix0x(transaction.transactionId);
-  json.data.result.meta.TransactionIndex = transactionIndex;
+  json.result.hash = unPrefix0x(transaction.transactionId);
+  json.result.meta.TransactionIndex = transactionIndex;
   if (paymentReference) {
-    json.data.result.Memos[0].Memo.MemoData = paymentReference;
+    json.result.Memos[0].Memo.MemoData = paymentReference;
     transaction.paymentReference = paymentReference;
   } else {
     transaction.paymentReference = unPrefix0x(toHex(0, 32));
@@ -156,9 +159,9 @@ function addDogeTransactionResponse(transaction: TransactionResult, transactionI
       throw new Error("Impossible option");
   }
   let json = JSON.parse(txStr);
-  json.data.txid = unPrefix0x(transaction.transactionId);
+  json.txid = unPrefix0x(transaction.transactionId);
   if (paymentReference) {
-    setFirstOPReturn(json.data.vout, paymentReference);
+    setFirstOPReturn(json.vout, paymentReference);
     transaction.paymentReference = paymentReference;
   } else {
     transaction.paymentReference = unPrefix0x(toHex(0, 32));
@@ -297,8 +300,8 @@ export async function selectBlock(entityManager: EntityManager, blockClass: any,
 export function firstAddressVout(dbTransaction: DBTransactionBase, index = 0) {
   let response = JSON.parse(dbTransaction.getResponse());
   let appearances = [];
-  for (let i = 0; i < response.data.vout.length; i++) {
-    let address = response.data.vout[i].scriptPubKey?.address;
+  for (let i = 0; i < response.vout.length; i++) {
+    let address = response.vout[i].scriptPubKey?.address;
     if (address) {
       if (appearances.indexOf(address) >= 0) {
         continue;
@@ -309,13 +312,14 @@ export function firstAddressVout(dbTransaction: DBTransactionBase, index = 0) {
       appearances.push(address);
     }
   }
+
   throw new Error("No output address");
 }
 
 export function firstAddressVin(dbTransaction: DBTransactionBase) {
   let response = JSON.parse(dbTransaction.getResponse());
-  for (let i = 0; i < response.data.vin.length; i++) {
-    if (response.data.vin[i].prevout.scriptPubKey?.address) {
+  for (let i = 0; i < response.vin.length; i++) {
+    if (response.vin[i].prevout.scriptPubKey?.address) {
       return i;
     }
   }
@@ -324,24 +328,24 @@ export function firstAddressVin(dbTransaction: DBTransactionBase) {
 
 export function addressOnVout(dbTransaction: DBTransactionBase, i: number) {
   let response = JSON.parse(dbTransaction.getResponse());
-  return response.data?.vout?.[i]?.scriptPubKey?.address;
+  return response.vout?.[i]?.scriptPubKey?.address;
 }
 
 export function totalDeliveredAmountToAddress(dbTransaction: DBTransactionBase, address: string) {
   let spent = toBN(0);
   let response = JSON.parse(dbTransaction.getResponse());
-  for (let i = 0; i < response.additionalData.vinouts.length; i++) {
-    if (response.additionalData?.vinouts?.[i]?.vinvout?.scriptPubKey?.address === address) {
-      let value = response.additionalData?.vinouts?.[i]?.vinvout.value;
+  for (let i = 0; i < response.vin.length; i++) {
+    if (response.vin[i]?.prevout.scriptPubKey?.address === address) {
+      let value = response.vin[i]?.prevout?.value;
       if (value) {
         spent = spent.add(toBN(Math.floor(value * BTC_IN_SATOSHI)));
       }
     }
   }
   let received = toBN(0);
-  for (let i = 0; i < response.data.vout.length; i++) {
-    if (response.data.vout[i].scriptPubKey?.address === address) {
-      let value = response.data.vout[i].value;
+  for (let i = 0; i < response.vout.length; i++) {
+    if (response.vout[i].scriptPubKey?.address === address) {
+      let value = response.vout[i].value;
       if (value) {
         received = received.add(toBN(Math.floor(value * BTC_IN_SATOSHI)));
       }
@@ -420,7 +424,7 @@ export async function testConfirmedBlockHeightExistsRequest(
     },
   } as ConfirmedBlockHeightExists_Request;
 
-  const responseData = await responseConfirmedBlockHeightExists(dbBlock, lowerQueryWindowBlock, numberOfConfirmations, request);
+  const responseData = responseConfirmedBlockHeightExists(dbBlock, lowerQueryWindowBlock, numberOfConfirmations, request);
 
   if (responseData.status === "OK") {
     request.messageIntegrityCode = definitionStore.attestationResponseHash(responseData.response, MIC_SALT);

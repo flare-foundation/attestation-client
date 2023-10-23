@@ -204,7 +204,7 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
       let utxo = firstAddressVout(selectedTransaction);
       let request = await testPaymentRequest(defStore, selectedTransaction, TX_CLASS, CHAIN_TYPE, inUtxo, utxo);
 
-      const resp = await axios.post(`http://localhost:${configurationService.config.port}/BTC/Payment/mic`, request, {
+      const resp = await axios.post(`http://localhost:${configurationService.config.port}/Payment/mic`, request, {
         headers: {
           "x-api-key": API_KEY,
         },
@@ -221,7 +221,7 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
       const mic = request.messageIntegrityCode;
       request.messageIntegrityCode = undefined;
 
-      const resp = await axios.post(`http://localhost:${configurationService.config.port}/BTC/Payment/mic`, request, {
+      const resp = await axios.post(`http://localhost:${configurationService.config.port}/Payment/mic`, request, {
         headers: {
           "x-api-key": API_KEY,
         },
@@ -235,12 +235,12 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
       let request = await testPaymentRequest(defStore, selectedTransaction, TX_CLASS, CHAIN_TYPE, inUtxo, utxo);
 
       request.requestBody.transactionId = ethers.keccak256(request.requestBody.transactionId);
-      let resp = await axios.post(`http://localhost:${configurationService.config.port}/BTC/Payment/mic`, request, {
+      let resp = await axios.post(`http://localhost:${configurationService.config.port}/Payment/mic`, request, {
         headers: {
           "x-api-key": API_KEY,
         },
-      })
-      expect(resp.data.response).to.be.undefined
+      });
+      expect(resp.data.response).to.be.undefined;
     });
 
     it(`Should prepare attestation response without mic`, async function () {
@@ -248,14 +248,13 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
       let utxo = firstAddressVout(selectedTransaction);
       let request = await testPaymentRequest(defStore, selectedTransaction, TX_CLASS, CHAIN_TYPE, inUtxo, utxo);
 
-      const resp = await axios.post(`http://localhost:${configurationService.config.port}/BTC/Payment/prepareResponse`, request, {
+      const resp = await axios.post(`http://localhost:${configurationService.config.port}/Payment/prepareResponse`, request, {
         headers: {
           "x-api-key": API_KEY,
         },
       });
       expect(resp.data.status, "response not ok").to.eq("VALID");
       expect(resp.data.response).not.to.be.undefined;
-
     });
 
     it(`Should not return MIC for invalid request`, async function () {
@@ -265,7 +264,7 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
 
       request.requestBody.transactionId = ethers.keccak256(request.requestBody.transactionId);
 
-      const resp = await axios.post(`http://localhost:${configurationService.config.port}/BTC/Payment/mic`, request, {
+      const resp = await axios.post(`http://localhost:${configurationService.config.port}/Payment/mic`, request, {
         headers: {
           "x-api-key": API_KEY,
         },
@@ -278,7 +277,7 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
       let utxo = firstAddressVout(selectedTransaction);
       let request = await testPaymentRequest(defStore, selectedTransaction, TX_CLASS, CHAIN_TYPE, inUtxo, utxo);
 
-      const resp = await axios.post(`http://localhost:${configurationService.config.port}/BTC/Payment/prepareRequest`, request, {
+      const resp = await axios.post(`http://localhost:${configurationService.config.port}/Payment/prepareRequest`, request, {
         headers: {
           "x-api-key": API_KEY,
         },
@@ -296,7 +295,7 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
       // request.blockNumber = toNumber(request.blockNumber);
       request.messageIntegrityCode = "12";
 
-      const resp = await axios.post(`http://localhost:${configurationService.config.port}/BTC/Payment/prepareRequest`, request, {
+      const resp = await axios.post(`http://localhost:${configurationService.config.port}/Payment/prepareRequest`, request, {
         headers: {
           "x-api-key": API_KEY,
         },
@@ -312,7 +311,7 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
 
       request.requestBody.transactionId = ethers.keccak256(request.requestBody.transactionId);
 
-      const resp = await axios.post(`http://localhost:${configurationService.config.port}/BTC/Payment/prepareRequest`, request, {
+      const resp = await axios.post(`http://localhost:${configurationService.config.port}/Payment/prepareRequest`, request, {
         headers: {
           "x-api-key": API_KEY,
         },
@@ -334,8 +333,8 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
       assert(resp.status === "VALID", "Wrong server response");
       assert(resp.response.requestBody.transactionId === prefix0x(selectedTransaction.transactionId), "Wrong transaction id");
       let response = JSON.parse(selectedTransaction.getResponse());
-      let sourceAddress = response.additionalData.vinouts[inUtxo].vinvout.scriptPubKey.address;
-      let receivingAddress = response.data.vout[utxo].scriptPubKey.address;
+      let sourceAddress = response.vin[inUtxo].prevout.scriptPubKey.address;
+      let receivingAddress = response.vout[utxo].scriptPubKey.address;
       assert(resp.response.responseBody.sourceAddressHash === Web3.utils.soliditySha3(sourceAddress), "Wrong source address");
       assert(resp.response.responseBody.receivingAddressHash === Web3.utils.soliditySha3(receivingAddress), "Wrong receiving address");
       assert(request.messageIntegrityCode === defStore.attestationResponseHash(resp.response, MIC_SALT), "MIC does not match");
@@ -354,7 +353,7 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
       assert(resp.status === "VALID", "Wrong server response");
       assert(resp.response.requestBody.transactionId === prefix0x(selectedTransaction.transactionId), "Wrong transaction id");
       let response = JSON.parse(selectedTransaction.getResponse());
-      let sourceAddress = response.additionalData.vinouts[parseInt(sourceAddressIndicator, 16)].vinvout.scriptPubKey.address;
+      let sourceAddress = response.vin[parseInt(sourceAddressIndicator, 16)].prevout.scriptPubKey.address;
       assert(resp.response.responseBody.sourceAddressHash === Web3.utils.soliditySha3(sourceAddress), "Wrong source address");
       assert(request.messageIntegrityCode === defStore.attestationResponseHash(resp.response, MIC_SALT), "MIC does not match");
     });
@@ -390,7 +389,10 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
       let resp = await sendToVerifier("ConfirmedBlockHeightExists", "BTC", configurationService, attestationRequest, API_KEY);
       assert(resp.status === "VALID", "Wrong server response");
       assert(BigInt(resp.response.requestBody.blockNumber) === BigInt(BLOCK_CHOICE), "Wrong block number");
-      assert(BigInt(resp.response.responseBody.lowestQueryWindowBlockNumber) === BigInt(BLOCK_CHOICE - BLOCK_QUERY_WINDOW - 1), "Wrong lowest query window block number");
+      assert(
+        BigInt(resp.response.responseBody.lowestQueryWindowBlockNumber) === BigInt(BLOCK_CHOICE - BLOCK_QUERY_WINDOW - 1),
+        "Wrong lowest query window block number"
+      );
       assert(request.messageIntegrityCode === defStore.attestationResponseHash(resp.response, MIC_SALT), "MIC does not match");
     });
 
@@ -416,7 +418,8 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
     });
 
     it(`Should verify Referenced Payment Nonexistence attestation`, async function () {
-      let utxo = firstAddressVout(selectedTransaction, 1);
+      let utxo = firstAddressVout(selectedTransaction, 0);
+
       let receivingAddress = addressOnVout(selectedTransaction, utxo);
       let receivedAmount = totalDeliveredAmountToAddress(selectedTransaction, receivingAddress);
 
@@ -445,7 +448,10 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
 
       assert(resp.status === "VALID", "Wrong server response");
       assert(BigInt(resp.response.responseBody.firstOverflowBlockNumber) === BigInt(BLOCK_CHOICE - 1), "Incorrect first overflow block");
-      assert(BigInt(resp.response.responseBody.firstOverflowBlockTimestamp) === BigInt(selectedTransaction.timestamp - 1), "Incorrect first overflow block timestamp");
+      assert(
+        BigInt(resp.response.responseBody.firstOverflowBlockTimestamp) === BigInt(selectedTransaction.timestamp - 1),
+        "Incorrect first overflow block timestamp"
+      );
       assert(request.messageIntegrityCode === defStore.attestationResponseHash(resp.response, MIC_SALT), "MIC does not match");
     });
 
@@ -468,7 +474,7 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
         selectedTransaction.timestamp + 2,
         receivingAddress,
         prefix0x(selectedTransaction.paymentReference),
-        receivedAmount.toString()
+        receivedAmount.neg().toString()
       );
 
       expect(() => defStore.encodeRequest(request)).to.throw();

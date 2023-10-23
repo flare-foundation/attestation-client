@@ -59,11 +59,8 @@ export const AugTestBlockBTCAlt = augmentBlock(DBBlockBTC, TestBlockBTCAlt);
 
 export const TestXRPStatus = new XrpNodeStatus(resXRPStatus as any);
 export const TestXRPStatusAlt = new XrpNodeStatus(resXRPStatusAlt as any);
-const waitTx = async (tx) => {
-  return tx;
-};
 
-export const promAugTxBTC0 = augmentTransactionUtxo(DBTransactionBTC0, ChainType.BTC, TestBlockBTC, waitTx(TestTxBTC));
-export const promAugTxBTC1 = augmentTransactionUtxo(DBTransactionBTC1, ChainType.BTC, TestBlockBTC, waitTx(TestTxBTC));
-export const promAugTxBTCAlt0 = augmentTransactionUtxo(DBTransactionBTC0, ChainType.BTC, TestBlockBTCAlt, waitTx(TestTxBTCAlt));
-export const promAugTxBTCAlt1 = augmentTransactionUtxo(DBTransactionBTC1, ChainType.BTC, TestBlockBTCAlt, waitTx(TestTxBTCAlt));
+export const promAugTxBTC0 = augmentTransactionUtxo(DBTransactionBTC0, ChainType.BTC, TestBlockBTC, TestTxBTC);
+export const promAugTxBTC1 = augmentTransactionUtxo(DBTransactionBTC1, ChainType.BTC, TestBlockBTC, TestTxBTC);
+export const promAugTxBTCAlt0 = augmentTransactionUtxo(DBTransactionBTC0, ChainType.BTC, TestBlockBTCAlt, TestTxBTCAlt);
+export const promAugTxBTCAlt1 = augmentTransactionUtxo(DBTransactionBTC1, ChainType.BTC, TestBlockBTCAlt, TestTxBTCAlt);

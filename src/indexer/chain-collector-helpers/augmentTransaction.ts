@@ -17,13 +17,11 @@ export let compressedTransactionResponseDataSize = 0;
  */
 function augmentTransactionBase(dbTransaction: IDBTransactionBase, chainType: ChainType, block: BlockBase, txData: TransactionBase<any>): DBTransactionBase {
   const txEntity = new dbTransaction();
-
   txEntity.chainType = chainType;
   txEntity.transactionId = prepareString(txData.stdTxid, 64);
   txEntity.blockNumber = block.number;
   txEntity.timestamp = block.unixTimestamp;
   txEntity.transactionType = txData.type;
-  txEntity.isNativePayment = txData.isNativePayment;
   txEntity.paymentReference = prepareString(unPrefix0x(txData.stdPaymentReference), 64);
   //txEntity.response = prepareString(stringify({ data: txData.data, additionalData: txData.additionalData }), 16 * 1024);
 
@@ -63,16 +61,15 @@ function augmentTransactionBase(dbTransaction: IDBTransactionBase, chainType: Ch
  * @param txDataPromise
  * @returns
  */
-export async function augmentTransactionUtxo<T extends UtxoTransaction>(
+export function augmentTransactionUtxo<T extends UtxoTransaction>(
   dbTransaction: IDBTransactionBase,
   chainType: ChainType,
   block: UtxoBlock,
-  txDataPromise: Promise<T> | T
-): Promise<DBTransactionBase> {
-  const txData = await txDataPromise;
+  txData: T
+): DBTransactionBase {
   const res = augmentTransactionBase(dbTransaction, chainType, block, txData);
 
-  return res as DBTransactionBase;
+  return res;
 }
 
 /**
@@ -86,5 +83,5 @@ export async function augmentTransactionUtxo<T extends UtxoTransaction>(
 export function augmentTransactionXrp(block: XrpBlock, txData: XrpTransaction): DBTransactionBase {
   const res = augmentTransactionBase(DBTransactionXRP0, ChainType.XRP, block, txData);
 
-  return res as DBTransactionBase;
+  return res;
 }

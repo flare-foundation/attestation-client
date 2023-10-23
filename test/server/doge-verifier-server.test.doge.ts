@@ -65,7 +65,7 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
     process.env.TEST_IGNORE_SUPPORTED_ATTESTATION_CHECK_TEST = "1";
     process.env.TEST_CREDENTIALS = "1";
 
-    initializeTestGlobalLogger();
+    //initializeTestGlobalLogger();
 
     const module = await Test.createTestingModule({
       imports: [VerifierDogeServerModule],
@@ -100,8 +100,10 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
       TXS_IN_BLOCK,
       lastTimestamp
     );
+
     startTime = lastTimestamp - (LAST_BLOCK - FIRST_BLOCK);
     selectedTransaction = await selectedReferencedTx(entityManager, DB_TX_TABLE, BLOCK_CHOICE);
+    console.log(JSON.parse(selectedTransaction.getResponse()));
   });
 
   after(async () => {
@@ -113,7 +115,7 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
   });
 
   it(`Should verify Payment attestation`, async function () {
-    let inUtxo = firstAddressVin(selectedTransaction);    
+    let inUtxo = firstAddressVin(selectedTransaction);
     let utxo = firstAddressVout(selectedTransaction);
     let request = await testPaymentRequest(defStore, selectedTransaction, TX_CLASS, CHAIN_TYPE, inUtxo, utxo);
 
@@ -122,89 +124,92 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
     } as EncodedRequestBody;
 
     let resp = await sendToVerifier("Payment", "DOGE", configurationService, attestationRequest, API_KEY);
-      assert(resp.status === "VALID", "Wrong server response");
-      assert(resp.response.requestBody.transactionId === prefix0x(selectedTransaction.transactionId), "Wrong transaction id");
-      let response = JSON.parse(selectedTransaction.getResponse());
-      let sourceAddress = response.additionalData.vinouts[inUtxo].vinvout.scriptPubKey.address;
-      let receivingAddress = response.data.vout[utxo].scriptPubKey.address;
-      assert(resp.response.responseBody.sourceAddressHash === Web3.utils.soliditySha3(sourceAddress), "Wrong source address");
-      assert(resp.response.responseBody.receivingAddressHash === Web3.utils.soliditySha3(receivingAddress), "Wrong receiving address");
-      assert(request.messageIntegrityCode === defStore.attestationResponseHash(resp.response, MIC_SALT), "MIC does not match");
-      // // assert(request.messageIntegrityCode === defStore.dataHash(request, resp.data.response, MIC_SALT), "MIC does not match");
-    });
+    assert(resp.status === "VALID", "Wrong server response");
+    assert(resp.response.requestBody.transactionId === prefix0x(selectedTransaction.transactionId), "Wrong transaction id");
+    let response = JSON.parse(selectedTransaction.getResponse());
+    let sourceAddress = response.vin[inUtxo].prevout.scriptPubKey.address;
+    let receivingAddress = response.data.vout[utxo].scriptPubKey.address;
+    assert(resp.response.responseBody.sourceAddressHash === Web3.utils.soliditySha3(sourceAddress), "Wrong source address");
+    assert(resp.response.responseBody.receivingAddressHash === Web3.utils.soliditySha3(receivingAddress), "Wrong receiving address");
+    assert(request.messageIntegrityCode === defStore.attestationResponseHash(resp.response, MIC_SALT), "MIC does not match");
+    // // assert(request.messageIntegrityCode === defStore.dataHash(request, resp.data.response, MIC_SALT), "MIC does not match");
+  });
 
-    it(`Should verify Balance Decreasing attestation attestation`, async function () {
-      let sourceAddressIndicator = toHex32Bytes(firstAddressVin(selectedTransaction));
-      let request = await testBalanceDecreasingTransactionRequest(defStore, selectedTransaction, TX_CLASS, CHAIN_TYPE, sourceAddressIndicator);
-      let attestationRequest = {
-        abiEncodedRequest: defStore.encodeRequest(request),
-      } as EncodedRequestBody;
+  it(`Should verify Balance Decreasing attestation attestation`, async function () {
+    let sourceAddressIndicator = toHex32Bytes(firstAddressVin(selectedTransaction));
+    let request = await testBalanceDecreasingTransactionRequest(defStore, selectedTransaction, TX_CLASS, CHAIN_TYPE, sourceAddressIndicator);
+    let attestationRequest = {
+      abiEncodedRequest: defStore.encodeRequest(request),
+    } as EncodedRequestBody;
 
-      let resp = await sendToVerifier("BalanceDecreasingTransaction", "DOGE", configurationService, attestationRequest, API_KEY);
+    let resp = await sendToVerifier("BalanceDecreasingTransaction", "DOGE", configurationService, attestationRequest, API_KEY);
 
-      assert(resp.status === "VALID", "Wrong server response");
-      assert(resp.response.requestBody.transactionId === prefix0x(selectedTransaction.transactionId), "Wrong transaction id");
-      let response = JSON.parse(selectedTransaction.getResponse());
-      let sourceAddress = response.additionalData.vinouts[parseInt(sourceAddressIndicator, 16)].vinvout.scriptPubKey.address;
-      assert(resp.response.responseBody.sourceAddressHash === Web3.utils.soliditySha3(sourceAddress), "Wrong source address");
-      assert(request.messageIntegrityCode === defStore.attestationResponseHash(resp.response, MIC_SALT), "MIC does not match");
-    });
+    assert(resp.status === "VALID", "Wrong server response");
+    assert(resp.response.requestBody.transactionId === prefix0x(selectedTransaction.transactionId), "Wrong transaction id");
+    let response = JSON.parse(selectedTransaction.getResponse());
+    let sourceAddress = response.vin[parseInt(sourceAddressIndicator, 16)].prevout.scriptPubKey.address;
+    assert(resp.response.responseBody.sourceAddressHash === Web3.utils.soliditySha3(sourceAddress), "Wrong source address");
+    assert(request.messageIntegrityCode === defStore.attestationResponseHash(resp.response, MIC_SALT), "MIC does not match");
+  });
 
-    it(`Should not verify corrupt Balance Decreasing attestation attestation`, async function () {
-      let sourceAddressIndicator = toHex32Bytes(firstAddressVin(selectedTransaction));
-      let request = await testBalanceDecreasingTransactionRequest(defStore, selectedTransaction, TX_CLASS, CHAIN_TYPE, sourceAddressIndicator);
-      request.requestBody.transactionId = toHexPad(12, 32);
-      let attestationRequest = {
-        abiEncodedRequest: defStore.encodeRequest(request),
-      } as EncodedRequestBody;
+  it(`Should not verify corrupt Balance Decreasing attestation attestation`, async function () {
+    let sourceAddressIndicator = toHex32Bytes(firstAddressVin(selectedTransaction));
+    let request = await testBalanceDecreasingTransactionRequest(defStore, selectedTransaction, TX_CLASS, CHAIN_TYPE, sourceAddressIndicator);
+    request.requestBody.transactionId = toHexPad(12, 32);
+    let attestationRequest = {
+      abiEncodedRequest: defStore.encodeRequest(request),
+    } as EncodedRequestBody;
 
-      let resp = await sendToVerifier("BalanceDecreasingTransaction", "DOGE", configurationService, attestationRequest, API_KEY);
+    let resp = await sendToVerifier("BalanceDecreasingTransaction", "DOGE", configurationService, attestationRequest, API_KEY);
 
-      assert(resp.status === "INVALID", "Wrong server response");
-    });
+    assert(resp.status === "INVALID", "Wrong server response");
+  });
 
-    it(`Should verify Confirmed Block Height Exists attestation`, async function () {
-      let confirmedBlock = await selectBlock(entityManager, DB_BLOCK_TABLE, BLOCK_CHOICE);
-      let lowerQueryWindowBlock = await selectBlock(entityManager, DB_BLOCK_TABLE, BLOCK_CHOICE - BLOCK_QUERY_WINDOW - 1);
-      let request = await testConfirmedBlockHeightExistsRequest(
-        defStore,
-        confirmedBlock,
-        lowerQueryWindowBlock,
-        CHAIN_TYPE,
-        NUMBER_OF_CONFIRMATIONS,
-        BLOCK_QUERY_WINDOW
-      );
-      let attestationRequest = {
-        abiEncodedRequest: defStore.encodeRequest(request),
-      } as EncodedRequestBody;
+  it(`Should verify Confirmed Block Height Exists attestation`, async function () {
+    let confirmedBlock = await selectBlock(entityManager, DB_BLOCK_TABLE, BLOCK_CHOICE);
+    let lowerQueryWindowBlock = await selectBlock(entityManager, DB_BLOCK_TABLE, BLOCK_CHOICE - BLOCK_QUERY_WINDOW - 1);
+    let request = await testConfirmedBlockHeightExistsRequest(
+      defStore,
+      confirmedBlock,
+      lowerQueryWindowBlock,
+      CHAIN_TYPE,
+      NUMBER_OF_CONFIRMATIONS,
+      BLOCK_QUERY_WINDOW
+    );
+    let attestationRequest = {
+      abiEncodedRequest: defStore.encodeRequest(request),
+    } as EncodedRequestBody;
 
-      let resp = await sendToVerifier("ConfirmedBlockHeightExists", "DOGE", configurationService, attestationRequest, API_KEY);
-      assert(resp.status === "VALID", "Wrong server response");
-      assert(BigInt(resp.response.requestBody.blockNumber) === BigInt(BLOCK_CHOICE), "Wrong block number");
-      assert(BigInt(resp.response.responseBody.lowestQueryWindowBlockNumber) === BigInt(BLOCK_CHOICE - BLOCK_QUERY_WINDOW - 1), "Wrong lowest query window block number");
-      assert(request.messageIntegrityCode === defStore.attestationResponseHash(resp.response, MIC_SALT), "MIC does not match");
-    });
+    let resp = await sendToVerifier("ConfirmedBlockHeightExists", "DOGE", configurationService, attestationRequest, API_KEY);
+    assert(resp.status === "VALID", "Wrong server response");
+    assert(BigInt(resp.response.requestBody.blockNumber) === BigInt(BLOCK_CHOICE), "Wrong block number");
+    assert(
+      BigInt(resp.response.responseBody.lowestQueryWindowBlockNumber) === BigInt(BLOCK_CHOICE - BLOCK_QUERY_WINDOW - 1),
+      "Wrong lowest query window block number"
+    );
+    assert(request.messageIntegrityCode === defStore.attestationResponseHash(resp.response, MIC_SALT), "MIC does not match");
+  });
 
-    it(`Should not verify corrupt Confirmed Block Height Exists attestation`, async function () {
-      let confirmedBlock = await selectBlock(entityManager, DB_BLOCK_TABLE, BLOCK_CHOICE);
-      confirmedBlock.blockNumber = 250;
-      let lowerQueryWindowBlock = await selectBlock(entityManager, DB_BLOCK_TABLE, BLOCK_CHOICE - BLOCK_QUERY_WINDOW - 1);
-      let request = await testConfirmedBlockHeightExistsRequest(
-        defStore,
-        confirmedBlock,
-        lowerQueryWindowBlock,
-        CHAIN_TYPE,
-        NUMBER_OF_CONFIRMATIONS,
-        BLOCK_QUERY_WINDOW
-      );
-      let attestationRequest = {
-        abiEncodedRequest: defStore.encodeRequest(request),
-      } as EncodedRequestBody;
+  it(`Should not verify corrupt Confirmed Block Height Exists attestation`, async function () {
+    let confirmedBlock = await selectBlock(entityManager, DB_BLOCK_TABLE, BLOCK_CHOICE);
+    confirmedBlock.blockNumber = 250;
+    let lowerQueryWindowBlock = await selectBlock(entityManager, DB_BLOCK_TABLE, BLOCK_CHOICE - BLOCK_QUERY_WINDOW - 1);
+    let request = await testConfirmedBlockHeightExistsRequest(
+      defStore,
+      confirmedBlock,
+      lowerQueryWindowBlock,
+      CHAIN_TYPE,
+      NUMBER_OF_CONFIRMATIONS,
+      BLOCK_QUERY_WINDOW
+    );
+    let attestationRequest = {
+      abiEncodedRequest: defStore.encodeRequest(request),
+    } as EncodedRequestBody;
 
-      let resp = await sendToVerifier("ConfirmedBlockHeightExists", "DOGE", configurationService, attestationRequest, API_KEY);
-      assert(resp.status === "INDETERMINATE", "Wrong server response");
-      expect(resp.response).to.be.undefined;
-    });
+    let resp = await sendToVerifier("ConfirmedBlockHeightExists", "DOGE", configurationService, attestationRequest, API_KEY);
+    assert(resp.status === "INDETERMINATE", "Wrong server response");
+    expect(resp.response).to.be.undefined;
+  });
 
   it(`Should verify Referenced Payment Nonexistence attestation`, async function () {
     let utxo = firstAddressVout(selectedTransaction, 0);
@@ -215,7 +220,7 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
     let lowerQueryWindowBlock = await selectBlock(entityManager, DB_BLOCK_TABLE, FIRST_BLOCK);
 
     let request = await testReferencedPaymentNonexistenceRequest(
-      defStore, 
+      defStore,
       [selectedTransaction],
       TX_CLASS,
       firstOverflowBlock,
@@ -228,15 +233,18 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
       receivedAmount.add(toBN(1)).toString()
     );
 
-      let attestationRequest = {
-        abiEncodedRequest: defStore.encodeRequest(request),
-      } as EncodedRequestBody;
+    let attestationRequest = {
+      abiEncodedRequest: defStore.encodeRequest(request),
+    } as EncodedRequestBody;
 
-    let resp = await sendToVerifier("ReferencedPaymentNonexistence", "DOGE",configurationService, attestationRequest, API_KEY);
+    let resp = await sendToVerifier("ReferencedPaymentNonexistence", "DOGE", configurationService, attestationRequest, API_KEY);
 
     assert(resp.status === "VALID", "Wrong server response");
     assert(BigInt(resp.response.responseBody.firstOverflowBlockNumber) === BigInt(BLOCK_CHOICE - 1), "Incorrect first overflow block");
-    assert(BigInt(resp.response.responseBody.firstOverflowBlockTimestamp) === BigInt(selectedTransaction.timestamp - 1), "Incorrect first overflow block timestamp");
+    assert(
+      BigInt(resp.response.responseBody.firstOverflowBlockTimestamp) === BigInt(selectedTransaction.timestamp - 1),
+      "Incorrect first overflow block timestamp"
+    );
     assert(request.messageIntegrityCode === defStore.attestationResponseHash(resp.response, MIC_SALT), "MIC does not match");
 
     // assert(resp.status === "OK", "Wrong server response");

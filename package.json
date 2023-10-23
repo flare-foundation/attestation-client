@@ -1,6 +1,6 @@
 {
   "name": "Attestation-Suite",
-  "version": "3.0.0-beta.1",
+  "version": "4.0.0-beta.0",
   "repository": "https://github.com/flare-foundation/attestation-client.git",
   "author": "flare",
   "license": "MIT",

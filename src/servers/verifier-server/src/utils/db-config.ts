@@ -10,18 +10,14 @@ export async function createTypeOrmOptions(loggerLabel: string): Promise<TypeOrm
   const config = await readSecureConfig(new VerifierServerConfig(), `verifier-server/${verifierType}-verifier`);
 
   // connecting to external postgres db
-  if (
-    process.env.NODE_ENV === "development" &&
-    process.env.EXTERNAL === "django"
-  ) {
+  if (process.env.NODE_ENV === "development" && process.env.EXTERNAL === "django") {
     // get custom entities
     // TODO: only doge ATM
-    if(verifierType !== "doge"){
-      throw new Error("Currently only DOGE can connect to external postgres db")
+    if (verifierType !== "doge") {
+      throw new Error("Currently only DOGE can connect to external postgres db");
     }
     const entities = indexerEntities(`${verifierType}-external`);
     const databaseCredentials = config.indexerDatabase;
-    console.log(databaseCredentials)
     return {
       name: databaseCredentials.name,
       type: "postgres",
@@ -34,13 +30,13 @@ export async function createTypeOrmOptions(loggerLabel: string): Promise<TypeOrm
       synchronize: false,
       migrationsRun: false,
       logging: false,
-    }
+    };
   }
 
   // Production connection to external postgres database
-  if(process.env.EXTERNAL === "django") {
-    if(verifierType !== "doge"){
-      throw new Error("Currently only DOGE can connect to external postgres db")
+  if (process.env.EXTERNAL === "django") {
+    if (verifierType !== "doge") {
+      throw new Error("Currently only DOGE can connect to external postgres db");
     }
     const entities = indexerEntities(`${verifierType}-external`);
     const databaseCredentials = config.indexerDatabase;
@@ -56,9 +52,8 @@ export async function createTypeOrmOptions(loggerLabel: string): Promise<TypeOrm
       synchronize: false,
       migrationsRun: false,
       logging: false,
-    }
+    };
   }
-
 
   const entities = indexerEntities(verifierType);
 

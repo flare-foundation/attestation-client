@@ -2,27 +2,29 @@ import { BtcBlock, ChainType } from "@flarenetwork/mcc";
 import { expect } from "chai";
 import { DBBlockBTC } from "../../src/entity/indexer/dbBlock";
 import { DBState } from "../../src/entity/indexer/dbState";
-import { DBTransactionBase } from "../../src/entity/indexer/dbTransaction";
+import { DBTransactionBTC0, DBTransactionBTC1 } from "../../src/entity/indexer/dbTransaction";
 import { IndexedQueryManager } from "../../src/indexed-query-manager/IndexedQueryManager";
 import { BlockQueryParams, IndexedQueryManagerOptions, TransactionQueryParams } from "../../src/indexed-query-manager/indexed-query-manager-types";
 import { augmentBlock } from "../../src/indexer/chain-collector-helpers/augmentBlock";
+import { augmentTransactionUtxo } from "../../src/indexer/chain-collector-helpers/augmentTransaction";
 import { DatabaseConnectOptions } from "../../src/utils/database/DatabaseConnectOptions";
 import { DatabaseService } from "../../src/utils/database/DatabaseService";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
 import * as resBTCBlock from "../mockData/BTCBlock.json";
-import { promAugTxBTC0, promAugTxBTC1, promAugTxBTCAlt0, promAugTxBTCAlt1 } from "../mockData/indexMock";
+import { TestBlockBTC, TestBlockBTCAlt, TestTxBTC, TestTxBTCAlt } from "../mockData/indexMock";
 import { getTestFile } from "../test-utils/test-utils";
 
 describe(`IndexedQueryManager (${getTestFile(__filename)})`, () => {
   initializeTestGlobalLogger();
+
   const databaseConnectOptions = new DatabaseConnectOptions();
   const dataService = new DatabaseService(getGlobalLogger(), databaseConnectOptions, "", "", true);
   let indexedQueryManager: IndexedQueryManager;
 
-  let augTx0: DBTransactionBase;
-  let augTxAlt0: DBTransactionBase;
-  let augTx1: DBTransactionBase;
-  let augTxAlt1: DBTransactionBase;
+  const augTxBTC0 = augmentTransactionUtxo(DBTransactionBTC0, ChainType.BTC, TestBlockBTC, TestTxBTC);
+  const augTxBTC1 = augmentTransactionUtxo(DBTransactionBTC1, ChainType.BTC, TestBlockBTC, TestTxBTC);
+  const augTxBTCAlt0 = augmentTransactionUtxo(DBTransactionBTC0, ChainType.BTC, TestBlockBTCAlt, TestTxBTCAlt);
+  const augTxBTCAlt1 = augmentTransactionUtxo(DBTransactionBTC1, ChainType.BTC, TestBlockBTCAlt, TestTxBTCAlt);
 
   before(async () => {
     await dataService.connect();
@@ -34,12 +36,7 @@ describe(`IndexedQueryManager (${getTestFile(__filename)})`, () => {
     };
     indexedQueryManager = new IndexedQueryManager(options);
 
-    initializeTestGlobalLogger();
-
-    augTx0 = await promAugTxBTC0;
-    augTxAlt0 = await promAugTxBTCAlt0;
-    augTx1 = await promAugTxBTC1;
-    augTxAlt1 = await promAugTxBTCAlt1;
+    // initializeTestGlobalLogger();
 
     //start with empty tables
     for (let i = 0; i < 2; i++) {
@@ -157,8 +154,8 @@ describe(`IndexedQueryManager (${getTestFile(__filename)})`, () => {
 
   describe("Query transactions", function () {
     before(async function () {
-      await dataService.manager.save(augTx0);
-      await dataService.manager.save(augTxAlt1);
+      await dataService.manager.save(augTxBTC0);
+      await dataService.manager.save(augTxBTCAlt1);
     });
 
     it("Should query transaction", async function () {

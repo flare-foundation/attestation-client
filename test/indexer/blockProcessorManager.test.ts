@@ -1,6 +1,6 @@
 import { ChainType, sleepMs, XrpMccCreate } from "@flarenetwork/mcc";
-import chai, { expect } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
+import chai, { expect } from "chai";
+import chaiAsPromised from "chai-as-promised";
 import sinon from "sinon";
 import { CachedMccClient, CachedMccClientOptionsFull } from "../../src/caching/CachedMccClient";
 import { BlockProcessorManager, IBlockProcessorManagerSettings } from "../../src/indexer/blockProcessorManager";
@@ -88,6 +88,7 @@ describe(`BlockProcessorManager (${getTestFile(__filename)})`, function () {
 
     it("Should process completed block", async function () {
       const block = TestBlockXRPAlt;
+
       await blockProcessorManager.process(block);
       //wait for the processor to do the job
       while (!fake2.called) {

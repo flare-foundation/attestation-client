@@ -2,7 +2,7 @@
   "name": "AddressValidity",
   "fullComment": " @custom:name AddressValidity\n @custom:id 0x05\n @custom:supported BTC, DOGE, XRP, ETH\n @author Flare\n @notice The purpose of this type is to assert that the string represents a valid address on an external chain.\n @custom:verification The address is checked against all validity criteria of the chain with `sourceId`.\n Validity criteria for each supported chain:\n - [BTC](/specs/attestations/external-chains/address-validity/BTC.md)\n - [DOGE](/specs/attestations/external-chains/address-validity/DOGE.md)\n - [XRPL](/specs/attestations/external-chains/address-validity/XRPL.md)\n - [Ethereum](/specs/attestations/external-chains/address-validity/ETH.md)\n @custom:lut 0xffffffffffffffff $(2^{64}-1$ in hex$",
   "description": "The purpose of this type is to assert that the string represents a valid address on an external chain.",
-  "supported": "BTC, DOGE, XRP, ETH",
+  "supported": "BTC, DOGE, XRP",
   "verification": "The address is checked against all validity criteria of the chain with `sourceId`.\n Validity criteria for each supported chain:\n - [BTC](/specs/attestations/external-chains/address-validity/BTC.md)\n - [DOGE](/specs/attestations/external-chains/address-validity/DOGE.md)\n - [XRPL](/specs/attestations/external-chains/address-validity/XRPL.md)\n - [Ethereum](/specs/attestations/external-chains/address-validity/ETH.md)",
   "lut": "0xffffffffffffffff $(2^{64}-1$ in hex$",
   "proof": {

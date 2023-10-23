@@ -19,7 +19,6 @@ import { getTestFile } from "../test-utils/test-utils";
 
 chai.use(chaiAsPromised);
 
-
 describe(`IndexerToDB (${getTestFile(__filename)})`, function () {
   initializeTestGlobalLogger();
   const databaseConnectOptions = new DatabaseConnectOptions();

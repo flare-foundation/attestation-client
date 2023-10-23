@@ -1,15 +1,15 @@
 import { ChainType, MCC, UtxoMccCreate } from "@flarenetwork/mcc";
 import { EntityManager } from "typeorm";
+import { DogeIndexedQueryManager } from "../../../../../indexed-query-manager/DogeIndexQueryManager";
 import { IIndexedQueryManager } from "../../../../../indexed-query-manager/IIndexedQueryManager";
-import { IndexedQueryManager } from "../../../../../indexed-query-manager/IndexedQueryManager";
 import { IndexedQueryManagerOptions } from "../../../../../indexed-query-manager/indexed-query-manager-types";
-import { VerifierConfigurationService } from "../verifier-configuration.service";
+import { ExternalDBVerifierConfigurationService } from "../verifier-configuration.service";
 
 export class DOGEProcessorService {
   client: MCC.DOGE;
   indexedQueryManager: IIndexedQueryManager;
 
-  constructor(private config: VerifierConfigurationService, private manager: EntityManager) {
+  constructor(private config: ExternalDBVerifierConfigurationService, private manager: EntityManager) {
     this.client = new MCC.DOGE(this.config.config.chainConfiguration.mccCreate as UtxoMccCreate);
 
     const options: IndexedQueryManagerOptions = {
@@ -20,7 +20,6 @@ export class DOGEProcessorService {
       },
     };
 
-    this.indexedQueryManager = new IndexedQueryManager(options);
+    this.indexedQueryManager = new DogeIndexedQueryManager(options);
   }
-
 }

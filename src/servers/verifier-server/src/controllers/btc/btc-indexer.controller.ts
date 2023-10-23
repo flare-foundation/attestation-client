@@ -100,9 +100,6 @@ export class BTCIndexerController {
 
   @Get("transactions")
   public async transactionsWithinBlockRange(@Query() query: QueryTransaction): Promise<ApiResponseWrapper<ApiDBTransaction[]>> {
-    return handleApiResponse(
-      this.indexerEngine.getTransactionsWithinBlockRange(query.from, query.to, query.paymentReference, query.limit, query.offset, query.returnResponse),
-      this.logger
-    );
+    return handleApiResponse(this.indexerEngine.getTransactionsWithinBlockRange(query), this.logger);
   }
 }

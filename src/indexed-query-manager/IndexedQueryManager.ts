@@ -1,26 +1,19 @@
 import { MCC } from "@flarenetwork/mcc";
-import { EntityManager } from "typeorm";
 import { DBBlockBase, IDBBlockBase } from "../entity/indexer/dbBlock";
 import { DBState } from "../entity/indexer/dbState";
 import { DBTransactionBase, IDBTransactionBase } from "../entity/indexer/dbTransaction";
 import { prepareIndexerTables } from "../indexer/indexer-utils";
+import { IIndexedQueryManager } from "./IIndexedQueryManager";
 import {
   BlockHeightSample,
   BlockQueryParams,
   BlockQueryResult,
   BlockResult,
-  ConfirmedBlockQueryRequest,
-  ConfirmedBlockQueryResponse,
-  ConfirmedTransactionQueryRequest,
-  ConfirmedTransactionQueryResponse,
   IndexedQueryManagerOptions,
   RandomTransactionOptions,
-  ReferencedTransactionsQueryRequest,
-  ReferencedTransactionsQueryResponse,
   TransactionQueryParams,
   TransactionQueryResult,
 } from "./indexed-query-manager-types";
-import { IIndexedQueryManager } from "./IIndexedQueryManager";
 
 ////////////////////////////////////////////////////////
 // IndexedQueryManger - a class used to carry out
@@ -31,9 +24,7 @@ import { IIndexedQueryManager } from "./IIndexedQueryManager";
 /**
  * A class used to carry out queries on the indexer database such that the upper and lower bounds are synchronized.
  */
-export class IndexedQueryManager implements IIndexedQueryManager {
-  private settings: IndexedQueryManagerOptions;
-
+export class IndexedQueryManager extends IIndexedQueryManager {
   //Two transaction table entities `transaction0` and `transaction1`
   private transactionTable: IDBTransactionBase[];
 
@@ -41,19 +32,8 @@ export class IndexedQueryManager implements IIndexedQueryManager {
   private blockTable: IDBBlockBase;
 
   constructor(options: IndexedQueryManagerOptions) {
-    // assert existence
-    if (!options.entityManager) {
-      throw new Error("unsupported without entityManager");
-    }
-    this.settings = options;
+    super(options);
     this.prepareTables();
-  }
-  public numberOfConfirmations(): number {
-    return this.settings.numberOfConfirmations();
-  }
-
-  private get entityManager(): EntityManager {
-    return this.settings.entityManager;
   }
 
   /**
@@ -186,81 +166,10 @@ export class IndexedQueryManager implements IIndexedQueryManager {
   }
 
   ////////////////////////////////////////////////////////////
-  // Confirmed blocks query
-  ////////////////////////////////////////////////////////////
-
-  /**
-   * Carries the boundary synchronized query and tries to obtain a required confirmed block from the indexer database.
-   * @param params query parameters
-   * @returns search status, required confirmed block, if found, and lower and upper boundary blocks, if required by
-   * query parameters.
-   */
-  public async getConfirmedBlock(params: ConfirmedBlockQueryRequest): Promise<ConfirmedBlockQueryResponse> {
-    const blockQueryResult = await this.queryBlock({
-      blockNumber: params.blockNumber,
-      confirmed: true,
-    });
-    return {
-      status: blockQueryResult?.result ? "OK" : "NOT_EXIST",
-      block: blockQueryResult?.result,
-    };
-  }
-
-  ////////////////////////////////////////////////////////////
-  // Confirmed transaction query
-  ////////////////////////////////////////////////////////////
-
-  public async getConfirmedTransaction(params: ConfirmedTransactionQueryRequest): Promise<ConfirmedTransactionQueryResponse> {
-    const transactionsQueryResult = await this.queryTransactions({
-      transactionId: params.txId,
-    } as TransactionQueryParams);
-    const transactions = transactionsQueryResult.result || [];
-
-    return {
-      status: transactions.length > 0 ? "OK" : "NOT_EXIST",
-      transaction: transactions[0],
-    };
-  }
-
-  ////////////////////////////////////////////////////////////
-  // Referenced transactions query
-  ////////////////////////////////////////////////////////////
-
-  public async getReferencedTransactions(params: ReferencedTransactionsQueryRequest): Promise<ReferencedTransactionsQueryResponse> {
-    const firstOverflowBlock = await this.getFirstConfirmedOverflowBlock(params.deadlineBlockTimestamp, params.deadlineBlockNumber);
-    if (!firstOverflowBlock) {
-      return {
-        status: "NO_OVERFLOW_BLOCK",
-      };
-    }
-
-    const transactionsQueryResult = await this.queryTransactions({
-      startBlockNumber: params.minimalBlockNumber,
-      endBlockNumber: firstOverflowBlock.blockNumber - 1,
-      paymentReference: params.paymentReference,
-    } as TransactionQueryParams);
-
-    // Too small query window
-    if (!transactionsQueryResult.startBlock) {
-      return {
-        status: "DATA_AVAILABILITY_FAILURE",
-      };
-    }
-
-    const transactions = transactionsQueryResult.result;
-    return {
-      status: "OK",
-      transactions,
-      firstOverflowBlock,
-      minimalBlock: transactionsQueryResult.startBlock,
-    };
-  }
-
-  ////////////////////////////////////////////////////////////
   // Special block queries
   ////////////////////////////////////////////////////////////
 
-  public async getLastConfirmedBlockStrictlyBeforeTime(timestamp: number): Promise<DBBlockBase | undefined> {
+  public async getLastConfirmedBlockStrictlyBeforeTime(timestamp: number): Promise<BlockResult | undefined> {
     const query = this.entityManager
       .createQueryBuilder(this.blockTable, "block")
       .where("block.confirmed = :confirmed", { confirmed: true })
@@ -277,7 +186,7 @@ export class IndexedQueryManager implements IIndexedQueryManager {
    * @param blockNumber
    * @returns the block, if it exists, `null` otherwise
    */
-  private async getFirstConfirmedOverflowBlock(timestamp: number, blockNumber: number): Promise<DBBlockBase | undefined> {
+  protected async getFirstConfirmedOverflowBlock(timestamp: number, blockNumber: number): Promise<BlockResult | undefined> {
     const query = this.entityManager
       .createQueryBuilder(this.blockTable, "block")
       .where("block.confirmed = :confirmed", { confirmed: true })
@@ -288,7 +197,6 @@ export class IndexedQueryManager implements IIndexedQueryManager {
 
     return query.getOne();
   }
-
 
   public async fetchRandomTransactions(batchSize = 100, options: RandomTransactionOptions): Promise<DBTransactionBase[]> {
     let result: DBTransactionBase[] = [];
@@ -353,5 +261,4 @@ export class IndexedQueryManager implements IIndexedQueryManager {
 
     return (await query.getMany()) as DBBlockBase[];
   }
-
 }

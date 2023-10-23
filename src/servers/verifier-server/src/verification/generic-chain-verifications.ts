@@ -4,11 +4,10 @@ import {
   MccClient,
   PaymentSummaryResponse,
   PaymentSummaryStatus,
-  toBN,
   TransactionBase,
   TransactionSuccessStatus,
   unPrefix0x,
-  ZERO_BYTES_32
+  ZERO_BYTES_32,
 } from "@flarenetwork/mcc";
 import Web3 from "web3";
 import { IIndexedQueryManager } from "../../../../indexed-query-manager/IIndexedQueryManager";
@@ -16,28 +15,36 @@ import { BlockResult, TransactionResult } from "../../../../indexed-query-manage
 import { retry } from "../../../../utils/helpers/promiseTimeout";
 import { logException } from "../../../../utils/logging/logger";
 import { VerificationStatus } from "../../../../verification/attestation-types/attestation-types";
-import { BalanceDecreasingTransaction_Request, BalanceDecreasingTransaction_Response, BalanceDecreasingTransaction_ResponseBody } from "../dtos/attestation-types/BalanceDecreasingTransaction.dto";
-import { ConfirmedBlockHeightExists_Request, ConfirmedBlockHeightExists_Response, ConfirmedBlockHeightExists_ResponseBody } from "../dtos/attestation-types/ConfirmedBlockHeightExists.dto";
-import { Payment_Request, Payment_Response, Payment_ResponseBody } from "../dtos/attestation-types/Payment.dto";
-import { ReferencedPaymentNonexistence_Request, ReferencedPaymentNonexistence_Response, ReferencedPaymentNonexistence_ResponseBody } from "../dtos/attestation-types/ReferencedPaymentNonexistence.dto";
 import {
-  VerificationResponse,
-  verifyWorkflowForBlock,
-  verifyWorkflowForReferencedTransactions,
-  verifyWorkflowForTransaction
-} from "./verification-utils";
+  BalanceDecreasingTransaction_Request,
+  BalanceDecreasingTransaction_Response,
+  BalanceDecreasingTransaction_ResponseBody,
+} from "../dtos/attestation-types/BalanceDecreasingTransaction.dto";
+import {
+  ConfirmedBlockHeightExists_Request,
+  ConfirmedBlockHeightExists_Response,
+  ConfirmedBlockHeightExists_ResponseBody,
+} from "../dtos/attestation-types/ConfirmedBlockHeightExists.dto";
+import { Payment_Request, Payment_Response, Payment_ResponseBody } from "../dtos/attestation-types/Payment.dto";
+import {
+  ReferencedPaymentNonexistence_Request,
+  ReferencedPaymentNonexistence_Response,
+  ReferencedPaymentNonexistence_ResponseBody,
+} from "../dtos/attestation-types/ReferencedPaymentNonexistence.dto";
+import { VerificationResponse, verifyWorkflowForBlock, verifyWorkflowForReferencedTransactions, verifyWorkflowForTransaction } from "./verification-utils";
 
 /**
  * Serialize bigints to strings recursively.
- * @param obj 
- * @returns 
+ * @param obj
+ * @returns
  */
 function serializeBigInts(obj: any) {
-  return JSON.parse(JSON.stringify(obj, (key, value) =>
-    typeof value === 'bigint'
-      ? value.toString()
-      : value // return everything else unchanged
-  ));
+  return JSON.parse(
+    JSON.stringify(
+      obj,
+      (key, value) => (typeof value === "bigint" ? value.toString() : value) // return everything else unchanged
+    )
+  );
 }
 //////////////////////////////////////////////////
 // Verification functions
@@ -51,7 +58,7 @@ function serializeBigInts(obj: any) {
  * @param client
  * @returns
  */
-export async function responsePayment<T extends TransactionBase<any>>(
+export function responsePayment<T extends TransactionBase<any>>(
   dbTransaction: TransactionResult,
   TransactionClass: new (...args: any[]) => T,
   request: Payment_Request,
@@ -65,7 +72,7 @@ export async function responsePayment<T extends TransactionBase<any>>(
     return { status: VerificationStatus.SYSTEM_FAILURE };
   }
 
-  const fullTxData = new TransactionClass(parsedData.data, parsedData.additionalData);
+  const fullTxData = new TransactionClass(parsedData);
 
   if (BigInt(request.requestBody.inUtxo) < 0 || BigInt(request.requestBody.inUtxo) >= Number.MAX_SAFE_INTEGER) {
     return { status: VerificationStatus.NOT_CONFIRMED };
@@ -80,8 +87,7 @@ export async function responsePayment<T extends TransactionBase<any>>(
 
   let paymentSummary: PaymentSummaryResponse;
   try {
-    const transactionGetter = (txid: string) => client.getTransaction(txid);
-    paymentSummary = await fullTxData.paymentSummary({ transactionGetter, inUtxo: inUtxoNumber, outUtxo: utxoNumber });    
+    paymentSummary = fullTxData.paymentSummary({ inUtxo: inUtxoNumber, outUtxo: utxoNumber });
   } catch (e) {
     return { status: VerificationStatus.NOT_CONFIRMED };
   }
@@ -148,7 +154,7 @@ export async function verifyPayment<T extends TransactionBase<any>>(
   }
 
   const dbTransaction = confirmedTransactionResult.transaction;
-  return await responsePayment(dbTransaction, TransactionClass, request, client);
+  return responsePayment(dbTransaction, TransactionClass, request, client);
 }
 
 /**
@@ -173,11 +179,10 @@ export async function responseBalanceDecreasingTransaction<T extends Transaction
     return { status: VerificationStatus.SYSTEM_FAILURE };
   }
 
-  const fullTxData = new TransactionClass(parsedData.data, parsedData.additionalData);
+  const fullTxData = new TransactionClass(parsedData);
 
   let balanceDecreasingSummary: BalanceDecreasingSummaryResponse;
-  const transactionGetter = (txid: string) => client.getTransaction(txid);
-  balanceDecreasingSummary = await fullTxData.balanceDecreasingSummary({ transactionGetter, sourceAddressIndicator: request.requestBody.sourceAddressIndicator });
+  balanceDecreasingSummary = fullTxData.balanceDecreasingSummary(request.requestBody.sourceAddressIndicator);
 
   if (balanceDecreasingSummary.status !== BalanceDecreasingSummaryStatus.Success) {
     return { status: VerificationStatus.NOT_CONFIRMED };
@@ -224,7 +229,6 @@ export async function verifyBalanceDecreasingTransaction<T extends TransactionBa
   iqm: IIndexedQueryManager,
   client?: MccClient
 ): Promise<VerificationResponse<BalanceDecreasingTransaction_Response>> {
-
   // Check for transaction
   const confirmedTransactionResult = await iqm.getConfirmedTransaction({
     txId: unPrefix0x(request.requestBody.transactionId),
@@ -239,7 +243,7 @@ export async function verifyBalanceDecreasingTransaction<T extends TransactionBa
   if (!dbTransaction) {
     throw new Error("critical error: should always have response");
   }
-  return await responseBalanceDecreasingTransaction(dbTransaction, TransactionClass, request, client);
+  return responseBalanceDecreasingTransaction(dbTransaction, TransactionClass, request, client);
 }
 
 /**
@@ -250,7 +254,7 @@ export async function verifyBalanceDecreasingTransaction<T extends TransactionBa
  * @param request
  * @returns
  */
-export async function responseConfirmedBlockHeightExists(
+export function responseConfirmedBlockHeightExists(
   dbBlock: BlockResult,
   lowerQueryWindowBlock: BlockResult,
   numberOfConfirmations: number,
@@ -308,7 +312,7 @@ export async function verifyConfirmedBlockHeightExists(
       status: VerificationStatus.DATA_AVAILABILITY_ISSUE,
     };
   }
-  return await responseConfirmedBlockHeightExists(dbBlock, lowerQueryWindowBlock, iqm.numberOfConfirmations(), request);
+  return responseConfirmedBlockHeightExists(dbBlock, lowerQueryWindowBlock, iqm.numberOfConfirmations(), request);
 }
 
 /**
@@ -336,7 +340,7 @@ export async function responseReferencedPaymentNonExistence<T extends Transactio
     let fullTxData: T;
     try {
       const parsedData = JSON.parse(dbTransaction.getResponse());
-      fullTxData = new TransactionClass(parsedData.data, parsedData.additionalData);
+      fullTxData = new TransactionClass(parsedData);
     } catch (e) {
       return { status: VerificationStatus.SYSTEM_FAILURE };
     }
@@ -351,9 +355,7 @@ export async function responseReferencedPaymentNonExistence<T extends Transactio
       // TODO: standard address hash
       const destinationAddressHashTmp = Web3.utils.soliditySha3(address);
       if (destinationAddressHashTmp === request.requestBody.destinationAddressHash) {
-        const paymentSummary = (await retry(`responseReferencedPaymentNonExistence::paymentSummary`, async () =>
-          fullTxData.paymentSummary({ inUtxo: 0, outUtxo })
-        )) as PaymentSummaryResponse;
+        const paymentSummary = fullTxData.paymentSummary({ inUtxo: 0, outUtxo });
 
         if (paymentSummary.status !== PaymentSummaryStatus.Success) {
           // Payment summary for each output matching the destination address is equal, so the destination address has been processed.
@@ -363,14 +365,14 @@ export async function responseReferencedPaymentNonExistence<T extends Transactio
         if (!paymentSummary.response) {
           throw new Error("critical error: should always have response");
         }
-        if (paymentSummary.response.intendedReceivingAmount.gte(toBN(request.requestBody.amount.toString()))) {
+        if (paymentSummary.response.intendedReceivingAmount >= BigInt(request.requestBody.amount.toString())) {
           if (paymentSummary.response.transactionStatus !== TransactionSuccessStatus.SENDER_FAILURE) {
             // it must be SUCCESS or RECEIVER_FAULT, so the sender sent it correctly
             return { status: VerificationStatus.REFERENCED_TRANSACTION_EXISTS };
           }
         }
         // Payment summary for each output matching the destination address is equal, so the destination address has been processed.
-        break; 
+        break;
       }
     }
   }
@@ -417,11 +419,11 @@ export async function verifyReferencedPaymentNonExistence<T extends TransactionB
     return { status: VerificationStatus.NOT_STANDARD_PAYMENT_REFERENCE };
   }
 
-  if(BigInt(request.requestBody.minimalBlockNumber) < 0 || BigInt(request.requestBody.minimalBlockNumber) >= Number.MAX_SAFE_INTEGER) {
+  if (BigInt(request.requestBody.minimalBlockNumber) < 0 || BigInt(request.requestBody.minimalBlockNumber) >= Number.MAX_SAFE_INTEGER) {
     return { status: VerificationStatus.NOT_CONFIRMED };
   }
 
-  if(BigInt(request.requestBody.deadlineBlockNumber) < 0 || BigInt(request.requestBody.deadlineBlockNumber) >= Number.MAX_SAFE_INTEGER) {
+  if (BigInt(request.requestBody.deadlineBlockNumber) < 0 || BigInt(request.requestBody.deadlineBlockNumber) >= Number.MAX_SAFE_INTEGER) {
     return { status: VerificationStatus.NOT_CONFIRMED };
   }
 
@@ -460,11 +462,5 @@ export async function verifyReferencedPaymentNonExistence<T extends TransactionB
     };
   }
 
-  return await responseReferencedPaymentNonExistence(
-    dbTransactions,
-    TransactionClass,
-    firstOverflowBlock,
-    lowerBoundaryBlock,
-    request
-  );
+  return await responseReferencedPaymentNonExistence(dbTransactions, TransactionClass, firstOverflowBlock, lowerBoundaryBlock, request);
 }

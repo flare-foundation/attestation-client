@@ -5,17 +5,13 @@
       "sourceId": "XRP",
       "routes": [
         {
-          "attestationTypes": [
-            "Payment"
-          ],
-          "url": "http://localhost:9601/XRP/Payment",
+          "attestationTypes": ["Payment"],
+          "url": "http://localhost:9601/Payment",
           "apiKey": "123456"
         },
         {
-          "attestationTypes": [
-            "BalanceDecreasingTransaction"
-          ],
-          "url": "http://localhost:9601/XRP/BalanceDecreasingTransaction",
+          "attestationTypes": ["BalanceDecreasingTransaction"],
+          "url": "http://localhost:9601/BalanceDecreasingTransaction",
           "apiKey": "123456"
         }
       ]
@@ -24,24 +20,18 @@
       "sourceId": "BTC",
       "routes": [
         {
-          "attestationTypes": [
-            "Payment"
-          ],
-          "url": "http://localhost:9600/BTC/Payment",
+          "attestationTypes": ["Payment"],
+          "url": "http://localhost:9600/Payment",
           "apiKey": "123456"
         },
         {
-          "attestationTypes": [
-            "BalanceDecreasingTransaction"
-          ],
-          "url": "http://localhost:9600/BTC/BalanceDecreasingTransaction",
+          "attestationTypes": ["BalanceDecreasingTransaction"],
+          "url": "http://localhost:9600/BalanceDecreasingTransaction",
           "apiKey": "123456"
         },
         {
-          "attestationTypes": [
-            "ConfirmedBlockHeightExists"
-          ],
-          "url": "http://localhost:9600/BTC/ConfirmedBlockHeightExists",
+          "attestationTypes": ["ConfirmedBlockHeightExists"],
+          "url": "http://localhost:9600/ConfirmedBlockHeightExists",
           "apiKey": "123456"
         }
       ]
@@ -50,17 +40,13 @@
       "sourceId": "DOGE",
       "routes": [
         {
-          "attestationTypes": [
-            "Payment"
-          ],
-          "url": "http://localhost:9602/DOGE/Payment",
+          "attestationTypes": ["Payment"],
+          "url": "http://localhost:9602/Payment",
           "apiKey": "123456"
         },
         {
-          "attestationTypes": [
-            "BalanceDecreasingTransaction"
-          ],
-          "url": "http://localhost:9602/DOGE/BalanceDecreasingTransaction",
+          "attestationTypes": ["BalanceDecreasingTransaction"],
+          "url": "http://localhost:9602/BalanceDecreasingTransaction",
           "apiKey": "123456"
         }
       ]

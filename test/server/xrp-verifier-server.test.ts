@@ -118,14 +118,15 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
     assert(resp.status === "VALID", "Wrong server response");
     assert(resp.response.requestBody.transactionId === prefix0x(selectedTransaction.transactionId), "Wrong transaction id");
     let response = JSON.parse(selectedTransaction.getResponse());
-    assert(resp.response.responseBody.sourceAddressHash === Web3.utils.soliditySha3(response.data.result.Account), "Wrong source address");
-    assert(resp.response.responseBody.receivingAddressHash === Web3.utils.soliditySha3(response.data.result.Destination), "Wrong receiving address");
+    assert(resp.response.responseBody.sourceAddressHash === Web3.utils.soliditySha3(response.result.Account), "Wrong source address");
+    assert(resp.response.responseBody.receivingAddressHash === Web3.utils.soliditySha3(response.result.Destination), "Wrong receiving address");
     assert(request.messageIntegrityCode === defStore.attestationResponseHash(resp.response, MIC_SALT), "MIC does not match");
   });
 
   it(`Should verify Balance Decreasing attestation attestation`, async function () {
-    let sourceAddressIndicator = standardAddressHash(JSON.parse(selectedTransaction.getResponse()).data.result.Account);
+    let sourceAddressIndicator = standardAddressHash(JSON.parse(selectedTransaction.getResponse()).result.Account);
     let request = await testBalanceDecreasingTransactionRequest(defStore, selectedTransaction, TX_CLASS, CHAIN_TYPE, sourceAddressIndicator);
+
     let attestationRequest = {
       abiEncodedRequest: defStore.encodeRequest(request),
     } as EncodedRequestBody;
@@ -135,12 +136,13 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
     assert(resp.status === "VALID", "Wrong server response");
     assert(resp.response.requestBody.transactionId === prefix0x(selectedTransaction.transactionId), "Wrong transaction id");
     let response = JSON.parse(selectedTransaction.getResponse());
-    assert(resp.response.responseBody.sourceAddressHash === Web3.utils.soliditySha3(response.data.result.Account), "Wrong source address");
+
+    assert(resp.response.responseBody.sourceAddressHash === Web3.utils.soliditySha3(response.result.Account), "Wrong source address");
     assert(request.messageIntegrityCode === defStore.attestationResponseHash(resp.response, MIC_SALT), "MIC does not match");
   });
 
   it(`Should not verify corrupt Balance Decreasing attestation attestation`, async function () {
-    let sourceAddressIndicator = standardAddressHash(JSON.parse(selectedTransaction.getResponse()).data.result.Account);
+    let sourceAddressIndicator = standardAddressHash(JSON.parse(selectedTransaction.getResponse()).result.Account);
     let request = await testBalanceDecreasingTransactionRequest(defStore, selectedTransaction, TX_CLASS, CHAIN_TYPE, sourceAddressIndicator);
 
     request.requestBody.transactionId = "0x0000000000000000000000000000000000000000000000000000000000000000";
@@ -172,7 +174,10 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
 
     assert(resp.status === "VALID", "Wrong server response");
     assert(BigInt(resp.response.requestBody.blockNumber) === BigInt(BLOCK_CHOICE), "Wrong block number");
-    assert(BigInt(resp.response.responseBody.lowestQueryWindowBlockNumber) === BigInt(BLOCK_CHOICE - BLOCK_QUERY_WINDOW - 1), "Wrong lowest query window block number");
+    assert(
+      BigInt(resp.response.responseBody.lowestQueryWindowBlockNumber) === BigInt(BLOCK_CHOICE - BLOCK_QUERY_WINDOW - 1),
+      "Wrong lowest query window block number"
+    );
     assert(request.messageIntegrityCode === defStore.attestationResponseHash(resp.response, MIC_SALT), "MIC does not match");
   });
 
@@ -192,10 +197,10 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
       abiEncodedRequest: defStore.encodeRequest(request),
     } as EncodedRequestBody;
 
-      let resp = await sendToVerifier("ConfirmedBlockHeightExists", "XRP", configurationService, attestationRequest, API_KEY);
-      assert(resp.status === "INDETERMINATE", "Wrong server response");
-      expect(resp.response).to.be.undefined;
-    });
+    let resp = await sendToVerifier("ConfirmedBlockHeightExists", "XRP", configurationService, attestationRequest, API_KEY);
+    assert(resp.status === "INDETERMINATE", "Wrong server response");
+    expect(resp.response).to.be.undefined;
+  });
 
   it(`Should fail to provide Referenced Payment Nonexistence attestation`, async function () {
     let response = JSON.parse(selectedTransaction.getResponse());
@@ -211,9 +216,9 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
       CHAIN_TYPE,
       BLOCK_CHOICE + 1,
       selectedTransaction.timestamp + 2,
-      response.data.result.Destination,
+      response.result.Destination,
       prefix0x(selectedTransaction.paymentReference),
-      parseInt(response.data.result.Amount)
+      parseInt(response.result.Amount)
     );
 
     let attestationRequest = {
@@ -239,9 +244,9 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
       CHAIN_TYPE,
       BLOCK_CHOICE - 3,
       selectedTransaction.timestamp - 2,
-      response.data.result.Destination,
+      response.result.Destination,
       prefix0x(selectedTransaction.paymentReference),
-      parseInt(response.data.result.Amount)
+      parseInt(response.result.Amount)
     );
 
     let attestationRequest = {
@@ -252,7 +257,10 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
 
     assert(resp.status === "VALID", "Wrong server response");
     assert(BigInt(resp.response.responseBody.firstOverflowBlockNumber) === BigInt(BLOCK_CHOICE - 1), "Incorrect first overflow block");
-    assert(BigInt(resp.response.responseBody.firstOverflowBlockTimestamp) === BigInt(selectedTransaction.timestamp - 1), "Incorrect first overflow block timestamp");
+    assert(
+      BigInt(resp.response.responseBody.firstOverflowBlockTimestamp) === BigInt(selectedTransaction.timestamp - 1),
+      "Incorrect first overflow block timestamp"
+    );
     assert(request.messageIntegrityCode === defStore.attestationResponseHash(resp.response, MIC_SALT), "MIC does not match");
   });
 

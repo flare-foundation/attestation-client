@@ -2,12 +2,11 @@ import axios from "axios";
 import { Attestation } from "../../attester/Attestation";
 import { AttestationDefinitionStore } from "../../external-libs/AttestationDefinitionStore";
 import { AttestationResponse } from "../../external-libs/AttestationResponse";
+import { EncodedRequestBody } from "../../servers/verifier-server/src/dtos/generic/generic.dto";
 import { retry } from "../../utils/helpers/promiseTimeout";
 import { AttLogger, getGlobalLogger } from "../../utils/logging/logger";
 import { VerifierAttestationTypeRouteConfig } from "./configs/VerifierAttestationTypeRouteConfig";
 import { VerifierRouteConfig } from "./configs/VerifierRouteConfig";
-import { EncodedRequestBody } from "../../servers/verifier-server/src/dtos/generic/generic.dto";
-import { sleepMs } from "@flarenetwork/mcc";
 const VERIFIER_TIMEOUT = 10000;
 export class VerifierRoute {
   url?: string;
@@ -109,7 +108,7 @@ export class VerifierRouter {
     this.logger = logger ?? getGlobalLogger();
     this.config = config;
     if (!this.config) {
-      throw  new Error(`Missing configuration`);
+      throw new Error(`Missing configuration`);
     }
 
     this.routeMap = new Map<string, Map<string, VerifierAttestationTypeRouteConfig>>(); //different type as promised
@@ -117,7 +116,7 @@ export class VerifierRouter {
     // set up all possible routes
     for (let definition of dataStore.definitions.values()) {
       let attestationTypeName = definition.name;
-      for (let sourceName of definition.supported.split(",").map(x => x.trim())) {
+      for (let sourceName of definition.supported.split(",").map((x) => x.trim())) {
         let tmp = this.routeMap.get(sourceName);
         if (!tmp) {
           tmp = new Map<string, VerifierAttestationTypeRouteConfig>();
@@ -164,7 +163,7 @@ export class VerifierRouter {
     if (process.env.REQUIRE_ALL_ROUTES_CONFIGURED) {
       for (let definition of dataStore.definitions.values()) {
         let attestationTypeName = definition.name;
-        for (let sourceName of definition.supported.split(",").map(x => x.trim())) {
+        for (let sourceName of definition.supported.split(",").map((x) => x.trim())) {
           let sourceMap = this.routeMap.get(sourceName);
           if (sourceMap.get(definition.name) === EMPTY_VERIFIER_ROUTE) {
             throw new Error(`The route is not set for pair ('${sourceName}','${attestationTypeName}')`);
@@ -204,6 +203,7 @@ export class VerifierRouter {
    */
   public async verifyAttestation(attestation: Attestation) {
     let route = this.getRoute(attestation);
+
     if (route) {
       const attestationRequest = {
         abiEncodedRequest: attestation.data.request,

@@ -716,7 +716,7 @@ export class Indexer {
       let blockNp1 = await this.indexerToClient.getBlockFromClient(`runIndexer2`, this.N + 1);
 
       // has N+1 confirmation block
-      const isNp1Confirmed = this.N < this.T - this.chainConfig.numberOfConfirmations;
+      const isNp1Confirmed = this.N <= this.T - this.chainConfig.numberOfConfirmations;
       const isChangedNp1Hash = this.blockNp1hash !== blockNp1.stdBlockHash;
 
       // update status for logging

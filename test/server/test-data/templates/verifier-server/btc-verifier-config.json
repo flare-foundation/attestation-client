@@ -9,7 +9,7 @@
       "apiKey": "7890"
     }
   ],
-  "port": 9600,
+  "port": 9601,
   "checkAliveIntervalMs": 5000,
   "sourceId": "BTC",
   "attestationTypes": ["Payment", "BalanceDecreasingTransaction"],

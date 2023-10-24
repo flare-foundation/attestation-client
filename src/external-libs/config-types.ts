@@ -36,7 +36,7 @@ export interface TypeRecord extends ABIDefinitions {
      * Comma separated list of supported sources for the attestation type. The strings defining types are community defined.
      * Currently, the following are supported: BTC, DOGE, XRP, ETH
      */
-    supported: string;
+    supported: string[];
     /**
      * Text describing the attestation type verification rules. In Markdown format.
      */
@@ -126,4 +126,9 @@ export interface StructRecord {
      * List of metadata objects describing struct fields.
      */
     params: ParamRecord[];
+}
+
+export interface DataSource {
+    name: string;
+    description: string;
 }

@@ -9,6 +9,7 @@ import {
     structsDeepEqual,
     DEFAULT_ATTESTATION_TYPE_CONFIGS_PATH,
     ZERO_BYTES_32,
+    serializeBigInts,
 } from "./utils";
 
 /**
@@ -150,12 +151,12 @@ export class AttestationDefinitionStore {
         }
 
         const parsed = this.coder.decode([requestBodyAbi], "0x" + bytes.slice(2 + 3 * 64))[0];
-        return {
+        return serializeBigInts({
             attestationType: decodeAttestationTypeName ? definition : prefix.attestationType,
             sourceId: prefix.sourceId,
             messageIntegrityCode: prefix.messageIntegrityCode,
             requestBody: remapABIParsedToObjects(parsed, requestBodyAbi),
-        } as AR;
+        }) as AR;
     }
 
     /**

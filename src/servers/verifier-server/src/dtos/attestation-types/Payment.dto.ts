@@ -195,31 +195,37 @@ export class Payment_ResponseBody {
     intendedReceivingAddressHash: string;
 
     /**
-     * Amount spent by the source address.
+     * Amount in minimal units spent by the source address.
      */
     @Validate(IsUnsignedIntLike)
-    @ApiProperty({ description: `Amount spent by the source address.`, example: "123" })
+    @ApiProperty({ description: `Amount in minimal units spent by the source address.`, example: "123" })
     spentAmount: string;
 
     /**
-     * Amount to be spent by the source address. Relevant if the transaction status is not success.
+     * Amount in minimal units to be spent by the source address. Relevant if the transaction status is not success.
      */
     @Validate(IsUnsignedIntLike)
-    @ApiProperty({ description: `Amount to be spent by the source address. Relevant if the transaction status is not success.`, example: "123" })
+    @ApiProperty({
+        description: `Amount in minimal units to be spent by the source address. Relevant if the transaction status is not success.`,
+        example: "123",
+    })
     intendedSpentAmount: string;
 
     /**
-     * Amount received by the receiving address.
+     * Amount in minimal units received by the receiving address.
      */
     @Validate(IsUnsignedIntLike)
-    @ApiProperty({ description: `Amount received by the receiving address.`, example: "123" })
+    @ApiProperty({ description: `Amount in minimal units received by the receiving address.`, example: "123" })
     receivedAmount: string;
 
     /**
-     * Amount intended to be received by the receiving address. Relevant if the transaction was unsuccessful.
+     * Amount in minimal units intended to be received by the receiving address. Relevant if the transaction was unsuccessful.
      */
     @Validate(IsUnsignedIntLike)
-    @ApiProperty({ description: `Amount intended to be received by the receiving address. Relevant if the transaction was unsuccessful.`, example: "123" })
+    @ApiProperty({
+        description: `Amount in minimal units intended to be received by the receiving address. Relevant if the transaction was unsuccessful.`,
+        example: "123",
+    })
     intendedReceivedAmount: string;
 
     /**

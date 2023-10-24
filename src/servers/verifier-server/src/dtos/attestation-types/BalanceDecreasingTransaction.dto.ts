@@ -178,10 +178,10 @@ export class BalanceDecreasingTransaction_ResponseBody {
     sourceAddressHash: string;
 
     /**
-     * Amount spent by the source address.
+     * Amount spent by the source address in minimal units.
      */
     @Validate(IsUnsignedIntLike)
-    @ApiProperty({ description: `Amount spent by the source address.`, example: "123" })
+    @ApiProperty({ description: `Amount spent by the source address in minimal units.`, example: "123" })
     spentAmount: string;
 
     /**

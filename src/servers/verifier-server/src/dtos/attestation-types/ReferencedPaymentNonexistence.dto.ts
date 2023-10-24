@@ -211,10 +211,10 @@ export class ReferencedPaymentNonexistence_RequestBody {
     destinationAddressHash: string;
 
     /**
-     * The requested amount that had to be payed.
+     * The requested amount in minimal units that had to be payed.
      */
     @Validate(IsUnsignedIntLike)
-    @ApiProperty({ description: `The requested amount that had to be payed.`, example: "123" })
+    @ApiProperty({ description: `The requested amount in minimal units that had to be payed.`, example: "123" })
     amount: string;
 
     /**

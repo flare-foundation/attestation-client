@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import { readFileSync, readdirSync } from "fs";
+import { existsSync, readFileSync, readdirSync, statSync } from "fs";
 import * as path from "path";
 import { TypeRecord } from "./config-types";
 
@@ -13,7 +13,7 @@ export interface ABIFragment {
     type: string;
 }
 
-export const DEFAULT_ATTESTATION_TYPE_CONFIGS_PATH = "generated/configs/abi";
+export const DEFAULT_ATTESTATION_TYPE_CONFIGS_PATH = path.resolve(findPackageRoot(__dirname), "generated/configs");
 export const MIC_SALT = "Flare";
 export const ZERO_BYTES_32 = ethers.zeroPadBytes("0x", 32);
 export const ZERO_BYTES_20 = ethers.zeroPadBytes("0x", 20);
@@ -255,4 +255,28 @@ export function serializeBigInts(obj: any) {
             (key, value) => (typeof value === "bigint" ? value.toString() : value), // return everything else unchanged
         ),
     );
+}
+
+/**
+ * Find the package root than contains the directory.
+ * @param moduleDir the directory of a module, typically use `__dirname`
+ * @returns the directory of the modules's package root.
+ */
+export function findPackageRoot(moduleDir: string) {
+    let dir = path.resolve(moduleDir);
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+        const packageJson = path.resolve(dir, "package.json");
+        const hasPackageJson = existsSync(packageJson) && statSync(packageJson).isFile();
+        const nodeModules = path.resolve(dir, "node_modules");
+        const hasNodeModules = existsSync(nodeModules) && statSync(nodeModules).isDirectory();
+        if (hasPackageJson && hasNodeModules) {
+            return dir;
+        }
+        if (path.dirname(dir) === dir) {
+            // arrived at filesystem root without finding package root
+            throw new Error("Cannot find package root");
+        }
+        dir = path.dirname(dir);
+    }
 }

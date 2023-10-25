@@ -51,18 +51,18 @@ export class Indexer {
   indexerSync: IndexerSync;
 
   // N - last processed and saved block
-  private _N = 0;
+  private _indexedHeight = 0;
 
   // T - chain height
-  T = 0;
+  tipHeight = 0;
 
   // stats counter for blocks processed in running session
   processedBlocks = 0;
 
   // candidate block N + 1 hash (usually on main fork)
-  blockNp1hash = "";
+  nextBlockHash = "";
   // indicates we are waiting for block N + 1 in processing
-  waitNp1 = false;
+  waitNextBlock = false;
 
   preparedBlocks = new Map<number, PreparedBlock[]>();
 
@@ -138,7 +138,7 @@ export class Indexer {
       numberOfConfirmations: this.chainConfig.numberOfConfirmations,
       blockCollecting: this.chainConfig.blockCollecting,
     };
-    this.headerCollector = new HeaderCollector(this.logger, this.N, this.indexerToClient, this.indexerToDB, headerCollectorSettings);
+    this.headerCollector = new HeaderCollector(this.logger, this.indexedHeight, this.indexerToClient, this.indexerToDB, headerCollectorSettings);
 
     this.indexerSync = new IndexerSync(this);
   }
@@ -164,12 +164,12 @@ export class Indexer {
   // Update N
   /////////////////////////////////////////////////////////////
 
-  get N() {
-    return this._N;
+  get indexedHeight() {
+    return this._indexedHeight;
   }
-  set N(newN: number) {
-    this._N = newN;
-    this.headerCollector.updateN(newN);
+  set indexedHeight(newN: number) {
+    this._indexedHeight = newN;
+    this.headerCollector.updateIndexedHeight(newN);
   }
 
   /////////////////////////////////////////////////////////////
@@ -197,13 +197,13 @@ export class Indexer {
    * @returns
    */
   public async blockCompleted(block: DBBlockBase, transactions: DBTransactionBase[]): Promise<boolean> {
-    this.logger.info(`^Gcompleted ${block.blockNumber}:N+${block.blockNumber - this.N} (${transactions.length} transaction(s))`);
+    this.logger.info(`^Gcompleted ${block.blockNumber}:N+${block.blockNumber - this.indexedHeight} (${transactions.length} transaction(s))`);
 
     // if we are waiting for block N+1 to be completed - then it is no need to put it into queue but just save it
-    const isBlockNp1 = block.blockNumber == this.N + 1 && block.blockHash == this.blockNp1hash;
-    if (isBlockNp1 && this.waitNp1) {
+    const isBlockNext = block.blockNumber == this.indexedHeight + 1 && block.blockHash == this.nextBlockHash;
+    if (isBlockNext && this.waitNextBlock) {
       await this.blockSave(block, transactions);
-      this.waitNp1 = false;
+      this.waitNextBlock = false;
       return;
     }
 
@@ -218,10 +218,12 @@ export class Indexer {
     // todo: this causes async growing - this should be queued and run from main async
     // if N+1 is ready (already processed) then begin processing N+2 (we need to be very aggressive with read ahead)
     if (!this.indexerSync.isSyncing) {
-      if (isBlockNp1) {
-        const blockNp2 = await this.indexerToClient.getBlockFromClient(`blockCompleted`, this.N + 2);
+      if (isBlockNext) {
+        const blockNextNext = await this.indexerToClient.getBlockFromClient(`blockCompleted`, this.indexedHeight + 2);
         // eslint-disable-next-line
-        criticalAsync(`blockCompleted(${block.blockNumber}) -> BlockProcessorManager::process exception: `, () => this.blockProcessorManager.process(blockNp2));
+        criticalAsync(`blockCompleted(${block.blockNumber}) -> BlockProcessorManager::process exception: `, () =>
+          this.blockProcessorManager.process(blockNextNext)
+        );
       }
     }
 
@@ -233,18 +235,18 @@ export class Indexer {
    * @param block block to be processed
    */
   async blockAlreadyCompleted(block: BlockBase) {
-    this.logger.info(`^Galready completed ${block.number}:N+${block.number - this.N}`);
+    this.logger.info(`^Galready completed ${block.number}:N+${block.number - this.indexedHeight}`);
 
     // todo: this causes asycn growing - this should be queued and run from main async
     // if N+1 is ready (already processed) then begin processing N+2 (we need to be very aggressive with read ahead)
-    const isBlockNp1 = block.number == this.N + 1 && block.stdBlockHash == this.blockNp1hash;
+    const isBlockNext = block.number == this.indexedHeight + 1 && block.stdBlockHash == this.nextBlockHash;
 
     if (!this.indexerSync.isSyncing) {
-      if (isBlockNp1) {
-        const blockNp2 = await this.indexerToClient.getBlockFromClient(`blockAlreadyCompleted`, this.N + 2);
+      if (isBlockNext) {
+        const blockNextNext = await this.indexerToClient.getBlockFromClient(`blockAlreadyCompleted`, this.indexedHeight + 2);
         // eslint-disable-next-line
         criticalAsync(`blockAlreadyCompleted(${block.number}) -> BlockProcessorManager::process exception: `, () =>
-          this.blockProcessorManager.process(blockNp2)
+          this.blockProcessorManager.process(blockNextNext)
         );
       }
     }
@@ -280,7 +282,7 @@ export class Indexer {
    * @returns
    */
   public async blockSave(block: DBBlockBase, transactions: DBTransactionBase[]): Promise<boolean> {
-    const Np1 = this.N + 1;
+    const Np1 = this.indexedHeight + 1;
 
     if (block.blockNumber !== Np1) {
       failureCallback(`unexpected block number: expected to save blockNumber ${Np1} (but got ${block.blockNumber})`);
@@ -300,7 +302,7 @@ export class Indexer {
     await retry(`blockSave N=${Np1}`, async () => {
       await this.dbService.manager.transaction(async (tx) => {
         // save state N, T and T_CHECK_TIME
-        const stateEntries = [getStateEntry("N", this.chainConfig.name, Np1), getStateEntry("T", this.chainConfig.name, this.T)];
+        const stateEntries = [getStateEntry("N", this.chainConfig.name, Np1), getStateEntry("T", this.chainConfig.name, this.tipHeight)];
 
         // block must be marked as confirmed
         if (transactions.length > 0) {
@@ -331,7 +333,7 @@ export class Indexer {
     });
 
     // increment N if all is ok
-    this.N = Np1;
+    this.indexedHeight = Np1;
 
     // if bottom block is undefined then save it (this happens only on clean start or after database reset)
     if (!this.indexerToDB.bottomBlockTime) {
@@ -375,19 +377,19 @@ export class Indexer {
    * NOTE: in real time processing the last option would happen in case
    * of reorg on N + 1, which should be unlikely
    */
-  public async trySaveNp1Block(): Promise<boolean> {
-    const Np1 = this.N + 1;
+  public async trySaveNextBlock(): Promise<boolean> {
+    const nextBlockHeight = this.indexedHeight + 1;
 
     // check if N+1 with blockNp1hash is already prepared (otherwise wait for it)
-    const preparedBlocks = this.preparedBlocks.get(Np1);
+    const preparedBlocks = this.preparedBlocks.get(nextBlockHeight);
     if (preparedBlocks) {
       for (const preparedBlock of preparedBlocks) {
-        if (preparedBlock.block.blockHash === this.blockNp1hash) {
+        if (preparedBlock.block.blockHash === this.nextBlockHash) {
           // save prepared N+1 block with active hash and increment this.N
           await this.blockSave(preparedBlock.block, preparedBlock.transactions);
 
           // The assumption is that other blocks are invalid (orphaned) blocks
-          this.preparedBlocks.delete(Np1);
+          this.preparedBlocks.delete(nextBlockHeight);
 
           return true;
         }
@@ -397,24 +399,24 @@ export class Indexer {
     // check if the block with number N + 1, `Np1`, with hash `Np1Hash` is in preparation
     let exists = false;
     for (const processor of this.blockProcessorManager.blockProcessors) {
-      if (processor.block.number == Np1 && processor.block.stdBlockHash == this.blockNp1hash) {
+      if (processor.block.number == nextBlockHeight && processor.block.stdBlockHash == this.nextBlockHash) {
         exists = true;
         break;
       }
     }
 
     if (!exists) {
-      this.logger.error2(`N+1 (${Np1}) block not in processor`);
+      this.logger.error2(`N+1 (${nextBlockHeight}) block not in processor`);
       // False is returned to indicate that further waiting needs to be done, recheck this at later time
       return false;
     }
 
     // wait until N+1 block is saved (blockCompleted will save it immediately)
-    this.waitNp1 = true;
+    this.waitNextBlock = true;
     let timeStart = Date.now();
-    this.logger.debug(`^Gwaiting for block N=${Np1}`);
+    this.logger.debug(`^Gwaiting for block N=${nextBlockHeight}`);
 
-    while (this.waitNp1) {
+    while (this.waitNextBlock) {
       await sleepMs(100);
 
       // If block processing takes more than 5 seconds we start to log warnings every 5 seconds
@@ -512,7 +514,7 @@ export class Indexer {
    * @param blockNp1 N + 1 block candidate
    */
   private async updateStatus(blockNp1: BlockBase) {
-    const NisReady = this.N >= this.T - this.chainConfig.numberOfConfirmations - 2;
+    const NisReady = this.indexedHeight >= this.tipHeight - this.chainConfig.numberOfConfirmations - 2;
     const syncTimeSec = this.syncTimeDays() * SECONDS_PER_DAY;
     const fullHistory = !this.indexerToDB.bottomBlockTime ? false : blockNp1.unixTimestamp - this.indexerToDB.bottomBlockTime > syncTimeSec;
     let dbStatus;
@@ -529,7 +531,7 @@ export class Indexer {
         this.chainConfig.name,
         "running-sync",
         this.processedBlocks,
-        `N=${this.N} T=${this.T} (missing ${hr < 0 ? `${min} min` : `${hr}:${String(min).padStart(2, "0")}`})`
+        `N=${this.indexedHeight} T=${this.tipHeight} (missing ${hr < 0 ? `${min} min` : `${hr}:${String(min).padStart(2, "0")}`})`
       );
     } else if (!NisReady) {
       dbStatus = getStateEntryString(
@@ -537,10 +539,10 @@ export class Indexer {
         this.chainConfig.name,
         "running-sync",
         this.processedBlocks,
-        `N=${this.N} T=${this.T} (N is late: < T-${this.chainConfig.numberOfConfirmations})`
+        `N=${this.indexedHeight} T=${this.tipHeight} (N is late: < T-${this.chainConfig.numberOfConfirmations})`
       );
     } else {
-      dbStatus = getStateEntryString("state", this.chainConfig.name, "running", this.processedBlocks, `N=${this.N} T=${this.T}`);
+      dbStatus = getStateEntryString("state", this.chainConfig.name, "running", this.processedBlocks, `N=${this.indexedHeight} T=${this.tipHeight}`);
     }
     this.processedBlocks++;
     await retry(`runIndexer::saveStatus`, async () => await this.dbService.manager.save(dbStatus));
@@ -683,12 +685,12 @@ export class Indexer {
     this.logger.warning(`${this.chainConfig.name} T=${startBlockNumber}`);
 
     // initial N initialization - will be later on assigned to DB or sync N
-    this.N = startBlockNumber;
+    this.indexedHeight = startBlockNumber;
 
     // N is last completed block - confirmed and stored in DB
     const dbLastDBBlockNumber = await this.indexerToDB.getNfromDB();
     if (dbLastDBBlockNumber > 0) {
-      this.N = dbLastDBBlockNumber;
+      this.indexedHeight = dbLastDBBlockNumber;
     }
 
     await this.interlace.initialize(
@@ -718,45 +720,45 @@ export class Indexer {
 
     while (true) {
       // get chain top block
-      this.T = await this.indexerToClient.getBlockHeightFromClient(`runIndexer2`);
+      this.tipHeight = await this.indexerToClient.getBlockHeightFromClient(`runIndexer2`);
 
       // change getBlock to getBlockHeader
-      let blockNp1 = await this.indexerToClient.getBlockFromClient(`runIndexer2`, this.N + 1);
+      let blockNext = await this.indexerToClient.getBlockFromClient(`runIndexer2`, this.indexedHeight + 1);
 
       // has N+1 confirmation block
-      const isNp1Confirmed = this.N <= this.T - this.chainConfig.numberOfConfirmations;
-      const isChangedNp1Hash = this.blockNp1hash !== blockNp1.stdBlockHash;
+      const isNextBlockConfirmed = this.indexedHeight <= this.tipHeight - this.chainConfig.numberOfConfirmations;
+      const isNextBlockHashChanged = this.nextBlockHash !== blockNext.stdBlockHash;
 
       // update status for logging
-      await this.updateStatus(blockNp1);
+      await this.updateStatus(blockNext);
 
       // check if N + 1 hash is the same
-      if (!isNp1Confirmed && !isChangedNp1Hash) {
+      if (!isNextBlockConfirmed && !isNextBlockHashChanged) {
         await sleepMs(this.config.blockCollectTimeMs);
         continue;
       }
 
-      this.logger.info(`^Wnew block T=${this.T} N=${this.N} ${isChangedNp1Hash ? "(N+1 hash changed)" : ""}`);
+      this.logger.info(`^Wnew block T=${this.tipHeight} N=${this.indexedHeight} ${isNextBlockHashChanged ? "(N+1 hash changed)" : ""}`);
 
       // set the hash of N + 1 block to the latest known value
-      this.blockNp1hash = blockNp1.stdBlockHash;
+      this.nextBlockHash = blockNext.stdBlockHash;
 
       // save completed N+1 block or wait for it
-      if (isNp1Confirmed) {
+      if (isNextBlockConfirmed) {
         // Since we are working async, saves the block N + 1 if it is in processing or it is already processed
         // otherwise it passes through and the correct N + 1-th block will
         // be put in processing (see below)
-        await this.trySaveNp1Block();
+        await this.trySaveNextBlock();
 
         // whether N + 1 was saved or not it is always better to refresh the block N + 1
-        blockNp1 = await this.indexerToClient.getBlockFromClient(`runIndexer3`, this.N + 1);
+        blockNext = await this.indexerToClient.getBlockFromClient(`runIndexer3`, this.indexedHeight + 1);
         // process new or changed N+1
-        this.blockNp1hash = blockNp1.stdBlockHash;
+        this.nextBlockHash = blockNext.stdBlockHash;
       }
 
       // start async processing of block N + 1 (if not already started)
       // eslint-disable-next-line
-      criticalAsync(`runIndexer -> BlockProcessorManager::process exception: `, () => this.blockProcessorManager.process(blockNp1));
+      criticalAsync(`runIndexer -> BlockProcessorManager::process exception: `, () => this.blockProcessorManager.process(blockNext));
     }
   }
 }

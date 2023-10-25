@@ -2,8 +2,8 @@
 // tests need appropriate api credentials for BTC multi-chain-client to function properly
 
 import { BtcBlockHeader, ChainType, MCC, UtxoMccCreate } from "@flarenetwork/mcc";
-import chai, { expect } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
+import chai, { expect } from "chai";
+import chaiAsPromised from "chai-as-promised";
 import sinon from "sinon";
 import { DBBlockBTC } from "../../src/entity/indexer/dbBlock";
 import { HeaderCollector } from "../../src/indexer/headerCollector";
@@ -61,7 +61,7 @@ describe(`Header Collector credentials (${getTestFile(__filename)})`, () => {
     });
 
     it("Should update N", async function () {
-      headerCollector.updateN(765468);
+      headerCollector.updateIndexedHeight(765468);
     });
 
     it("Should saveHeadersOnNewTips ", async function () {
@@ -88,7 +88,7 @@ describe(`Header Collector credentials (${getTestFile(__filename)})`, () => {
     });
 
     it("Should saveHeadersOnNewTips", async function () {
-      headerCollector.updateN(10);
+      headerCollector.updateIndexedHeight(10);
 
       const tips = await client.getBlockTips(10);
 
@@ -98,7 +98,7 @@ describe(`Header Collector credentials (${getTestFile(__filename)})`, () => {
     });
 
     it("Should readAndSaveBlocksHeaders", async function () {
-      headerCollector.updateN(10);
+      headerCollector.updateIndexedHeight(10);
 
       await headerCollector.readAndSaveBlocksHeaders(11, 12);
       let res = await dataService.manager.findOne(DBBlockBTC, { where: { blockNumber: 12 } });
@@ -106,7 +106,7 @@ describe(`Header Collector credentials (${getTestFile(__filename)})`, () => {
     });
 
     it("Should not readAndSaveBlocksHeaders", async function () {
-      headerCollector.updateN(10);
+      headerCollector.updateIndexedHeight(10);
       let j = "not jet failed";
       const fake = sinon.fake();
       setRetryFailureCallback((string) => {

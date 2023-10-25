@@ -123,7 +123,6 @@ export class IndexerToDB {
       .execute();
   }
 
-  //do we want to drop or truncate???
   /**
    * Securely drops the table given the name
    * @param name name of the table to be dropped

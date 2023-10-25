@@ -204,9 +204,6 @@ export class Interlacing {
       await queryRunner.release();
     }
 
-    // drop all state info (moved to indexer)
-    // await this.indexer.dropAllStateInfo();
-
     this.tableLock = false;
   }
 }

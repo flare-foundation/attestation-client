@@ -181,7 +181,7 @@ export class IndexerSync {
 
       // triggering processors for few read ahead blocks
       for (let i = 2; i < this.indexer.chainConfig.syncReadAhead; i++) {
-        // do not allow read ahead of T - confirmations
+        // do not allow read ahead of TipHeight - confirmations
         if (this.indexer.indexedHeight + i > this.indexer.tipHeight - this.indexer.chainConfig.numberOfConfirmations) break;
 
         // eslint-disable-next-line
@@ -190,9 +190,9 @@ export class IndexerSync {
         );
       }
 
-      // Get the latest hash of the N + 1 block
-      const blockNp1 = await this.indexer.cachedClient.getBlock(this.indexer.indexedHeight + 1);
-      this.indexer.nextBlockHash = blockNp1.stdBlockHash;
+      // Get the latest hash of the next block
+      const blockNext = await this.indexer.cachedClient.getBlock(this.indexer.indexedHeight + 1);
+      this.indexer.nextBlockHash = blockNext.stdBlockHash;
 
       // We wait until block N+1 is either saved or indicated that there is no such block
       // This is the only point in the loop that increments N
@@ -224,7 +224,7 @@ export class IndexerSync {
     this.logger.debug(`${blocks.length} block(s) collected`);
 
     // Save all block headers from tips above N
-    // Note - N may be very low compared to T, since we are
+    // Note - indexedHeight may be very low compared to tipHeight, since we are
     // before sync.
     await this.indexer.headerCollector.saveHeadersOnNewTips(blocks);
   }

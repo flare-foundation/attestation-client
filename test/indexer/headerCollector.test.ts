@@ -105,7 +105,7 @@ describe(`Header Collector (${getTestFile(__filename)})`, () => {
     });
 
     it("Should runBlockHeaderCollectingRaw", function (done) {
-      const spy = sinon.spy(headerCollector.indexerToDB, "writeT");
+      const spy = sinon.spy(headerCollector.indexerToDB, "writeTipHeight");
       headerCollector
         .runBlockHeaderCollecting()
         .then(() => {})

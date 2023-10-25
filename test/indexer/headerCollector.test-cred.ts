@@ -119,7 +119,7 @@ describe(`Header Collector credentials (${getTestFile(__filename)})`, () => {
     });
 
     it("Should runBlockHeaderCollectingRaw", function (done) {
-      const spy = sinon.spy(headerCollector.indexerToDB, "writeT");
+      const spy = sinon.spy(headerCollector.indexerToDB, "writeTipHeight");
       setTimeout(done, 6000);
       headerCollector
         .runBlockHeaderCollecting()
@@ -131,7 +131,7 @@ describe(`Header Collector credentials (${getTestFile(__filename)})`, () => {
     });
 
     it("Should runBlockHeaderCollectingTips", function (done) {
-      const spy1 = sinon.spy(headerCollector.indexerToDB, "writeT");
+      const spy1 = sinon.spy(headerCollector.indexerToDB, "writeTipHeight");
       const spy2 = sinon.spy(headerCollector, "saveHeadersOnNewTips");
       setTimeout(done, 6000);
       headerCollector

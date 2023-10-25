@@ -279,7 +279,7 @@ async function getFullTransaction(id: string, processor: LimitingProcessor) {
    let tx = await processor.call(() => getTransaction(id))
    let promises = tx.inputs.map(input => processor.call(() => getTransaction(input)));
    let inputTxs = await Promise.all(promises)
-   augument(tx, inputTx);
+   augment(tx, inputTx);
    ...
 
 

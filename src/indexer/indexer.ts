@@ -100,7 +100,7 @@ export class Indexer {
       transactionCacheSize: 100000,
       blockCacheSize: 100000,
       cleanupChunkSize: 100,
-      activeLimit: 20,  //TODO: set this up
+      activeLimit: 20, //TODO: set this up
       clientConfig: {
         ...this.chainConfig.mccCreate,
         rateLimitOptions: this.chainConfig.rateLimitOptions,
@@ -340,7 +340,15 @@ export class Indexer {
 
     this.blockProcessorManager.clearProcessorsUpToBlockNumber(Np1);
     const time1 = Date.now();
-    this.logger.info(`^g^Wsave completed - next N=${Np1}^^ (${transactions.length} transaction(s), time=${round(time1 - time0, 2)}ms) ^g^W[compression ${round(uncompressedTransactionResponseDataSize/(1024*1024),1)}MB -> ${round( compressedTransactionResponseDataSize/(1024*1024),1)}MB ${round(compressedTransactionResponseDataSize*100/uncompressedTransactionResponseDataSize,1)}%]^^`);
+    this.logger.info(
+      `^g^Wsave completed - next N=${Np1}^^ (${transactions.length} transaction(s), time=${round(time1 - time0, 2)}ms) ^g^W[compression ${round(
+        uncompressedTransactionResponseDataSize / (1024 * 1024),
+        1
+      )}MB -> ${round(compressedTransactionResponseDataSize / (1024 * 1024), 1)}MB ${round(
+        (compressedTransactionResponseDataSize * 100) / uncompressedTransactionResponseDataSize,
+        1
+      )}%]^^`
+    );
 
     // table interlacing
     if (await this.interlace.update(block.timestamp, block.blockNumber)) {
@@ -693,7 +701,7 @@ export class Indexer {
     this.dbBlockClass = this.interlace.DBBlockClass;
     this.dbTransactionClasses = this.interlace.DBTransactionClasses;
 
-    // check if indexer database is continous
+    // check if indexer database is contiguous
     await this.checkDatabaseContinuous();
 
     // ------- 1. sync blocks from the past ------------------

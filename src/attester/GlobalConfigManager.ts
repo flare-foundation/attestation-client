@@ -260,10 +260,10 @@ export class GlobalConfigManager {
 
   /**
    * Loads a specific verifier router configuration from a file with @param fileName in the
-   * `verifer-router` subfolder of the configuration templates.
+   * `verifier-router` subfolder of the configuration templates.
    * Note: on any error, `undefined` is returned and the error is logged.
    * @param fileName
-   * @returns loaded verifer router configuration or `undefined` on error.
+   * @returns loaded verifier router configuration or `undefined` on error.
    */
   private async loadVerifierConfig(fileName: string): Promise<VerifierRouteConfig> {
     let startRoundId = parseInt(fileName.match(VERIFIER_CONFIG_FILE_RE)?.[1], 10);

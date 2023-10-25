@@ -23,49 +23,49 @@ import { WsCommandProcessorService } from "./services/ws-command-processor.servi
 import { createTypeOrmOptions } from "./utils/db-config";
 
 @Module({
-    imports: [
-        CommonModule,
-        PassportModule,
-        TypeOrmModule.forRootAsync({
-            name: "indexerDatabase",
-            useFactory: async () => createTypeOrmOptions("web"),
-        }),
-    ],
-    controllers: [
-        BTCIndexerController,
-        BTCPaymentVerifierController,
-        BTCBalanceDecreasingTransactionVerifierController,
-        BTCConfirmedBlockHeightExistsVerifierController,
-        BTCReferencedPaymentNonexistenceVerifierController,
-        BTCAddressValidityVerifierController,
-    ],
-    providers: [
-        {
-            provide: "VERIFIER_CONFIG",
-            useFactory: async () => {
-                const config = new VerifierConfigurationService();
-                await config.initialize();
-                return config;
-            },
-        },
-        {
-            provide: "VERIFIER_PROCESSOR",
-            useFactory: async (config: VerifierConfigurationService, manager: EntityManager) => new BTCProcessorService(config, manager),
-            inject: [
-                { token: "VERIFIER_CONFIG", optional: false },
-                { token: getEntityManagerToken("indexerDatabase"), optional: false },
-            ],
-        },
-        WsCommandProcessorService,
-        WsServerGateway,
-        WsCommandProcessorService,
-        IndexerEngineService,
-        HeaderApiKeyStrategy,
-        BTCPaymentVerifierService,
-        BTCBalanceDecreasingTransactionVerifierService,
-        BTCConfirmedBlockHeightExistsVerifierService,
-        BTCReferencedPaymentNonexistenceVerifierService,
-        BTCAddressValidityVerifierService,
-    ],
+  imports: [
+    CommonModule,
+    PassportModule,
+    TypeOrmModule.forRootAsync({
+      name: "indexerDatabase",
+      useFactory: async () => createTypeOrmOptions("web"),
+    }),
+  ],
+  controllers: [
+    BTCIndexerController,
+    BTCPaymentVerifierController,
+    BTCBalanceDecreasingTransactionVerifierController,
+    BTCConfirmedBlockHeightExistsVerifierController,
+    BTCReferencedPaymentNonexistenceVerifierController,
+    BTCAddressValidityVerifierController,
+  ],
+  providers: [
+    {
+      provide: "VERIFIER_CONFIG",
+      useFactory: async () => {
+        const config = new VerifierConfigurationService();
+        await config.initialize();
+        return config;
+      },
+    },
+    {
+      provide: "VERIFIER_PROCESSOR",
+      useFactory: async (config: VerifierConfigurationService, manager: EntityManager) => new BTCProcessorService(config, manager),
+      inject: [
+        { token: "VERIFIER_CONFIG", optional: false },
+        { token: getEntityManagerToken("indexerDatabase"), optional: false },
+      ],
+    },
+    WsCommandProcessorService,
+    WsServerGateway,
+    WsCommandProcessorService,
+    IndexerEngineService,
+    HeaderApiKeyStrategy,
+    BTCPaymentVerifierService,
+    BTCBalanceDecreasingTransactionVerifierService,
+    BTCConfirmedBlockHeightExistsVerifierService,
+    BTCReferencedPaymentNonexistenceVerifierService,
+    BTCAddressValidityVerifierService,
+  ],
 })
 export class VerifierBtcServerModule {}

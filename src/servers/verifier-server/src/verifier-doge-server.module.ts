@@ -16,57 +16,56 @@ import { DOGEBalanceDecreasingTransactionVerifierService } from "./services/doge
 import { DOGEConfirmedBlockHeightExistsVerifierService } from "./services/doge/doge-confirmed-block-height-exists-verifier.service";
 import { DOGEPaymentVerifierService } from "./services/doge/doge-payment-verifier.service";
 import { DOGEReferencedPaymentNonexistenceVerifierService } from "./services/doge/doge-referenced-payment-nonexistence-verifier.service";
-import { IndexerEngineService } from "./services/indexer-engine.service";
-import { ExternalDBVerifierConfigurationService, VerifierConfigurationService } from "./services/verifier-configuration.service";
+import { ExternalIndexerEngineService } from "./services/external-indexer.service";
+import { ExternalDBVerifierConfigurationService } from "./services/verifier-configuration.service";
 import { DOGEProcessorService } from "./services/verifier-processors/doge-processor.service";
 import { WsCommandProcessorService } from "./services/ws-command-processor.service";
 import { createTypeOrmOptions } from "./utils/db-config";
-import { ExternalIndexerEngineService } from "./services/external-indexer.service";
 
 @Module({
-    imports: [
-        CommonModule,
-        PassportModule,
-        TypeOrmModule.forRootAsync({
-            name: "indexerDatabase",
-            useFactory: async () => createTypeOrmOptions("web"),
-        }),
-    ],
-    controllers: [
-        DOGEIndexerController,
-        DOGEPaymentVerifierController,
-        DOGEBalanceDecreasingTransactionVerifierController,
-        DOGEConfirmedBlockHeightExistsVerifierController,
-        DOGEReferencedPaymentNonexistenceVerifierController,
-        DOGEAddressValidityVerifierController,
-    ],
-    providers: [
-        {
-            provide: "VERIFIER_CONFIG",
-            useFactory: async () => {
-                const config = new ExternalDBVerifierConfigurationService();
-                await config.initialize();
-                return config;
-            },
-        },
-        {
-            provide: "VERIFIER_PROCESSOR",
-            useFactory: async (config: ExternalDBVerifierConfigurationService, manager: EntityManager) => new DOGEProcessorService(config, manager),
-            inject: [
-                { token: "VERIFIER_CONFIG", optional: false },
-                { token: getEntityManagerToken("indexerDatabase"), optional: false },
-            ],
-        },
-        WsCommandProcessorService,
-        WsServerGateway,
-        WsCommandProcessorService,
-        ExternalIndexerEngineService,
-        HeaderApiKeyStrategy,
-        DOGEPaymentVerifierService,
-        DOGEBalanceDecreasingTransactionVerifierService,
-        DOGEConfirmedBlockHeightExistsVerifierService,
-        DOGEReferencedPaymentNonexistenceVerifierService,
-        DOGEAddressValidityVerifierService,
-    ],
+  imports: [
+    CommonModule,
+    PassportModule,
+    TypeOrmModule.forRootAsync({
+      name: "indexerDatabase",
+      useFactory: async () => createTypeOrmOptions("web"),
+    }),
+  ],
+  controllers: [
+    DOGEIndexerController,
+    DOGEPaymentVerifierController,
+    DOGEBalanceDecreasingTransactionVerifierController,
+    DOGEConfirmedBlockHeightExistsVerifierController,
+    DOGEReferencedPaymentNonexistenceVerifierController,
+    DOGEAddressValidityVerifierController,
+  ],
+  providers: [
+    {
+      provide: "VERIFIER_CONFIG",
+      useFactory: async () => {
+        const config = new ExternalDBVerifierConfigurationService();
+        await config.initialize();
+        return config;
+      },
+    },
+    {
+      provide: "VERIFIER_PROCESSOR",
+      useFactory: async (config: ExternalDBVerifierConfigurationService, manager: EntityManager) => new DOGEProcessorService(config, manager),
+      inject: [
+        { token: "VERIFIER_CONFIG", optional: false },
+        { token: getEntityManagerToken("indexerDatabase"), optional: false },
+      ],
+    },
+    WsCommandProcessorService,
+    WsServerGateway,
+    WsCommandProcessorService,
+    ExternalIndexerEngineService,
+    HeaderApiKeyStrategy,
+    DOGEPaymentVerifierService,
+    DOGEBalanceDecreasingTransactionVerifierService,
+    DOGEConfirmedBlockHeightExistsVerifierService,
+    DOGEReferencedPaymentNonexistenceVerifierService,
+    DOGEAddressValidityVerifierService,
+  ],
 })
 export class VerifierDogeServerModule {}

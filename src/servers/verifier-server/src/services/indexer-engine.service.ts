@@ -4,7 +4,6 @@ import { InjectEntityManager } from "@nestjs/typeorm";
 import { EntityManager } from "typeorm";
 import { DBBlockBase } from "../../../../entity/indexer/dbBlock";
 import { DBState } from "../../../../entity/indexer/dbState";
-import { BlockResult } from "../../../../indexed-query-manager/indexed-query-manager-types";
 import { ApiDBBlock } from "../dtos/indexer/ApiDbBlock";
 import { ApiDBTransaction } from "../dtos/indexer/ApiDbTransaction";
 import { BlockRange } from "../dtos/indexer/BlockRange.dto";

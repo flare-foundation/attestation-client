@@ -9,7 +9,7 @@ import { retry } from "../utils/helpers/promiseTimeout";
  * transactionCacheSize+cleanupChunkSize is the maximal number of cached transactions
  * blockCacheSize+cleanupChunkSize is the maximal number of cached blocks
  *
- * After each cleanupChunkSize new items has been cached cleanup is initalized and transactionCached and blockCached
+ * After each cleanupChunkSize new items has been cached cleanup is initialized and transactionCached and blockCached
  * are reduced to size at most transactionCacheSize, blockCacheSize, respectively.
  */
 export interface CachedMccClientOptionsFull {

@@ -22,5 +22,5 @@
     "lib": ["ES2021.String"]
   },
   "include": ["src/**/*", "./typechain-web3-v1", "./typechain-web3-v1-new", "./typechain-truffle", "./test"],
-  "files": ["./hardhat.config.ts", "src/entity-external/DBDogeIndexerBlock.ts"]
+  "files": ["./hardhat.config.ts", "src/entity-external/DogeExternalEntities.ts"]
 }

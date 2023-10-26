@@ -142,7 +142,7 @@ export function getStateEntryString(name: string, chainName: string, valueString
 }
 
 /**
- * Prefixes chain name and undercore to the given name
+ * Prefixes chain name and underscore to the given name
  * @param name
  * @param chainName
  * @returns

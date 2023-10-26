@@ -187,7 +187,7 @@ describe(`IndexerToDB (${getTestFile(__filename)})`, function () {
   });
 
   it("Should writeT", async function () {
-    await indexerToDB.writeT(118);
+    await indexerToDB.writeTipHeight(118);
     const res = await dataService.manager.findOne(DBState, { where: { name: "btc_T" } });
     expect(res.valueNumber).to.eq(118);
   });

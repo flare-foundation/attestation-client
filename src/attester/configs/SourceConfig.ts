@@ -29,7 +29,7 @@ export class SourceConfig implements IReflection<SourceConfig> {
   /**
    * Map of supported attestation types. Not intended to be read from the JSON file. Recalculated from `attestationTypes`
    */
-  @optional() attestationTypesMap = new Map<string, AttestationTypeConfig>();
+  @optional() attestationTypesMap: Map<string, AttestationTypeConfig>;
 
   instantiate(): SourceConfig {
     return new SourceConfig();
@@ -45,8 +45,8 @@ export class SourceConfig implements IReflection<SourceConfig> {
    * Initializes `attestationTypesMap` and `sourceId`.
    */
   initialize() {
-    this.attestationTypesMap.clear();
-    if(!this.source || this.source.length === 0) {
+    this.attestationTypesMap = new Map<string, AttestationTypeConfig>();
+    if (!this.source || this.source.length === 0) {
       throw new Error(`Unsupported source id '${this.source}'`);
     }
     this.sourceId = this.source;

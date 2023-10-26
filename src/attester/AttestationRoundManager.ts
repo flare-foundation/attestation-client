@@ -99,7 +99,7 @@ export class AttestationRoundManager {
     if (this._initialized) {
       throw new Error("AttestationRoundManager can be initialized only once");
     }
-    // initialize activeRoundId for the first time, before first load of global configuration, verifer routing configurations
+    // initialize activeRoundId for the first time, before first load of global configuration, verifier routing configurations
     this.activeRoundId = this.epochSettings.getEpochIdForTime(toBN(getTimeMs())).toNumber();
 
     // loads global configurations and initializes them for further refreshes/updates
@@ -178,8 +178,8 @@ export class AttestationRoundManager {
   }
 
   /**
-   * A callback for actions triggerd by new bit vote event.
-   * The bitvote event is registered with the correct attestation round object.
+   * A callback for actions triggered by a new bit vote event.
+   * The bit vote event is registered with the correct attestation round object.
    * @param bitVoteData
    */
   public onBitVoteEvent(bitVoteData: BitVoteData) {

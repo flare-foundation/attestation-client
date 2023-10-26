@@ -53,13 +53,13 @@ describe(`Indexer XRP ${getTestFile(__filename)})`, () => {
   });
 
   it("Should get N", function () {
-    let res = indexer.N;
+    let res = indexer.indexedHeight;
     expect(res).to.eq(0);
   });
 
   it("Should update N", function () {
-    indexer.N = 10;
-    expect(indexer.N).to.eq(10);
+    indexer.indexedHeight = 10;
+    expect(indexer.indexedHeight).to.eq(10);
   });
 
   it("Should prepare tables", () => {
@@ -153,7 +153,7 @@ describe(`Indexer XRP ${getTestFile(__filename)})`, () => {
       indexer.headerCollector = headerCollector;
       indexer.indexerSync = new IndexerSync(indexer);
       indexer.prepareTables();
-      indexer.N = 1;
+      indexer.indexedHeight = 1;
       indexer.interlace = interlacing;
 
       before(async function () {
@@ -188,7 +188,7 @@ describe(`Indexer XRP ${getTestFile(__filename)})`, () => {
         testBlock.transactions = 0;
         let res = await indexer.blockSave(testBlock, []);
         expect(res).to.be.false;
-        expect(indexer.N).to.eq(1);
+        expect(indexer.indexedHeight).to.eq(1);
       });
 
       it("Should save with transactions", async function () {
@@ -209,7 +209,7 @@ describe(`Indexer XRP ${getTestFile(__filename)})`, () => {
         const resDB = await indexer.dbService.manager.findOne(DBTransactionXRP0, { where: { blockNumber: 2 } });
 
         expect(res).to.be.true;
-        expect(indexer.N).to.eq(2);
+        expect(indexer.indexedHeight).to.eq(2);
         expect(resDB.transactionId).to.eq("5BEBD97B6F7CFF8CF1D10B7B851DF044AE3FC29F81B68BE0E01F8051CA314180");
       });
 
@@ -226,7 +226,7 @@ describe(`Indexer XRP ${getTestFile(__filename)})`, () => {
 
         expect(resDB.transactionType).to.eq("EMPTY_BLOCK_INDICATOR");
         expect(res).to.be.true;
-        expect(indexer.N).to.eq(3);
+        expect(indexer.indexedHeight).to.eq(3);
       });
 
       it("Should execute blockCompleted for block in future", async function () {
@@ -245,12 +245,12 @@ describe(`Indexer XRP ${getTestFile(__filename)})`, () => {
         const res = await indexer.blockCompleted(testBlock, [testTx]);
 
         expect(res).to.be.true;
-        expect(indexer.N).to.eq(3);
+        expect(indexer.indexedHeight).to.eq(3);
         expect(indexer.preparedBlocks.size).to.eq(1);
       });
 
       it("Should execute blockCompleted for next block in line while not waiting", async function () {
-        indexer.blockNp1hash = "RIGHTHASH";
+        indexer.nextBlockHash = "RIGHTHASH";
         const testBlock = new DBBlockXRP();
         testBlock.blockHash = "RIGHTHASH";
         testBlock.blockNumber = 4;
@@ -269,11 +269,11 @@ describe(`Indexer XRP ${getTestFile(__filename)})`, () => {
 
         expect(stub.called).to.be.true;
         expect(res).to.be.true;
-        expect(indexer.N).to.eq(3);
+        expect(indexer.indexedHeight).to.eq(3);
       });
 
       it("Should execute blockCompleted for next block in line while waiting", async function () {
-        indexer.blockNp1hash = "RIGHTHASH";
+        indexer.nextBlockHash = "RIGHTHASH";
         const testBlock = new DBBlockXRP();
         testBlock.blockHash = "RIGHTHASH";
         testBlock.blockNumber = 4;
@@ -286,7 +286,7 @@ describe(`Indexer XRP ${getTestFile(__filename)})`, () => {
         testTx.transactionId = "5BEBD97B6F7CFF8CF1D10B7B851DF044AE3FC29F81B68BE0E01F8051CA314190";
         testTx.timestamp = Date.now();
 
-        indexer.waitNp1 = true;
+        indexer.waitNextBlock = true;
 
         // const stub = sinon.stub(indexer.indexerToClient.client, "getBlock").resolves(TestBlockXRPFake);
 
@@ -294,8 +294,8 @@ describe(`Indexer XRP ${getTestFile(__filename)})`, () => {
 
         // expect(stub.called).to.be.true;
         expect(res).to.be.undefined;
-        expect(indexer.N).to.eq(4);
-        expect(indexer.waitNp1).to.be.false;
+        expect(indexer.indexedHeight).to.eq(4);
+        expect(indexer.waitNextBlock).to.be.false;
       });
 
       it("Should not execute blockAlreadyCompleted", async function () {
@@ -306,16 +306,16 @@ describe(`Indexer XRP ${getTestFile(__filename)})`, () => {
       it("Should execute blockAlreadyCompleted", async function () {
         const stub = sinon.stub(indexer.indexerToClient.client, "getFullBlock").resolves(TestBlockXRPFake);
         const block = TestBlockXRPAlt;
-        indexer.N = 28014611;
-        indexer.blockNp1hash = "08E71799B2DDEE48F12A62626508D8F879E67FB2AB90FECECE4BC82650DA7D04";
+        indexer.indexedHeight = 28014611;
+        indexer.nextBlockHash = "08E71799B2DDEE48F12A62626508D8F879E67FB2AB90FECECE4BC82650DA7D04";
         let res = await indexer.blockAlreadyCompleted(block);
         expect(res).to.be.undefined;
         expect(stub.called).to.be.true;
       });
 
       it("Should trySaveNp1Block", async function () {
-        indexer.blockNp1hash = "VeryNiceHash";
-        indexer.N = 200;
+        indexer.nextBlockHash = "VeryNiceHash";
+        indexer.indexedHeight = 200;
 
         const testBlock = new DBBlockXRP();
         testBlock.blockHash = "VeryNiceHash";
@@ -339,15 +339,15 @@ describe(`Indexer XRP ${getTestFile(__filename)})`, () => {
 
         indexer.preparedBlocks.set(201, [preparedBlock]);
 
-        const res = await indexer.trySaveNp1Block();
+        const res = await indexer.trySaveNextBlock();
 
         expect(res).to.be.true;
-        expect(indexer.N).to.eq(201);
+        expect(indexer.indexedHeight).to.eq(201);
       });
 
       it("Should trySaveNp1Block fail #1", async function () {
-        indexer.blockNp1hash = "VeryNiceHash";
-        indexer.N = 200;
+        indexer.nextBlockHash = "VeryNiceHash";
+        indexer.indexedHeight = 200;
 
         const testBlock = new DBBlockXRP();
         testBlock.blockHash = "NotVeryNiceHash";
@@ -371,20 +371,20 @@ describe(`Indexer XRP ${getTestFile(__filename)})`, () => {
 
         indexer.preparedBlocks.set(201, [preparedBlock]);
 
-        const res = await indexer.trySaveNp1Block();
+        const res = await indexer.trySaveNextBlock();
 
         expect(res).to.be.false;
-        expect(indexer.N).to.eq(200);
+        expect(indexer.indexedHeight).to.eq(200);
       });
 
       it("Should trySaveNp1Block fail #2", async function () {
-        indexer.blockNp1hash = "VeryNiceHash";
-        indexer.N = 500;
+        indexer.nextBlockHash = "VeryNiceHash";
+        indexer.indexedHeight = 500;
 
-        const res = await indexer.trySaveNp1Block();
+        const res = await indexer.trySaveNextBlock();
 
         expect(res).to.be.false;
-        expect(indexer.N).to.eq(500);
+        expect(indexer.indexedHeight).to.eq(500);
       });
 
       it("Should not be waiting for waitForNodeSynced", async function () {

@@ -100,7 +100,7 @@ export class Indexer {
       transactionCacheSize: 100000,
       blockCacheSize: 100000,
       cleanupChunkSize: 100,
-      activeLimit: 70,
+      activeLimit: 20,  //TODO: set this up
       clientConfig: {
         ...this.chainConfig.mccCreate,
         rateLimitOptions: this.chainConfig.rateLimitOptions,
@@ -716,7 +716,7 @@ export class Indexer {
       let blockNp1 = await this.indexerToClient.getBlockFromClient(`runIndexer2`, this.N + 1);
 
       // has N+1 confirmation block
-      const isNp1Confirmed = this.N < this.T - this.chainConfig.numberOfConfirmations;
+      const isNp1Confirmed = this.N <= this.T - this.chainConfig.numberOfConfirmations;
       const isChangedNp1Hash = this.blockNp1hash !== blockNp1.stdBlockHash;
 
       // update status for logging

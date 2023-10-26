@@ -28,3 +28,22 @@ export class VerifierConfigurationService {
     this._initialized = true;
   }
 }
+
+export class ExternalDBVerifierConfigurationService {
+  config: VerifierServerConfig;
+  verifierType = process.env.VERIFIER_TYPE ? process.env.VERIFIER_TYPE : "vpws";
+  _initialized = false;
+
+  constructor() {
+    let chainType = MCC.getChainType(this.verifierType.toUpperCase());
+    if (chainType === ChainType.invalid) {
+      throw new Error(`Unsupported verifier type '${this.verifierType}'`);
+    }
+  }
+
+  async initialize() {
+    if (this._initialized) return;
+    this.config = await readSecureConfig(new VerifierServerConfig(), `verifier-server/${this.verifierType}-verifier`);
+    this._initialized = true;
+  }
+}

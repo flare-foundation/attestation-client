@@ -3,16 +3,13 @@ import { assert } from "chai";
 import { DataSource, DataSourceOptions } from "typeorm";
 import { DBBlockBase, DBBlockXRP } from "../../src/entity/indexer/dbBlock";
 import { DBTransactionBase, DBTransactionXRP0 } from "../../src/entity/indexer/dbTransaction";
-import { IndexedQueryManagerOptions } from "../../src/indexed-query-manager/indexed-query-manager-types";
 import { IndexedQueryManager } from "../../src/indexed-query-manager/IndexedQueryManager";
+import { IndexedQueryManagerOptions } from "../../src/indexed-query-manager/indexed-query-manager-types";
 import { createTypeOrmOptions } from "../../src/servers/verifier-server/src/utils/db-config";
 import { getUnixEpochTimestamp } from "../../src/utils/helpers/utils";
-import { SourceId } from "../../src/verification/sources/sources";
 import { getTestFile } from "../test-utils/test-utils";
-import { generateTestIndexerDB, selectBlock, selectedReferencedTx, ZERO_PAYMENT_REFERENCE } from "./utils/indexerTestDataGenerator";
+import { ZERO_PAYMENT_REFERENCE, generateTestIndexerDB, selectBlock, selectedReferencedTx } from "./utils/indexerTestDataGenerator";
 
-// XRP
-const SOURCE_ID = SourceId.XRP;
 // To setup the correct entities in the database
 
 const NUMBER_OF_CONFIRMATIONS = 1;
@@ -59,7 +56,7 @@ describe(`Indexed query manager (${getTestFile(__filename)})`, () => {
 
     const options: IndexedQueryManagerOptions = {
       entityManager: dataSource.manager,
-      chainType: SOURCE_ID as any as ChainType,
+      chainType: CHAIN_TYPE,
       numberOfConfirmations: () => {
         return NUMBER_OF_CONFIRMATIONS;
       },
@@ -87,30 +84,15 @@ describe(`Indexed query manager (${getTestFile(__filename)})`, () => {
     assert(response.height === LAST_BLOCK);
   });
 
-  it("Should get the correct block greater or equal to timestamp", async () => {
-    const timestamp = selectedBlock.timestamp - 20;
-    let tmpBlock = await indexedQueryManager.getFirstConfirmedBlockAfterTime(timestamp);
-    let currentBlockNumber = tmpBlock.blockNumber;
-    while (currentBlockNumber < selectedBlock.blockNumber) {
-      const tmpBlockQueryResult = await indexedQueryManager.queryBlock({
-        blockNumber: currentBlockNumber,
-        confirmed: true,
-      });
-      tmpBlock = tmpBlockQueryResult.result;
-      assert(tmpBlock.timestamp < selectedBlock.timestamp);
-      currentBlockNumber++;
-    }
-  });
-
   it("Should get the correct block overflow block", async () => {
     const timestamp = selectedBlock.timestamp;
-    const tmpBlock = await indexedQueryManager.getFirstConfirmedOverflowBlock(timestamp, selectedBlock.blockNumber);
+    const tmpBlock = await (indexedQueryManager as any).getFirstConfirmedOverflowBlock(timestamp, selectedBlock.blockNumber);
     assert((tmpBlock.blockNumber = selectedBlock.blockNumber + 1));
-    const tmpBlock2 = await indexedQueryManager.getFirstConfirmedOverflowBlock(timestamp, selectedBlock.blockNumber + 2);
+    const tmpBlock2 = await (indexedQueryManager as any).getFirstConfirmedOverflowBlock(timestamp, selectedBlock.blockNumber + 2);
     assert((tmpBlock2.blockNumber = selectedBlock.blockNumber + 3));
 
     const targetTime = timestamp + 20;
-    const tmpBlock3 = await indexedQueryManager.getFirstConfirmedOverflowBlock(targetTime, selectedBlock.blockNumber);
+    const tmpBlock3 = await (indexedQueryManager as any).getFirstConfirmedOverflowBlock(targetTime, selectedBlock.blockNumber);
     let currentBlockNumber = selectedBlock.blockNumber + 1;
     assert(tmpBlock3.blockNumber > selectedBlock.blockNumber && tmpBlock3.timestamp > targetTime);
     let currentBlockQueryResult = await indexedQueryManager.queryBlock({

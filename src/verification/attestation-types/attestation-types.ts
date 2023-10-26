@@ -1,5 +1,4 @@
-import BN from "bn.js";
-import { SourceId } from "../sources/sources";
+import { AttestationResponseStatus } from "../../external-libs/AttestationResponse";
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 // Verification status
@@ -80,140 +79,30 @@ export function getSummarizedVerificationStatus(status: VerificationStatus): Sum
   ((_: never): void => {})(status);
 }
 
-/**
- * DTO Object returned after attestation request verification.
- * If status is 'OK' then parameters @param hash, @param request and @param response appear
- * in the full response.
- */
-export class Verification<R, T> {
-  /**
-   * Hash of the attestation as included in Merkle tree.
-   */
-  hash?: string;
-  /**
-   * Parsed attestation request.
-   */
-  request?: R;
-  /**
-   * Attestation response.
-   */
-  response?: T;
-  /**
-   * Verification status.
-   */
-  status!: VerificationStatus;
+export function getAttestationStatus(status: VerificationStatus): AttestationResponseStatus {
+  switch (status) {
+    case VerificationStatus.OK:
+      return AttestationResponseStatus.VALID;
+    case VerificationStatus.DATA_AVAILABILITY_ISSUE:
+    case VerificationStatus.NEEDS_MORE_CHECKS:
+    case VerificationStatus.SYSTEM_FAILURE:
+    case VerificationStatus.NON_EXISTENT_BLOCK:
+      return AttestationResponseStatus.INDETERMINATE;
+    case VerificationStatus.NOT_CONFIRMED:
+    case VerificationStatus.NON_EXISTENT_TRANSACTION:
+    case VerificationStatus.NOT_PAYMENT:
+    case VerificationStatus.REFERENCED_TRANSACTION_EXISTS:
+    case VerificationStatus.ZERO_PAYMENT_REFERENCE_UNSUPPORTED:
+    case VerificationStatus.NOT_STANDARD_PAYMENT_REFERENCE:
+    case VerificationStatus.PAYMENT_SUMMARY_ERROR:
+      return AttestationResponseStatus.INVALID;
+  }
+  // exhaustive switch guard: if a compile time error appears here, you have forgotten one of the cases
+  ((_: never): void => {})(status);
 }
+
 
 export interface WeightedRandomChoice<T> {
   name: T;
   weight: number;
 }
-//////////////////////////////////////////////////////////////////////////////////////////////////////
-// Encoding schemes
-//////////////////////////////////////////////////////////////////////////////////////////////////////
-
-export const ATT_BYTES = 2;
-export const SOURCE_ID_BYTES = 4;
-export const UTXO_BYTES = 1;
-export const IN_UTXO_BYTES = 32;
-export const BLOCKNUMBER_BYTES = 4;
-export const TIMESTAMP_BYTES = 4;
-export const TIME_DURATION_BYTES = 4;
-export const AMOUNT_BYTES = 16;
-export const TX_ID_BYTES = 32;
-export const MIC_BYTES = 32;
-export const SOURCE_ADDRESS_KEY_BYTES = 32;
-export const SOURCE_ADDRESS_CHEKSUM_BYTES = 4;
-export const PAYMENT_REFERENCE_BYTES = 32;
-export const XRP_ACCOUNT_BYTES = 20;
-
-export type NumberLike = number | BN | string;
-export type ByteSequenceLike = string;
-
-export type SupportedSolidityType =
-  | "uint8"
-  | "uint16"
-  | "uint32"
-  | "uint64"
-  | "uint128"
-  | "uint256"
-  | "int256"
-  | "bytes4"
-  | "bytes32"
-  | "bytes20"
-  | "bool"
-  | "string";
-export type SupportedRequestType = "ByteSequenceLike" | "NumberLike" | "AttestationType" | "SourceId";
-export interface AttestationRequestScheme {
-  key: string;
-  size: number;
-  type: SupportedRequestType;
-  description?: string;
-}
-
-export interface DataHashScheme {
-  key: string;
-  type: SupportedSolidityType;
-  description: string;
-  tsType?: string;
-}
-export interface AttestationTypeScheme {
-  id: number;
-  supportedSources: SourceId[];
-  name: string;
-  request: AttestationRequestScheme[];
-  dataHashDefinition: DataHashScheme[];
-}
-export class AttestationRequest {
-  /**
-   * Attestation request in hex string representing byte sequence as submitted to State Connector smart contract.
-   */
-  request!: string;
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////
-// Message integrity code
-//////////////////////////////////////////////////////////////////////////////////////////////////////
-export const MIC_SALT = "Flare";
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////
-// Request base
-//////////////////////////////////////////////////////////////////////////////////////////////////////
-export const REQUEST_BASE_DEFINITIONS: AttestationRequestScheme[] = [
-  {
-    key: "attestationType",
-    size: ATT_BYTES,
-    type: "AttestationType",
-    description: `
-Attestation type id for this request, see 'AttestationType' enum.
-`,
-  },
-  {
-    key: "sourceId",
-    size: SOURCE_ID_BYTES,
-    type: "SourceId",
-    description: `
-The ID of the underlying chain, see 'SourceId' enum.
-`,
-  },
-  {
-    key: "messageIntegrityCode",
-    size: MIC_BYTES,
-    type: "ByteSequenceLike",
-    description: `
-The hash of the expected attestation response appended by string 'Flare'. Used to verify consistency of the attestation response against the anticipated result, thus preventing wrong (forms of) attestations.
-`,
-  },
-];
-
-export const STATE_CONNECTOR_ROUND_KEY = "stateConnectorRound";
-export const RESPONSE_BASE_DEFINITIONS: DataHashScheme[] = [
-  {
-    key: STATE_CONNECTOR_ROUND_KEY,
-    type: "uint256",
-    tsType: "number",
-    description: `
-Round id in which the attestation request was validated.
-`,
-  },
-];

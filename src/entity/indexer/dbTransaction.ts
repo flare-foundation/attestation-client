@@ -1,6 +1,7 @@
 import { Column, Entity, Index } from "typeorm";
 import { decompressBin } from "../../utils/compression/compression";
 import { BaseEntity } from "../base/BaseEntity";
+import { getGlobalLogger } from "../../utils/logging/logger";
 
 /**
  * Format for storing transaction data in indexer database
@@ -23,8 +24,22 @@ export class DBTransactionBase extends BaseEntity {
   @Column({ type: "varchar", length: 64 }) @Index() transactionType: string = "";
 
   public getResponse(): string {
-    return decompressBin(this.response);
+    try {
+      if (this.transactionType == "EMPTY_BLOCK_INDICATOR") {
+        return "{}";
+      }
+      if (this.response.length == 0) {
+        return "{}";
+      }
+      return decompressBin(this.response);
+    } catch (error) {
+      getGlobalLogger().exception(`Failed to decompress transaction response: ${error}`);
+    }
   }
+
+  // public getResponse(): string {
+  //   return decompressBin(this.response);
+  // }
 }
 
 export type IDBTransactionBase = new () => DBTransactionBase;

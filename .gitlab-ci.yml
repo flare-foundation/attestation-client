@@ -2,14 +2,28 @@ stages:
 - build
 - test
 
+workflow:
+  rules:
+    - if: '$CI_OPEN_MERGE_REQUESTS != null && ($CI_PIPELINE_SOURCE == "push" || $CI_PIPELINE_SOURCE == "webide")'
+      when: never
+    - when: always
+
+
 default:
   tags:
   - flarenetwork
 
 
 
-
-
+build-project:
+  stage: build
+  needs: []
+  image: node:16
+  before_script:
+  - yarn install --frozen-lockfile
+  - yarn c
+  script:
+  - yarn build
 
 # Using https://gitplac.si/cts/build-oci
 build-container:
@@ -49,6 +63,7 @@ test-coverage:
     NODE_ENV: development
   before_script:
   - yarn install --frozen-lockfile > /dev/null
+  - yarn c
   script:
   - yarn run test:coverage
   after_script:

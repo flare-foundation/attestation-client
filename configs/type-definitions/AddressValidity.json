@@ -1,0 +1,307 @@
+{
+  "name": "AddressValidity",
+  "fullComment": " @custom:name AddressValidity\n @custom:id 0x05\n @custom:supported BTC, DOGE, XRP\n @author Flare\n @notice The purpose of this type is to assert that the string represents a valid address on an external chain.\n @custom:verification The address is checked against all validity criteria of the chain with `sourceId`.\n Validity criteria for each supported chain:\n - [BTC](/specs/attestations/external-chains/address-validity/BTC.md)\n - [DOGE](/specs/attestations/external-chains/address-validity/DOGE.md)\n - [XRPL](/specs/attestations/external-chains/address-validity/XRPL.md)\n - [Ethereum](/specs/attestations/external-chains/address-validity/ETH.md)\n @custom:lut 0xffffffffffffffff $(2^{64}-1$ in hex$",
+  "description": "The purpose of this type is to assert that the string represents a valid address on an external chain.",
+  "supported": [
+    "BTC",
+    "DOGE",
+    "XRP"
+  ],
+  "verification": "The address is checked against all validity criteria of the chain with `sourceId`.\n Validity criteria for each supported chain:\n - [BTC](/specs/attestations/external-chains/address-validity/BTC.md)\n - [DOGE](/specs/attestations/external-chains/address-validity/DOGE.md)\n - [XRPL](/specs/attestations/external-chains/address-validity/XRPL.md)\n - [Ethereum](/specs/attestations/external-chains/address-validity/ETH.md)",
+  "lut": "0xffffffffffffffff $(2^{64}-1$ in hex$",
+  "proof": {
+    "name": "Proof",
+    "description": "Toplevel proof",
+    "above": "",
+    "below": "",
+    "fullComment": " @notice Toplevel proof\n @param merkleProof Merkle proof corresponding to the attestation response.\n @param data Attestation response.",
+    "params": [
+      {
+        "name": "merkleProof",
+        "type": "bytes32[]",
+        "typeSimple": "bytes32[]",
+        "comment": "Merkle proof corresponding to the attestation response."
+      },
+      {
+        "name": "data",
+        "type": "struct AddressValidity.Response",
+        "typeSimple": "Response",
+        "comment": "Attestation response."
+      }
+    ]
+  },
+  "request": {
+    "name": "Request",
+    "description": "Toplevel request",
+    "above": "",
+    "below": "",
+    "fullComment": " @notice Toplevel request\n @param attestationType Attestation type id as defined for each attestation type on [this repo](https://gitlab.com/flarenetwork/state-connector-protocol/)\n @param sourceId Id of the data source.\n @param messageIntegrityCode `MessageIntegrityCode` that is derived from the expected response as defined [here](/specs/attestations/hash-MIC.md#message-integrity-code).\n @param requestBody Data defining the request. Type (struct) and interpretation is determined by the `attestationType`.",
+    "params": [
+      {
+        "name": "attestationType",
+        "type": "bytes32",
+        "typeSimple": "bytes32",
+        "comment": "Attestation type id as defined for each attestation type on [this repo](https://gitlab.com/flarenetwork/state-connector-protocol/)"
+      },
+      {
+        "name": "sourceId",
+        "type": "bytes32",
+        "typeSimple": "bytes32",
+        "comment": "Id of the data source."
+      },
+      {
+        "name": "messageIntegrityCode",
+        "type": "bytes32",
+        "typeSimple": "bytes32",
+        "comment": "`MessageIntegrityCode` that is derived from the expected response as defined [here](/specs/attestations/hash-MIC.md#message-integrity-code)."
+      },
+      {
+        "name": "requestBody",
+        "type": "struct AddressValidity.RequestBody",
+        "typeSimple": "RequestBody",
+        "comment": "Data defining the request. Type (struct) and interpretation is determined by the `attestationType`."
+      }
+    ]
+  },
+  "response": {
+    "name": "Response",
+    "description": "Toplevel response",
+    "above": "",
+    "below": "",
+    "fullComment": " @notice Toplevel response\n @param attestationType Extracted from the request.\n @param sourceId Extracted from the request.\n @param votingRound The id of the state connector round in which the request was considered.\n @param lowestUsedTimestamp The lowest timestamp used to generate the response.\n @param requestBody Extracted from the request.\n @param responseBody Data defining the response. The verification rules for the construction of the response body and the type are defined per specific `attestationType`.",
+    "params": [
+      {
+        "name": "attestationType",
+        "type": "bytes32",
+        "typeSimple": "bytes32",
+        "comment": "Extracted from the request."
+      },
+      {
+        "name": "sourceId",
+        "type": "bytes32",
+        "typeSimple": "bytes32",
+        "comment": "Extracted from the request."
+      },
+      {
+        "name": "votingRound",
+        "type": "uint64",
+        "typeSimple": "uint64",
+        "comment": "The id of the state connector round in which the request was considered."
+      },
+      {
+        "name": "lowestUsedTimestamp",
+        "type": "uint64",
+        "typeSimple": "uint64",
+        "comment": "The lowest timestamp used to generate the response."
+      },
+      {
+        "name": "requestBody",
+        "type": "struct AddressValidity.RequestBody",
+        "typeSimple": "RequestBody",
+        "comment": "Extracted from the request."
+      },
+      {
+        "name": "responseBody",
+        "type": "struct AddressValidity.ResponseBody",
+        "typeSimple": "ResponseBody",
+        "comment": "Data defining the response. The verification rules for the construction of the response body and the type are defined per specific `attestationType`."
+      }
+    ]
+  },
+  "requestBody": {
+    "name": "RequestBody",
+    "description": "Request body for AddressValidity attestation type",
+    "above": "",
+    "below": "",
+    "fullComment": " @notice Request body for AddressValidity attestation type\n @param addressStr Address to be verified.",
+    "params": [
+      {
+        "name": "addressStr",
+        "type": "string",
+        "typeSimple": "string",
+        "comment": "Address to be verified."
+      }
+    ]
+  },
+  "responseBody": {
+    "name": "ResponseBody",
+    "description": "Response body for AddressValidity attestation type",
+    "above": "",
+    "below": "",
+    "fullComment": " @notice Response body for AddressValidity attestation type\n @param standardAddress Standard form of the validated address.\n @param standardAddressHash Standard address hash of the validated address.",
+    "params": [
+      {
+        "name": "standardAddress",
+        "type": "string",
+        "typeSimple": "string",
+        "comment": "Standard form of the validated address."
+      },
+      {
+        "name": "standardAddressHash",
+        "type": "bytes32",
+        "typeSimple": "bytes32",
+        "comment": "Standard address hash of the validated address."
+      }
+    ]
+  },
+  "requestStructs": [],
+  "responseStructs": [],
+  "requestAbi": {
+    "components": [
+      {
+        "internalType": "bytes32",
+        "name": "attestationType",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "sourceId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "messageIntegrityCode",
+        "type": "bytes32"
+      },
+      {
+        "components": [
+          {
+            "internalType": "string",
+            "name": "addressStr",
+            "type": "string"
+          }
+        ],
+        "internalType": "struct AddressValidity.RequestBody",
+        "name": "requestBody",
+        "type": "tuple"
+      }
+    ],
+    "internalType": "struct AddressValidity.Request",
+    "name": "_request",
+    "type": "tuple"
+  },
+  "responseAbi": {
+    "components": [
+      {
+        "internalType": "bytes32",
+        "name": "attestationType",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "sourceId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "uint64",
+        "name": "votingRound",
+        "type": "uint64"
+      },
+      {
+        "internalType": "uint64",
+        "name": "lowestUsedTimestamp",
+        "type": "uint64"
+      },
+      {
+        "components": [
+          {
+            "internalType": "string",
+            "name": "addressStr",
+            "type": "string"
+          }
+        ],
+        "internalType": "struct AddressValidity.RequestBody",
+        "name": "requestBody",
+        "type": "tuple"
+      },
+      {
+        "components": [
+          {
+            "internalType": "string",
+            "name": "standardAddress",
+            "type": "string"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "standardAddressHash",
+            "type": "bytes32"
+          }
+        ],
+        "internalType": "struct AddressValidity.ResponseBody",
+        "name": "responseBody",
+        "type": "tuple"
+      }
+    ],
+    "internalType": "struct AddressValidity.Response",
+    "name": "_response",
+    "type": "tuple"
+  },
+  "proofAbi": {
+    "components": [
+      {
+        "internalType": "bytes32[]",
+        "name": "merkleProof",
+        "type": "bytes32[]"
+      },
+      {
+        "components": [
+          {
+            "internalType": "bytes32",
+            "name": "attestationType",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "sourceId",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "uint64",
+            "name": "votingRound",
+            "type": "uint64"
+          },
+          {
+            "internalType": "uint64",
+            "name": "lowestUsedTimestamp",
+            "type": "uint64"
+          },
+          {
+            "components": [
+              {
+                "internalType": "string",
+                "name": "addressStr",
+                "type": "string"
+              }
+            ],
+            "internalType": "struct AddressValidity.RequestBody",
+            "name": "requestBody",
+            "type": "tuple"
+          },
+          {
+            "components": [
+              {
+                "internalType": "string",
+                "name": "standardAddress",
+                "type": "string"
+              },
+              {
+                "internalType": "bytes32",
+                "name": "standardAddressHash",
+                "type": "bytes32"
+              }
+            ],
+            "internalType": "struct AddressValidity.ResponseBody",
+            "name": "responseBody",
+            "type": "tuple"
+          }
+        ],
+        "internalType": "struct AddressValidity.Response",
+        "name": "data",
+        "type": "tuple"
+      }
+    ],
+    "internalType": "struct AddressValidity.Proof",
+    "name": "_proof",
+    "type": "tuple"
+  }
+}

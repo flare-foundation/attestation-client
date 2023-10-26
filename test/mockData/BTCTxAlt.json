@@ -10,21 +10,51 @@
     {
       "txid": "7924b96c28af10e93a3f851dcfbacba75be1ec845a9d1d50893fa86c7479ef59",
       "vout": 23,
-      "scriptSig": { "asm": "", "hex": "" },
+      "scriptSig": {
+        "asm": "",
+        "hex": ""
+      },
       "txinwitness": [
         "304402201fe44b990250dbe198d6eb42bcca9a9052da7b24ce72dc1adc57f15dd0f23ba9022050bb5f1bbde9bd80e48155855ada417d88b64e20730dcc6a02c67a937a80a0c501",
         "027e14768a039c4947fef58a5af56c2ba90710a765c370c64b99735491c3b656b8"
       ],
+      "prevout": {
+        "generated": false,
+        "height": 763200,
+        "value": 0.04724963,
+        "scriptPubKey": {
+          "asm": "0 ea73184d57d2780760b9a7cb2aa854acaac5ce12",
+          "desc": "addr(bc1qafe3sn2h6fuqwc9e5l9j42z54j4vtnsjqw837z)#h2lhuwts",
+          "hex": "0014ea73184d57d2780760b9a7cb2aa854acaac5ce12",
+          "address": "bc1qafe3sn2h6fuqwc9e5l9j42z54j4vtnsjqw837z",
+          "type": "witness_v0_keyhash"
+        }
+      },
       "sequence": 4294967295
     },
     {
       "txid": "2b1c6be2969d0ec80ab0666e7cb831af4a787e8e1a11b8d6a38d64428a8e81d6",
       "vout": 0,
-      "scriptSig": { "asm": "", "hex": "" },
+      "scriptSig": {
+        "asm": "",
+        "hex": ""
+      },
       "txinwitness": [
         "30450221009883ee6458de1930fd7af4b541db20ec7636b4eccf1718ff4e16396104e02e6602201918149ab453f6c6ae1f17e7daedbb7d8386226144e40a2fd3597fe58a27a7f701",
         "027e14768a039c4947fef58a5af56c2ba90710a765c370c64b99735491c3b656b8"
       ],
+      "prevout": {
+        "generated": false,
+        "height": 763377,
+        "value": 0.00236541,
+        "scriptPubKey": {
+          "asm": "0 ea73184d57d2780760b9a7cb2aa854acaac5ce12",
+          "desc": "addr(bc1qafe3sn2h6fuqwc9e5l9j42z54j4vtnsjqw837z)#h2lhuwts",
+          "hex": "0014ea73184d57d2780760b9a7cb2aa854acaac5ce12",
+          "address": "bc1qafe3sn2h6fuqwc9e5l9j42z54j4vtnsjqw837z",
+          "type": "witness_v0_keyhash"
+        }
+      },
       "sequence": 4294967295
     }
   ],
@@ -52,9 +82,10 @@
       }
     }
   ],
+  "fee": 0.00006615,
   "hex": "0200000000010259ef79746ca83f89501d9d5a84ece15ba7cbbacf1d853f3ae910af286cb924791700000000ffffffffd6818e8a42648da3d6b8111a8e7e784aaf31b87c6e66b00ac80e9d96e26b1c2b0000000000ffffffff0275e14a000000000017a914d755f1691e8056ef6878ce2df09ec78ea73018738794b9000000000000160014ea73184d57d2780760b9a7cb2aa854acaac5ce120247304402201fe44b990250dbe198d6eb42bcca9a9052da7b24ce72dc1adc57f15dd0f23ba9022050bb5f1bbde9bd80e48155855ada417d88b64e20730dcc6a02c67a937a80a0c50121027e14768a039c4947fef58a5af56c2ba90710a765c370c64b99735491c3b656b8024830450221009883ee6458de1930fd7af4b541db20ec7636b4eccf1718ff4e16396104e02e6602201918149ab453f6c6ae1f17e7daedbb7d8386226144e40a2fd3597fe58a27a7f70121027e14768a039c4947fef58a5af56c2ba90710a765c370c64b99735491c3b656b800000000",
   "blockhash": "0000000000000000000163416b1eb2d2a4c0e4636a6681806528c89e52778106",
-  "confirmations": 42,
+  "confirmations": 49682,
   "time": 1668574798,
   "blocktime": 1668574798
 }

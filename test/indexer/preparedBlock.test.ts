@@ -19,12 +19,8 @@ describe(`PreparedBlock, (${getTestFile(__filename)})`, function () {
   let augTx1: DBTransactionBase;
   const augBlock = augmentBlock(DBBlockBTC, block);
   before(async () => {
-    const waitTx = async (tx) => {
-      return tx;
-    };
-
-    augTx0 = await augmentTransactionUtxo(DBTransactionBTC0, ChainType.BTC, block, waitTx(tx));
-    augTx1 = await augmentTransactionUtxo(DBTransactionBTC1, ChainType.BTC, block, waitTx(tx));
+    augTx0 = augmentTransactionUtxo(DBTransactionBTC0, ChainType.BTC, block, tx);
+    augTx1 = augmentTransactionUtxo(DBTransactionBTC1, ChainType.BTC, block, tx);
   });
 
   it("Should construct preparedBlock", function () {

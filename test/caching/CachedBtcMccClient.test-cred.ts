@@ -38,7 +38,7 @@ describe("CachedClient", () => {
     clientConfig: BtcMccConnection,
   };
   const cachedClient = new CachedMccClient(ChainType.BTC, cachedMccClientOptionsFull);
-  let txs = new Array<TransactionBase>();
+  let txs = new Array<TransactionBase<any>>();
   before(async () => {
     for (let j = 0; j < 6; j++) {
       let tx = await cachedClient.getTransaction(txIds[j]);
@@ -70,7 +70,7 @@ describe.skip("blockCacheSize=0 or other false", () => {
   };
   cachedMccClientOptionsFull.blockCacheSize = 0;
   const cachedClient2 = new CachedMccClient(ChainType.BTC, cachedMccClientOptionsFull2);
-  let txs = new Array<TransactionBase>();
+  let txs = new Array<TransactionBase<any>>();
   before(async () => {
     for (let j = 0; j < 6; j++) {
       let tx = await cachedClient2.getTransaction(txIds[j]);

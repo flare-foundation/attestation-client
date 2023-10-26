@@ -1,16 +1,13 @@
 import { MccClient, toBN } from "@flarenetwork/mcc";
-import { DBBlockBase } from "../../entity/indexer/dbBlock";
+import { AttestationDefinitionStore } from "../../external-libs/AttestationDefinitionStore";
+import { MIC_SALT, ZERO_BYTES_32, encodeAttestationName } from "../../external-libs/utils";
+import { ConfirmedBlockHeightExists_Request } from "../../servers/verifier-server/src/dtos/attestation-types/ConfirmedBlockHeightExists.dto";
+import { verifyConfirmedBlockHeightExists } from "../../servers/verifier-server/src/verification/generic-chain-verifications";
 import { AttLogger } from "../../utils/logging/logger";
-import { AttestationDefinitionStore } from "../../verification/attestation-types/AttestationDefinitionStore";
-import { MIC_SALT, WeightedRandomChoice } from "../../verification/attestation-types/attestation-types";
+import { WeightedRandomChoice } from "../../verification/attestation-types/attestation-types";
 import { randomWeightedChoice } from "../../verification/attestation-types/attestation-types-helpers";
-import { DHConfirmedBlockHeightExists } from "../../verification/generated/attestation-hash-types";
-import { ARConfirmedBlockHeightExists } from "../../verification/generated/attestation-request-types";
-import { AttestationType } from "../../verification/generated/attestation-types-enum";
-import { SourceId } from "../../verification/sources/sources";
-import { verifyAttestation } from "../../verification/verifiers/verifier_routing";
-import { IndexedQueryManager } from "../IndexedQueryManager";
-import { createTestAttestationFromRequest } from "./random-ar";
+import { IIndexedQueryManager } from "../IIndexedQueryManager";
+import { BlockResult } from "../indexed-query-manager-types";
 
 /////////////////////////////////////////////////////////////////
 // Specific random attestation request generators for
@@ -27,13 +24,14 @@ const RANDOM_OPTIONS_CONFIRMED_BLOCK_HEIGHT_EXISTS = [
 export async function prepareRandomizedRequestConfirmedBlockHeightExists(
   defStore: AttestationDefinitionStore,
   logger: AttLogger,
-  indexedQueryManager: IndexedQueryManager,
-  randomBlock: DBBlockBase,
-  sourceId: SourceId,
+  indexedQueryManager: IIndexedQueryManager,
+  randomBlock: BlockResult,
+  sourceId: string,
+  TransactionClass: new (...args: any[]) => any,
   enforcedChoice?: RandomConfirmedBlockHeightExistsChoiceType,
   client?: MccClient,
   queryWindow = 100
-): Promise<ARConfirmedBlockHeightExists | null> {
+): Promise<ConfirmedBlockHeightExists_Request | null> {
   if (!randomBlock) {
     return null;
   }
@@ -48,21 +46,21 @@ export async function prepareRandomizedRequestConfirmedBlockHeightExists(
 
   const blockNumber = toBN(randomBlock.blockNumber);
   const request = {
-    attestationType: AttestationType.ConfirmedBlockHeightExists,
+    attestationType: encodeAttestationName("ConfirmedBlockHeightExists"),
     sourceId,
-    messageIntegrityCode: "0x0000000000000000000000000000000000000000000000000000000000000000", // TODO change
-    blockNumber,
-    queryWindow,
-  } as ARConfirmedBlockHeightExists;
+    messageIntegrityCode: ZERO_BYTES_32,
+    requestBody: {
+      blockNumber: blockNumber.toString(),
+      queryWindow: queryWindow.toString(),
+    }
+  } as ConfirmedBlockHeightExists_Request;
   if (choice === "WRONG_MIC") {
     return request;
   }
-  let attestation = createTestAttestationFromRequest(defStore, request, 0, logger);
   try {
-    let response = await verifyAttestation(defStore, client, attestation, indexedQueryManager);
-    // augment with message integrity code
+    let response = await verifyConfirmedBlockHeightExists(request, indexedQueryManager);    
     if (response.status === "OK") {
-      request.messageIntegrityCode = defStore.dataHash(request, response.response as DHConfirmedBlockHeightExists, MIC_SALT);
+      request.messageIntegrityCode = defStore.attestationResponseHash(response.response, MIC_SALT);
       logger.info(`Request augmented correctly (ConfirmedBlockHeightExists)`);
       return request;
     }

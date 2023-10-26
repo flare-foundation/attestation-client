@@ -247,13 +247,14 @@ export class SourceManager {
           // const originalRequest = getAttestationTypeAndSource(attestation.data.request);
           const requestPrefix = AttestationDefinitionStore.extractPrefixFromRequest(attestation.data.request);
           const micOk =
-            requestPrefix.messageIntegrityCode.toLowerCase() === this.globalConfigManager.definitionStore.attestationResponseHash(verification.response, MIC_SALT).toLowerCase();
+            requestPrefix.messageIntegrityCode.toLowerCase() ===
+            this.globalConfigManager.definitionStore.attestationResponseHash(verification.response, MIC_SALT).toLowerCase();
           if (micOk) {
             // augment the attestation response with the round id
             verification.response.votingRound = attestation.roundId.toString();
             // calculate the correct hash, with given roundId
             const hash = this.globalConfigManager.definitionStore.attestationResponseHash(verification.response);
-            
+
             // verify that the request bodies match
             const actualRequest = this.globalConfigManager.definitionStore.parseRequest(attestation.data.request);
 
@@ -266,12 +267,12 @@ export class SourceManager {
               if (encodedReconstructedRequest.toLowerCase() !== attestation.data.request.toLowerCase()) {
                 this.logger.error2(`${this.label} MISMATCH REQUEST BODY for ${attestation.data.request}`);
                 this.onProcessed(attestation, AttestationStatus.invalid, verification);
-                return;              
+                return;
               }
-            } catch(error) {
-              this.logger.error2(`${this.label} UNPARSABLE RECONSTRUCTED REQUEST for ${attestation.data.request}`);
+            } catch (error) {
+              this.logger.error2(`${this.label} UNPARSABLE RECONSTRUCTED REQUEST for ${attestation.data.request}, reconstructed ${reconstructedRequest}`);
               this.onProcessed(attestation, AttestationStatus.invalid, verification);
-              return;            
+              return;
             }
 
             // Everything is OK

@@ -5,13 +5,14 @@ import { chooseCandidate, countOnes, prefix0x, unPrefix0x } from "../choose-subs
 import { DBAttestationRequest } from "../entity/attester/dbAttestationRequest";
 import { DBVotingRoundResult } from "../entity/attester/dbVotingRoundResult";
 import { MerkleTree, commitHash } from "../external-libs/MerkleTree";
+import { serializeBigInts } from "../external-libs/utils";
 import { criticalAsync } from "../indexer/indexer-utils";
 import { getCryptoSafeRandom } from "../utils/helpers/crypto-utils";
 import { getTimeMs } from "../utils/helpers/internetTime";
 import { retry } from "../utils/helpers/promiseTimeout";
 import { prepareString } from "../utils/helpers/utils";
 import { AttLogger, logException } from "../utils/logging/logger";
-import { hexlifyBN, toHex } from "../verification/attestation-types/attestation-types-helpers";
+import { toHex } from "../verification/attestation-types/attestation-types-helpers";
 import { Attestation } from "./Attestation";
 import { AttestationData } from "./AttestationData";
 import { AttesterState } from "./AttesterState";
@@ -557,8 +558,10 @@ export class AttestationRound {
       dbVoteResult.roundId = this.roundId;
       dbVoteResult.hash = voteHash;
       dbVoteResult.requestBytes = validAttestation.data.request;
-      dbVoteResult.request = stringify(validAttestation.verificationData?.response?.request ? hexlifyBN(validAttestation.verificationData.response.request) : "");
-      dbVoteResult.response = stringify(validAttestation.verificationData?.response ? hexlifyBN(validAttestation.verificationData.response) : "");
+      dbVoteResult.request = stringify(
+        validAttestation.verificationData?.response?.request ? serializeBigInts(validAttestation.verificationData.response.request) : ""
+      );
+      dbVoteResult.response = stringify(validAttestation.verificationData?.response ? serializeBigInts(validAttestation.verificationData.response) : "");
     }
 
     // save to DB

@@ -1,19 +1,16 @@
 import { Body, Controller, Get, HttpCode, Param, ParseIntPipe, Post } from "@nestjs/common";
-import { ApiExtraModels, ApiTags } from "@nestjs/swagger";
+import { ApiTags } from "@nestjs/swagger";
 import { getGlobalLogger } from "../../../../utils/logging/logger";
-import { ApiResponseWrapper, ApiResStatusEnum, handleApiResponse } from "../../../common/src";
+import { ApiResStatusEnum, ApiResponseWrapper, handleApiResponse } from "../../../common/src";
 import { ApiResponseWrapperDec } from "../../../common/src/utils/open-api-utils";
 import { SpecificProofRequest } from "../dtos/SpecificProofRequest.dto";
 import { SystemStatus } from "../dtos/SystemStatus.dto";
 import { VotingRoundRequest } from "../dtos/VotingRoundRequest.dto";
 import { VotingRoundResult } from "../dtos/VotingRoundResult.dto";
-import { DHTypeArray } from "../dtos/w-hash-types.dto";
-import { ARTypeArray } from "../dtos/w-request-types.dto";
 import { ProofEngineService } from "../services/proof-engine.service";
 
 @ApiTags("Proof")
 @Controller("api/proof")
-@ApiExtraModels(...ARTypeArray, ...DHTypeArray)
 export class ProofController {
   logger = getGlobalLogger();
   constructor(private proofEngine: ProofEngineService) {}

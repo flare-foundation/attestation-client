@@ -2,27 +2,29 @@ import { BtcBlock, ChainType } from "@flarenetwork/mcc";
 import { expect } from "chai";
 import { DBBlockBTC } from "../../src/entity/indexer/dbBlock";
 import { DBState } from "../../src/entity/indexer/dbState";
-import { DBTransactionBase } from "../../src/entity/indexer/dbTransaction";
+import { DBTransactionBTC0, DBTransactionBTC1 } from "../../src/entity/indexer/dbTransaction";
 import { IndexedQueryManager } from "../../src/indexed-query-manager/IndexedQueryManager";
 import { BlockQueryParams, IndexedQueryManagerOptions, TransactionQueryParams } from "../../src/indexed-query-manager/indexed-query-manager-types";
 import { augmentBlock } from "../../src/indexer/chain-collector-helpers/augmentBlock";
+import { augmentTransactionUtxo } from "../../src/indexer/chain-collector-helpers/augmentTransaction";
 import { DatabaseConnectOptions } from "../../src/utils/database/DatabaseConnectOptions";
 import { DatabaseService } from "../../src/utils/database/DatabaseService";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
 import * as resBTCBlock from "../mockData/BTCBlock.json";
-import { promAugTxBTC0, promAugTxBTC1, promAugTxBTCAlt0, promAugTxBTCAlt1 } from "../mockData/indexMock";
+import { TestBlockBTC, TestBlockBTCAlt, TestTxBTC, TestTxBTCAlt } from "../mockData/indexMock";
 import { getTestFile } from "../test-utils/test-utils";
 
 describe(`IndexedQueryManager (${getTestFile(__filename)})`, () => {
   initializeTestGlobalLogger();
+
   const databaseConnectOptions = new DatabaseConnectOptions();
   const dataService = new DatabaseService(getGlobalLogger(), databaseConnectOptions, "", "", true);
   let indexedQueryManager: IndexedQueryManager;
 
-  let augTx0: DBTransactionBase;
-  let augTxAlt0: DBTransactionBase;
-  let augTx1: DBTransactionBase;
-  let augTxAlt1: DBTransactionBase;
+  const augTxBTC0 = augmentTransactionUtxo(DBTransactionBTC0, ChainType.BTC, TestBlockBTC, TestTxBTC);
+  const augTxBTC1 = augmentTransactionUtxo(DBTransactionBTC1, ChainType.BTC, TestBlockBTC, TestTxBTC);
+  const augTxBTCAlt0 = augmentTransactionUtxo(DBTransactionBTC0, ChainType.BTC, TestBlockBTCAlt, TestTxBTCAlt);
+  const augTxBTCAlt1 = augmentTransactionUtxo(DBTransactionBTC1, ChainType.BTC, TestBlockBTCAlt, TestTxBTCAlt);
 
   before(async () => {
     await dataService.connect();
@@ -34,12 +36,7 @@ describe(`IndexedQueryManager (${getTestFile(__filename)})`, () => {
     };
     indexedQueryManager = new IndexedQueryManager(options);
 
-    initializeTestGlobalLogger();
-
-    augTx0 = await promAugTxBTC0;
-    augTxAlt0 = await promAugTxBTCAlt0;
-    augTx1 = await promAugTxBTC1;
-    augTxAlt1 = await promAugTxBTCAlt1;
+    // initializeTestGlobalLogger();
 
     //start with empty tables
     for (let i = 0; i < 2; i++) {
@@ -52,10 +49,10 @@ describe(`IndexedQueryManager (${getTestFile(__filename)})`, () => {
   });
 
   it("Should get chain N ", () => {
-    expect(indexedQueryManager.getChainN()).to.be.eq("BTC_N");
+    expect((indexedQueryManager as any).getChainN()).to.be.eq("BTC_N");
   });
   it("Should get chain T ", () => {
-    expect(indexedQueryManager.getChainT()).to.be.eq("BTC_T");
+    expect((indexedQueryManager as any).getChainT()).to.be.eq("BTC_T");
   });
 
   it("Should not getLastConfirmedBlockNumber", async () => {
@@ -127,36 +124,16 @@ describe(`IndexedQueryManager (${getTestFile(__filename)})`, () => {
     });
     it("Should not getBlockByHash", async () => {
       const blockQueried = await indexedQueryManager.getBlockByHash("");
-      expect(blockQueried).to.be.null;
-    });
-
-    it("Should getFirstConfirmedBlockAfterTime", async () => {
-      const firstBlock = await indexedQueryManager.getFirstConfirmedBlockAfterTime(0);
-      expect(firstBlock.blockNumber).to.be.eq(729410);
-    });
-
-    it("Should not getFirstConfirmedBlockAfterTime", async () => {
-      const firstBlock = await indexedQueryManager.getFirstConfirmedBlockAfterTime(1648480396);
-      expect(firstBlock).to.be.null;
-    });
-
-    it("Should confirm hasIndexerConfirmedBlockStrictlyBeforeTime", async () => {
-      const firstBlock = await indexedQueryManager.hasIndexerConfirmedBlockStrictlyBeforeTime(1648480396);
-      expect(firstBlock).to.be.true;
-    });
-
-    it("Should not confirm hasIndexerConfirmedBlockStrictlyBeforeTime", async () => {
-      const firstBlock = await indexedQueryManager.hasIndexerConfirmedBlockStrictlyBeforeTime(5);
-      expect(firstBlock).to.be.false;
+      expect(blockQueried).to.be.undefined;
     });
 
     it("Should get getFirstConfirmedOverflowBlock", async function () {
-      let check = await indexedQueryManager.getFirstConfirmedOverflowBlock(5, 5);
+      let check = await (indexedQueryManager as any).getFirstConfirmedOverflowBlock(5, 5);
       expect(check.blockNumber).to.be.eq(729410);
     });
 
     it("Should not get getFirstConfirmedOverflowBlock", async function () {
-      let check = await indexedQueryManager.getFirstConfirmedOverflowBlock(5, 729412);
+      let check = await (indexedQueryManager as any).getFirstConfirmedOverflowBlock(5, 729412);
       expect(check).to.be.eq(null);
     });
 
@@ -177,8 +154,8 @@ describe(`IndexedQueryManager (${getTestFile(__filename)})`, () => {
 
   describe("Query transactions", function () {
     before(async function () {
-      await dataService.manager.save(augTx0);
-      await dataService.manager.save(augTxAlt1);
+      await dataService.manager.save(augTxBTC0);
+      await dataService.manager.save(augTxBTCAlt1);
     });
 
     it("Should query transaction", async function () {

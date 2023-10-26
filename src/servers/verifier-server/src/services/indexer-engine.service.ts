@@ -4,16 +4,47 @@ import { InjectEntityManager } from "@nestjs/typeorm";
 import { EntityManager } from "typeorm";
 import { DBBlockBase } from "../../../../entity/indexer/dbBlock";
 import { DBState } from "../../../../entity/indexer/dbState";
-import { ApiDBTransaction } from "../dtos/ApiDbTransaction";
-import { BlockRange } from "../dtos/BlockRange.dto";
+import { BlockResult } from "../../../../indexed-query-manager/indexed-query-manager-types";
+import { ApiDBBlock } from "../dtos/indexer/ApiDbBlock";
+import { ApiDBTransaction } from "../dtos/indexer/ApiDbTransaction";
+import { BlockRange } from "../dtos/indexer/BlockRange.dto";
 import { VerifierConfigurationService } from "./verifier-configuration.service";
 
+export interface getTransactionsWithinBlockRangeProps {
+  from?: number;
+  to?: number;
+  paymentReference?: string;
+  limit?: number;
+  offset?: number;
+  returnResponse?: boolean;
+}
+
+export abstract class IIndexerEngineService {
+  public abstract getStateSetting();
+
+  public abstract getBlockRange(): Promise<BlockRange | null>;
+
+  public abstract getTransaction(txHash: string): Promise<ApiDBTransaction | null>;
+
+  public abstract getBlock(blockHash: string): Promise<ApiDBBlock | null>;
+
+  public abstract confirmedBlockAt(blockNumber: number): Promise<ApiDBBlock | null>;
+
+  public abstract getBlockHeight(): Promise<number | null>;
+
+  public abstract getTransactionBlock(txHash: string): Promise<ApiDBBlock | null>;
+
+  public abstract getTransactionsWithinBlockRange(props: getTransactionsWithinBlockRangeProps): Promise<ApiDBTransaction[]>;
+}
+
 @Injectable()
-export class IndexerEngineService {
+export class IndexerEngineService extends IIndexerEngineService {
   constructor(
     @Inject("VERIFIER_CONFIG") private configService: VerifierConfigurationService,
     @InjectEntityManager("indexerDatabase") private manager: EntityManager
-  ) {}
+  ) {
+    super();
+  }
 
   /**
    * Gets the state entries from the indexer database.
@@ -55,7 +86,7 @@ export class IndexerEngineService {
    * @param txHash
    * @returns
    */
-  public async getTransaction(txHash: string): Promise<ApiDBTransaction> | null {
+  public async getTransaction(txHash: string): Promise<ApiDBTransaction | null> {
     let results: any[] = [];
     for (let table of this.configService.transactionTable) {
       let query = this.manager.createQueryBuilder(table as any, "transaction").andWhere("transaction.transactionId = :txHash", { txHash });
@@ -77,7 +108,7 @@ export class IndexerEngineService {
    * @param blockHash
    * @returns
    */
-  public async getBlock(blockHash: string): Promise<DBBlockBase> {
+  public async getBlock(blockHash: string): Promise<ApiDBBlock | null> {
     let query = this.manager.createQueryBuilder(this.configService.blockTable as any, "block").andWhere("block.blockHash = :blockHash", { blockHash });
     let result = (await query.getOne()) as DBBlockBase;
     return result;
@@ -88,7 +119,7 @@ export class IndexerEngineService {
    * @param blockNumber
    * @returns
    */
-  public async confirmedBlockAt(blockNumber: number): Promise<DBBlockBase> {
+  public async confirmedBlockAt(blockNumber: number): Promise<ApiDBBlock | null> {
     let query = this.manager
       .createQueryBuilder(this.configService.blockTable as any, "block")
       .andWhere("block.blockNumber = :blockNumber", { blockNumber })
@@ -100,7 +131,7 @@ export class IndexerEngineService {
   /**
    * Get the height of the last observed block in the indexer database.
    */
-  public async getBlockHeight(): Promise<number> | null {
+  public async getBlockHeight(): Promise<number | null> {
     let query = this.manager
       .createQueryBuilder(this.configService.blockTable as any, "block")
       .orderBy("block.blockNumber", "DESC")
@@ -118,7 +149,7 @@ export class IndexerEngineService {
    * @param txHash
    * @returns
    */
-  public async getTransactionBlock(txHash: string): Promise<DBBlockBase> | null {
+  public async getTransactionBlock(txHash: string): Promise<ApiDBBlock | null> {
     const tx = await this.getTransaction(txHash);
     if (tx) {
       const block = await this.confirmedBlockAt(tx.blockNumber);
@@ -133,14 +164,14 @@ export class IndexerEngineService {
    * @param to
    * @returns
    */
-  public async getTransactionsWithinBlockRange(
-    from?: number,
-    to?: number,
-    paymentReference?: string,
-    limit?: number,
-    offset?: number,
-    returnResponse?: boolean
-  ): Promise<ApiDBTransaction[]> {
+  public async getTransactionsWithinBlockRange({
+    from,
+    to,
+    paymentReference,
+    limit,
+    offset,
+    returnResponse,
+  }: getTransactionsWithinBlockRangeProps): Promise<ApiDBTransaction[]> {
     if (paymentReference) {
       if (!/^0x[0-9a-f]{64}$/i.test(paymentReference)) {
         throw new Error("Invalid payment reference");

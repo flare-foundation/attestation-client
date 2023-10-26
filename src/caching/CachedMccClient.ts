@@ -27,6 +27,7 @@ export interface CachedMccClientOptionsTest {
 
 export type CachedMccClientOptions = CachedMccClientOptionsFull | CachedMccClientOptionsTest;
 
+// TODO: Do we ever use this ?????
 const defaultCachedMccClientOptions: CachedMccClientOptions = {
   transactionCacheSize: 100000,
   blockCacheSize: 100000,
@@ -49,7 +50,7 @@ export class CachedMccClient {
   client: ReadRpcInterface<any, any, any, any, any>;
   chainType: ChainType;
 
-  transactionCache: Map<string, Promise<TransactionBase>>;
+  transactionCache: Map<string, Promise<TransactionBase<any>>>;
   transactionCleanupQueue: Queue<string>;
 
   blockCache: Map<string | number, Promise<BlockBase>>;
@@ -67,7 +68,7 @@ export class CachedMccClient {
 
   constructor(chainType: ChainType, options?: CachedMccClientOptions) {
     this.chainType = chainType;
-    this.transactionCache = new Map<string, Promise<TransactionBase>>();
+    this.transactionCache = new Map<string, Promise<TransactionBase<any>>>();
     this.transactionCleanupQueue = new Queue<string>();
     this.blockCache = new Map<string, Promise<BlockBase>>();
     this.blockCleanupQueue = new Queue<string>();
@@ -114,7 +115,7 @@ export class CachedMccClient {
       })
     );
 
-    this.transactionCache.set(txId, newPromise as Promise<TransactionBase>);
+    this.transactionCache.set(txId, newPromise as Promise<TransactionBase<any>>);
     this.transactionCleanupQueue.push(txId);
     this.checkAndCleanup();
     return newPromise;

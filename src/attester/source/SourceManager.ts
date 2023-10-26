@@ -4,20 +4,14 @@ import { PriorityQueue } from "../../utils/data-structures/PriorityQueue";
 import { getTimeMs, getTimeSec } from "../../utils/helpers/internetTime";
 import { arrayRemoveElement } from "../../utils/helpers/utils";
 import { AttLogger, logException } from "../../utils/logging/logger";
-import {
-  MIC_SALT,
-  SummarizedVerificationStatus,
-  Verification,
-  VerificationStatus,
-  getSummarizedVerificationStatus,
-} from "../../verification/attestation-types/attestation-types";
 
-import { getAttestationTypeAndSource } from "../../verification/attestation-types/attestation-types-utils";
+import { AttestationDefinitionStore } from "../../external-libs/AttestationDefinitionStore";
+import { AttestationResponse, AttestationResponseStatus } from "../../external-libs/AttestationResponse";
 import { VerifierSourceRouteConfig } from "../../verification/routing/configs/VerifierSourceRouteConfig";
-import { SourceId } from "../../verification/sources/sources";
 import { Attestation } from "../Attestation";
 import { GlobalConfigManager } from "../GlobalConfigManager";
 import { AttestationStatus } from "../types/AttestationStatus";
+import { MIC_SALT } from "../../external-libs/utils";
 
 @Managed()
 export class SourceManager {
@@ -26,7 +20,7 @@ export class SourceManager {
   requestTime = 0;
   requestsPerSecond = 0;
 
-  sourceId: SourceId;
+  sourceId: string;
 
   // queues
   attestationsQueue = new Array<Attestation>();
@@ -38,7 +32,7 @@ export class SourceManager {
 
   latestRoundId = 0;
 
-  constructor(globalConfigManager: GlobalConfigManager, sourceId: SourceId) {
+  constructor(globalConfigManager: GlobalConfigManager, sourceId: string) {
     this.globalConfigManager = globalConfigManager;
     this.sourceId = sourceId;
   }
@@ -244,23 +238,25 @@ export class SourceManager {
     this.increaseRequestCount();
     verifierRouter
       .verifyAttestation(attestation)
-      .then((verification: Verification<any, any>) => {
+      .then((verification: AttestationResponse<any>) => {
         attestation.processEndTime = getTimeMs();
         let status = verification.status;
-        if (status === VerificationStatus.OK) {
+        if (status === AttestationResponseStatus.VALID) {
           // check message integrity
-          const originalRequest = getAttestationTypeAndSource(attestation.data.request);
+          // const originalRequest = getAttestationTypeAndSource(attestation.data.request);
+          const requestPrefix = AttestationDefinitionStore.extractPrefixFromRequest(attestation.data.request);
           const micOk =
-            originalRequest.messageIntegrityCode === this.globalConfigManager.definitionStore.dataHash(originalRequest, verification.response, MIC_SALT);
+            requestPrefix.messageIntegrityCode.toLowerCase() === this.globalConfigManager.definitionStore.attestationResponseHash(verification.response, MIC_SALT).toLowerCase();
           if (micOk) {
             // augment the attestation response with the round id
-            verification.response.stateConnectorRound = attestation.roundId;
+            verification.response.votingRound = attestation.roundId.toString();
             // calculate the correct hash, with given roundId
-            const hash = this.globalConfigManager.definitionStore.dataHash(originalRequest, verification.response);
+            // const hash = this.globalConfigManager.definitionStore.dataHash(originalRequest, verification.response);
+            const hash = this.globalConfigManager.definitionStore.attestationResponseHash(verification.response);
             // check if verification returned consistent hash
-            verification.hash = hash;
+            // verification.hash = hash;
 
-            this.onProcessed(attestation, AttestationStatus.valid, verification);
+            this.onProcessed(attestation, AttestationStatus.valid, verification, hash);
             return;
           }
           this.logger.debug(`${this.label} WRONG MIC for ${attestation.data.request}`);
@@ -268,22 +264,13 @@ export class SourceManager {
           return;
         }
 
-        if (verification.status === VerificationStatus.NEEDS_MORE_CHECKS) {
-          // assert. This should never happen.
-          this.logger.error2(`${this.label} NEEDS_MORE_CHECKS should never happen ${attestation.data.request}`);
-          this.onProcessed(attestation, AttestationStatus.error, verification);
-          return;
-        }
-
-        let summarizedVerificationStatus = getSummarizedVerificationStatus(verification.status);
-
-        if (summarizedVerificationStatus === SummarizedVerificationStatus.indeterminate) {
+        if (verification.status === AttestationResponseStatus.INDETERMINATE) {
           this.logger.error2(`${this.label} INDETERMINATE VERIFICATION STATUS: ${attestation.data.request}`);
           this.onProcessed(attestation, AttestationStatus.error, verification);
           return;
         }
 
-        if (summarizedVerificationStatus !== SummarizedVerificationStatus.invalid) {
+        if (verification.status !== AttestationResponseStatus.INVALID) {
           // assert - this should never happen
           this.logger.error2(`${this.label} Critical error: The summarized verification status should be 'invalid': ${attestation.data.request}`);
           process.exit(1);
@@ -317,7 +304,7 @@ export class SourceManager {
    * @param status
    * @param verificationData
    */
-  private onProcessed(attestation: Attestation, status: AttestationStatus, verificationData?: Verification<any, any>) {
+  private onProcessed(attestation: Attestation, status: AttestationStatus, verificationData?: AttestationResponse<any>, hash?: string) {
     let actualStatus = status;
     if (actualStatus === AttestationStatus.valid && !verificationData) {
       this.logger.error("Attestation status is valid but no verification data provided. Attestation considered as invalid");
@@ -327,6 +314,7 @@ export class SourceManager {
     // set status
     attestation.status = actualStatus;
     attestation.verificationData = verificationData;
+    attestation.hash = hash;
 
     // move into processed
     this.attestationProcessing.delete(attestation);

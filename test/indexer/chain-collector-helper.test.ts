@@ -39,11 +39,8 @@ describe(`Chain collector helpers, (${getTestFile(__filename)})`, () => {
     it("Should create entity from a transaction for BTC", async () => {
       const block = new BtcBlock(resBTCBlock);
       const tx = new BtcTransaction(resBTCTx);
-      const waitTx = async () => {
-        return tx;
-      };
 
-      const augTx = await augmentTransactionUtxo(DBTransactionBTC0, ChainType.BTC, block, waitTx());
+      const augTx = await augmentTransactionUtxo(DBTransactionBTC0, ChainType.BTC, block, tx);
       expect(augTx.blockNumber).to.be.eq(729_410);
       expect(augTx.transactionId).to.be.eq("b39d8e733bf9f874c7c82019d41b6df1c829f3988694adf5ebdadb1590832225");
     });

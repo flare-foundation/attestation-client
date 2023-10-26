@@ -9,13 +9,13 @@ import sinon from "sinon";
 import waitOn from "wait-on";
 import Web3 from "web3";
 import { Attestation } from "../../src/attester/Attestation";
+import { AttestationDefinitionStore } from "../../src/external-libs/AttestationDefinitionStore";
+import { Payment_Request } from "../../src/servers/verifier-server/src/dtos/attestation-types/Payment.dto";
 import { runBot } from "../../src/state-collector-finalizer/state-connector-validator-bot";
 import { readSecureConfig } from "../../src/utils/config/configSecure";
 import { getUnixEpochTimestamp } from "../../src/utils/helpers/utils";
 import { getWeb3, relativeContractABIPathForContractName } from "../../src/utils/helpers/web3-utils";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
-import { AttestationDefinitionStore } from "../../src/verification/attestation-types/AttestationDefinitionStore";
-import { ARPayment } from "../../src/verification/generated/attestation-request-types";
 import { VerifierRouteConfig } from "../../src/verification/routing/configs/VerifierRouteConfig";
 import { VerifierRouter } from "../../src/verification/routing/VerifierRouter";
 import { BitVoting } from "../../typechain-web3-v1/BitVoting";
@@ -54,8 +54,8 @@ const SPAMMER_FREQUENCIES = [2, 3];
 describe(`AttestationClient (${getTestFile(__filename)})`, () => {
   let setup: VerifierTestSetups;
   let web3: Web3;
-  let requestXRP: ARPayment;
-  let requestBTC: ARPayment;
+  let requestXRP: Payment_Request;
+  let requestBTC: Payment_Request;
   let attestationXRP: Attestation;
   let attestationBTC: Attestation;
   let stateConnector: StateConnectorTempTran;
@@ -72,8 +72,7 @@ describe(`AttestationClient (${getTestFile(__filename)})`, () => {
   
 
   before(async function () {
-    defStore = new AttestationDefinitionStore();
-    await defStore.initialize();
+    defStore = new AttestationDefinitionStore("configs/type-definitions");
 
     if (TEST_LOGGER) {
       initializeTestGlobalLogger();
@@ -271,7 +270,7 @@ describe(`AttestationClient (${getTestFile(__filename)})`, () => {
   it.skip(`Should be able to verify attestations through VerifierRouter`, async function () {
     const verifierRouter = new VerifierRouter();
     let verifierConfig = await readSecureConfig(new VerifierRouteConfig(), `verifier-client/verifier-routes-${150}`);
-    await verifierRouter.initialize(verifierConfig, defStore.definitions);
+    await verifierRouter.initialize(verifierConfig, defStore);
 
     let respXRP = await verifierRouter.verifyAttestation(attestationXRP);
 

@@ -257,16 +257,29 @@ export class SourceManager {
             // verify that the request bodies match
             const actualRequest = this.globalConfigManager.definitionStore.parseRequest(attestation.data.request);
 
-            // TODO: tests for this need to be made
+            // // TODO: tests for this need to be made            
             // const reconstructedRequest = {
             //   ...requestPrefix,
             //   requestBody: verification.response.requestBody,
             // } as ARBase;
-            // if (!this.globalConfigManager.definitionStore.equalsRequest(actualRequest, reconstructedRequest)) {
-            //   this.logger.error2(`${this.label} MISMATCH REQUEST BODY for ${attestation.data.request}`);
+            // try {
+            //   const encodedReconstructedRequest = this.globalConfigManager.definitionStore.encodeRequest(reconstructedRequest);
+            //   if (encodedReconstructedRequest.toLowerCase() !== attestation.data.request.toLowerCase()) {
+            //     this.logger.error2(`${this.label} MISMATCH REQUEST BODY for ${attestation.data.request}`);
+            //     this.onProcessed(attestation, AttestationStatus.invalid, verification);
+            //     return;              
+            //   }
+            // } catch(error) {
+            //   this.logger.error2(`${this.label} UNPARSABLE RECONSTRUCTED REQUEST for ${attestation.data.request}`);
             //   this.onProcessed(attestation, AttestationStatus.invalid, verification);
-            //   return;
+            //   return;            
             // }
+            // // ALTERNATIVE
+            // // if (!this.globalConfigManager.definitionStore.equalsRequest(actualRequest, reconstructedRequest)) {
+            // //   this.logger.error2(`${this.label} MISMATCH REQUEST BODY for ${attestation.data.request}`);
+            // //   this.onProcessed(attestation, AttestationStatus.invalid, verification);
+            // //   return;
+            // // }
 
             // Everything is OK
             attestation.parsedRequest = actualRequest;

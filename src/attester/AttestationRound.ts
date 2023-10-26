@@ -11,7 +11,7 @@ import { getTimeMs } from "../utils/helpers/internetTime";
 import { retry } from "../utils/helpers/promiseTimeout";
 import { prepareString } from "../utils/helpers/utils";
 import { AttLogger, logException } from "../utils/logging/logger";
-import { hexlifyBN, toHex } from "../verification/attestation-types/attestation-types-helpers";
+import { toHex } from "../verification/attestation-types/attestation-types-helpers";
 import { Attestation } from "./Attestation";
 import { AttestationData } from "./AttestationData";
 import { AttesterState } from "./AttesterState";
@@ -474,8 +474,8 @@ export class AttestationRound {
     db.logIndex = att.data.logIndex;
     db.verificationStatus = prepareString(att.verificationData?.status.toString(), 128);
     db.attestationStatus = AttestationStatus[att.status];
-    db.request = prepareString(stringify(att.verificationData?.response?.request ? att.verificationData.response.request : ""), 65535);
-    db.response = prepareString(stringify(att.verificationData?.response ? att.verificationData.response : ""), 65535);
+    db.request = prepareString(att.data.request, 65535); // TODO: check if 65535 is ok
+    db.response = prepareString(stringify(att.verificationData?.response ? att.verificationData.response : ""), 65535); // TODO: check if 65535 is ok
     db.exceptionError = prepareString(att.exception?.toString(), 128);
     db.hashData = prepareString(att.hash, 256);
     db.requestBytes = prepareString(att.data.request, 65535);
@@ -523,6 +523,9 @@ export class AttestationRound {
         // If we encounter invalid attestation
         this.isReject = true;
         this.rejectIndex = i;
+        this.logger.error(
+          `${this.label} round #${this.roundId} cannot yet commit - encountered rejected attestation.`
+        );
         return;
       } else {
         this.logger.error(
@@ -557,8 +560,8 @@ export class AttestationRound {
       dbVoteResult.roundId = this.roundId;
       dbVoteResult.hash = voteHash;
       dbVoteResult.requestBytes = validAttestation.data.request;
-      dbVoteResult.request = stringify(validAttestation.verificationData?.response?.request ? hexlifyBN(validAttestation.verificationData.response.request) : "");
-      dbVoteResult.response = stringify(validAttestation.verificationData?.response ? hexlifyBN(validAttestation.verificationData.response) : "");
+      dbVoteResult.request = stringify(validAttestation.parsedRequest ?? "");
+      dbVoteResult.response = stringify(validAttestation.verificationData?.response ?? "");
     }
 
     // save to DB

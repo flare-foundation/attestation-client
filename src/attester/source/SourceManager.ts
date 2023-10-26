@@ -12,6 +12,7 @@ import { Attestation } from "../Attestation";
 import { GlobalConfigManager } from "../GlobalConfigManager";
 import { AttestationStatus } from "../types/AttestationStatus";
 import { MIC_SALT } from "../../external-libs/utils";
+import { ARBase, ARESBase } from "../../external-libs/interfaces";
 
 @Managed()
 export class SourceManager {
@@ -238,7 +239,7 @@ export class SourceManager {
     this.increaseRequestCount();
     verifierRouter
       .verifyAttestation(attestation)
-      .then((verification: AttestationResponse<any>) => {
+      .then((verification: AttestationResponse<ARESBase>) => {
         attestation.processEndTime = getTimeMs();
         let status = verification.status;
         if (status === AttestationResponseStatus.VALID) {
@@ -251,11 +252,24 @@ export class SourceManager {
             // augment the attestation response with the round id
             verification.response.votingRound = attestation.roundId.toString();
             // calculate the correct hash, with given roundId
-            // const hash = this.globalConfigManager.definitionStore.dataHash(originalRequest, verification.response);
             const hash = this.globalConfigManager.definitionStore.attestationResponseHash(verification.response);
-            // check if verification returned consistent hash
-            // verification.hash = hash;
+            
+            // verify that the request bodies match
+            const actualRequest = this.globalConfigManager.definitionStore.parseRequest(attestation.data.request);
 
+            // TODO: tests for this need to be made
+            // const reconstructedRequest = {
+            //   ...requestPrefix,
+            //   requestBody: verification.response.requestBody,
+            // } as ARBase;
+            // if (!this.globalConfigManager.definitionStore.equalsRequest(actualRequest, reconstructedRequest)) {
+            //   this.logger.error2(`${this.label} MISMATCH REQUEST BODY for ${attestation.data.request}`);
+            //   this.onProcessed(attestation, AttestationStatus.invalid, verification);
+            //   return;
+            // }
+
+            // Everything is OK
+            attestation.parsedRequest = actualRequest;
             this.onProcessed(attestation, AttestationStatus.valid, verification, hash);
             return;
           }

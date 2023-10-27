@@ -192,7 +192,7 @@ export async function runBot(SCAddress: string, web3Rpc: string, flavor: "temp" 
     let root = ZERO_ROOT;
 
     for (const [key, value] of Object.entries(counter)) {
-      if (value >= voteThreshold) {
+      if ((value as number) >= voteThreshold) {
         root = key;
       }
     }

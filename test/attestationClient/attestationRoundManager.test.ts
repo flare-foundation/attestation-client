@@ -3,8 +3,8 @@
 import { traceManager } from "@flarenetwork/mcc";
 import chai, { assert, expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
+import { ethers } from "ethers";
 import sinon from "sinon";
-import { toBN } from "web3-utils";
 import { AttestationData } from "../../src/attester/AttestationData";
 import { AttestationRoundManager } from "../../src/attester/AttestationRoundManager";
 import { AttesterState } from "../../src/attester/AttesterState";
@@ -20,7 +20,6 @@ import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/log
 import { getTestFile } from "../test-utils/test-utils";
 import { createAttestationVerificationPair, createBlankAtRequestEvent, createBlankBitVoteEvent } from "./utils/createEvents";
 import { MockFlareConnection } from "./utils/mockClasses";
-import { ethers } from "ethers";
 
 chai.use(chaiAsPromised);
 

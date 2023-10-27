@@ -10,16 +10,16 @@ import { getTimeSec } from "../helpers/internetTime";
  * Values for construction must be given in seconds.
  */
 export class EpochSettings {
-  private _firstEpochStartTimeMs: BN;
-  private _epochPeriodMs: BN;
-  private _bitVoteWindowDurationMs?: BN;
+  private _firstEpochStartTimeMs: bigint;
+  private _epochPeriodMs: bigint;
+  private _bitVoteWindowDurationMs?: bigint;
 
   // all values are in seconds
-  constructor(_firstEpochStartTimeSec: BN, _epochPeriodSec: BN, _bitVoteWindowDurationSec?: BN) {
-    this._firstEpochStartTimeMs = _firstEpochStartTimeSec.mul(toBN(1000));
-    this._epochPeriodMs = _epochPeriodSec.mul(toBN(1000));
+  constructor(_firstEpochStartTimeSec: bigint, _epochPeriodSec: bigint, _bitVoteWindowDurationSec?: bigint) {
+    this._firstEpochStartTimeMs = _firstEpochStartTimeSec * 1000n;
+    this._epochPeriodMs = _epochPeriodSec * 1000n;
     if (_bitVoteWindowDurationSec !== undefined) {
-      this._bitVoteWindowDurationMs = _bitVoteWindowDurationSec.mul(toBN(1000));
+      this._bitVoteWindowDurationMs = _bitVoteWindowDurationSec * 1000n;
     }
   }
 
@@ -28,7 +28,7 @@ export class EpochSettings {
    * @returns Start time of the first epoch in seconds
    */
   public firstEpochStartTimeSec() {
-    return this._firstEpochStartTimeMs.div(toBN(1000)).toNumber();
+    return this._firstEpochStartTimeMs / 1000n;
   }
 
   /**
@@ -36,7 +36,7 @@ export class EpochSettings {
    * @returns Epoch duration in seconds
    */
   public epochPeriodSec() {
-    return this._epochPeriodMs.div(toBN(1000)).toNumber();
+    return this._epochPeriodMs / 1000n;
   }
 
   /**
@@ -44,14 +44,14 @@ export class EpochSettings {
    * @returns Bitvote window duration in seconds
    */
   public bitVoteWindowDurationSec() {
-    return this._bitVoteWindowDurationMs.div(toBN(1000)).toNumber();
+    return this._bitVoteWindowDurationMs / 1000n;
   }
 
   /**
    * Epoch length in milliseconds.
    * @returns
    */
-  public getEpochLengthMs(): BN {
+  public getEpochLengthMs(): bigint {
     return this._epochPeriodMs;
   }
 
@@ -59,21 +59,21 @@ export class EpochSettings {
    * Bitvote window duration.
    * @returns
    */
-  public getBitVoteDurationMs(): BN {
+  public getBitVoteDurationMs(): bigint {
     if (this._bitVoteWindowDurationMs) {
       return this._bitVoteWindowDurationMs;
     }
-    return toBN(0);
+    return BigInt(0);
   }
 
   /**
-   * Returns epochId for time given in miliseconds (Unix epoch).
+   * Returns epochId for time given in milliseconds (Unix epoch).
    * @param timeInMillis
    * @returns
    */
-  public getEpochIdForTime(timeInMillis: BN): BN {
-    const diff: BN = timeInMillis.sub(this._firstEpochStartTimeMs);
-    return diff.div(this._epochPeriodMs);
+  public getEpochIdForTime(timeInMillis: bigint): number {
+    const diff = timeInMillis - this._firstEpochStartTimeMs;
+    return Number(diff / this._epochPeriodMs);
   }
 
   /**
@@ -82,8 +82,8 @@ export class EpochSettings {
    * @returns
    */
   public getEpochIdForTimeSec(timeSec: number): number {
-    const epochId = this.getEpochIdForTime(toBN(timeSec).mul(toBN(1000)));
-    return epochId.toNumber();
+    const epochId = this.getEpochIdForTime(BigInt(timeSec) * 1000n);
+    return epochId;
   }
 
   /**
@@ -94,46 +94,41 @@ export class EpochSettings {
    * Otherwise 'undefined' is returned.
    */
   public getEpochIdForBitVoteTimeSec(timeSec: number): number | undefined {
-    const timeMs = toBN(timeSec).mul(toBN(1000));
+    const timeMs = BigInt(timeSec) * 1000n;
     const epochId = this.getEpochIdForTime(timeMs);
-    const epochStartTime = this._firstEpochStartTimeMs.add(epochId.mul(this._epochPeriodMs));
-    const offset = timeMs.sub(epochStartTime);
-    if (offset.lte(this._bitVoteWindowDurationMs)) {
-      return epochId.toNumber();
+    const epochStartTime = this._firstEpochStartTimeMs + BigInt(epochId) * this._epochPeriodMs;
+    const offset = timeMs - epochStartTime;
+    if (offset <= this._bitVoteWindowDurationMs) {
+      return epochId;
     }
     return undefined;
-  }
-
-  getOffsetInBufferWindow(timeSec: number) {
-    let epochId = this.getEpochIdForTimeSec(timeSec);
-    return timeSec - Math.round(this._firstEpochStartTimeMs.toNumber() / 1000) + epochId * Math.round(this._epochPeriodMs.toNumber() / 1000);
   }
 
   /**
    * Gets the id of the current epoch. It is the same as the id of the round that is currently in the request phase
    */
-  public getCurrentEpochId(): BN {
-    return this.getEpochIdForTime(toBN(getTimeSec() * 1000));
+  public getCurrentEpochId(): number {
+    return this.getEpochIdForTime(BigInt(getTimeSec()) * 1000n);
   }
 
   /**
    * Gets the start time of the round in milliseconds. The round starts in the request phase.
    */
-  public getRoundIdTimeStartMs(id: BN | number): number {
-    return this._firstEpochStartTimeMs.add(toBN(id).mul(this._epochPeriodMs)).toNumber(); // + this._epochPeriod.toNumber();
+  public getRoundIdTimeStartMs(id: number): bigint {
+    return this._firstEpochStartTimeMs + BigInt(id) * this._epochPeriodMs;
   }
 
   /**
    * Gets the end time of the epoch in milliseconds
    */
-  public getEpochIdTimeEndMs(id: BN | number): number {
-    return this.getRoundIdTimeStartMs(id) + this._epochPeriodMs.toNumber();
+  public getEpochIdTimeEndMs(id: number): bigint {
+    return this.getRoundIdTimeStartMs(id) + this._epochPeriodMs;
   }
 
   /**
    * Gets the start time of the Reveal phase of the round in milliseconds
    */
-  public getRoundIdRevealTimeStartMs(id: number): number {
-    return this.getEpochIdTimeEndMs(id) + this._epochPeriodMs.toNumber();
+  public getRoundIdRevealTimeStartMs(id: number): bigint {
+    return this.getEpochIdTimeEndMs(id) + this._epochPeriodMs;
   }
 }

@@ -1,5 +1,3 @@
-import BN from "bn.js";
-import { toBN } from "web3-utils";
 import { AttestationRequest } from "../../typechain-web3-v1/StateConnector";
 
 import { AttestationDefinitionStore } from "../external-libs/AttestationDefinitionStore";

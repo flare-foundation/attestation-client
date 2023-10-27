@@ -12,22 +12,21 @@ export class AttestationData {
   // event parameters
   type: string;
   sourceId: string;
-  timeStamp: BN;
+  timeStamp: bigint;
   request: string;
 
   // block parameters
-  blockNumber: BN;
+  blockNumber: bigint;
   logIndex: number;
 
   constructor(event?: AttestationRequest) {
     if (!event) return;
 
-    this.timeStamp = toBN(event.returnValues.timestamp);
+    this.timeStamp = BigInt(event.returnValues.timestamp);
     this.request = event.returnValues.data;
 
     // if error at parsing, exception is thrown
     const { attestationType, sourceId } = AttestationDefinitionStore.extractPrefixFromRequest(this.request);
-
 
     // values are parsed. Note that these may not be valid attestation types
     // in case of parsing problem, exception is thrown
@@ -35,7 +34,7 @@ export class AttestationData {
     this.sourceId = decodeAttestationName(sourceId);
 
     // for sorting
-    this.blockNumber = toBN(event.blockNumber);
+    this.blockNumber = BigInt(event.blockNumber);
     this.logIndex = event.logIndex;
   }
 

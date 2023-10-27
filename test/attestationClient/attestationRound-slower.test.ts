@@ -126,7 +126,7 @@ describe(`Attestation round slow, (${getTestFile(__filename)})`, function () {
     }
 
     it("should process attestations", async function () {
-      const time = round.roundStartTimeMs;
+      const time = Number(round.roundStartTimeMs);
 
       const clock = sinon.useFakeTimers({ now: time, shouldAdvanceTime: true });
 
@@ -170,7 +170,7 @@ describe(`Attestation round slow, (${getTestFile(__filename)})`, function () {
     });
 
     it("Should process with weight exceeded", async function () {
-      const time = round.roundStartTimeMs;
+      const time = Number(round.roundStartTimeMs);
 
       const clock = sinon.useFakeTimers({ now: time, shouldAdvanceTime: true });
 
@@ -200,7 +200,7 @@ describe(`Attestation round slow, (${getTestFile(__filename)})`, function () {
     });
 
     it("Should process to late attestation", async function () {
-      const time = round.commitEndTimeMs + 1;
+      const time = Number(round.commitEndTimeMs + 1n);
 
       const clock = sinon.useFakeTimers({ now: time, shouldAdvanceTime: true });
 

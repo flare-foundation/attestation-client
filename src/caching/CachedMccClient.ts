@@ -27,7 +27,6 @@ export interface CachedMccClientOptionsTest {
 
 export type CachedMccClientOptions = CachedMccClientOptionsFull | CachedMccClientOptionsTest;
 
-// TODO: Do we ever use this ?????
 const defaultCachedMccClientOptions: CachedMccClientOptions = {
   transactionCacheSize: 100000,
   blockCacheSize: 100000,

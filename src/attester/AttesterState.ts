@@ -147,7 +147,7 @@ export class AttesterState {
   }
 
   /**
-   *  Stores partial attestation round data (on reveal)
+   * Stores partial attestation round data (on reveal)
    * @param roundId
    * @param nonce
    * @param txid

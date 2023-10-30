@@ -93,10 +93,6 @@ export async function runBot(SCAddress: string, web3Rpc: string, flavor: "temp" 
     web3.eth.handleRevert = false;
   }
 
-  function toBN(inp: string | number) {
-    return web3.utils.toBN(inp);
-  }
-
   const chainId = await web3.eth.getChainId();
   const signers = getAttestationSigners(chainId);
   const voteThreshold = Math.ceil(signers.length / 2);

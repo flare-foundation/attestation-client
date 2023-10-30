@@ -29,7 +29,7 @@ import {
  * - limited history of blocks and transactions is stored in the database
  * - the database holds the state table, which contains the data about:
  *   - bottom block number (denoted `B`) and its timestamp
- *   - last confimed block number (denoted `N`) and its timestamp
+ *   - last confirmed block number (denoted `N`) and its timestamp
  *   - highest registered block number (denoted `T`) and the timestamp of its checking
  * - the indexer ensures, that the all blocks and transactions for block in the range [`B`, `N`] are in the database, without repetitions, no gaps.
  * - Queries are carried out in for transactions in the block range [`B`, `N`].
@@ -194,7 +194,6 @@ export abstract class IIndexedQueryManager {
    * @returns the block, if exists, otherwise `null`
    */
   public abstract getLastConfirmedBlockStrictlyBeforeTime(timestamp: number): Promise<BlockResult | undefined>;
-
 
   /**
    * Gets the first confirmed block that is strictly after timestamp and blockNumber provided in parameters

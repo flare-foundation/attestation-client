@@ -244,7 +244,6 @@ export class SourceManager {
         let status = verification.status;
         if (status === AttestationResponseStatus.VALID) {
           // check message integrity
-          // const originalRequest = getAttestationTypeAndSource(attestation.data.request);
           const requestPrefix = AttestationDefinitionStore.extractPrefixFromRequest(attestation.data.request);
           const micOk =
             requestPrefix.messageIntegrityCode.toLowerCase() ===

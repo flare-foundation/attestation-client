@@ -379,7 +379,6 @@ export class AttestationRound {
    */
   addAttestation(attestation: Attestation) {
     // remove duplicates (instruction hash, id, data av proof, ignore timestamp) on the fly
-    // todo: check how fast is hash
     const requestId = attestation.data.getId();
     const duplicate = this.attestationsMap.get(requestId);
 
@@ -745,7 +744,7 @@ export class AttestationRound {
         prevRound && prevRound.random ? prevRound.random : ZERO_HASH
       );
 
-      // count the round as commited, event if receipt did not come back
+      // count the round as committed, event if receipt did not come back
 
       if (receipt) {
         this.attestStatus = AttestationRoundStatus.committed;
@@ -798,8 +797,6 @@ export class AttestationRound {
         }/${this.attestations.length}`
       );
     }
-
-    // this.logger.info(`^Cround #${this.roundId} reveal`);
 
     let nextRoundMerkleRoot = ZERO_HASH;
     let nextRoundMaskedMerkleRoot = ZERO_HASH;

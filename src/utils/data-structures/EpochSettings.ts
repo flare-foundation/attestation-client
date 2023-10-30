@@ -1,5 +1,3 @@
-import { toBN } from "@flarenetwork/mcc";
-import BN from "bn.js";
 import { getTimeSec } from "../helpers/internetTime";
 
 /**

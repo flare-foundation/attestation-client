@@ -4,6 +4,7 @@ import {
   DBTransactionInput,
   DBTransactionInputCoinbase,
   DBTransactionOutput,
+  PruneSyncState,
   TipSyncState,
 } from "../../entity-external/DBDogeIndexerBlock";
 import { DBAttestationRequest } from "../../entity/attester/dbAttestationRequest";
@@ -45,7 +46,7 @@ export function indexerEntities(chain: string) {
       entities.push(DBBlockDOGE, DBTransactionDOGE0, DBTransactionDOGE1);
       break;
     case "doge-external":
-      return [DBDogeIndexerBlock, DBDogeTransaction, DBTransactionInput, DBTransactionInputCoinbase, DBTransactionOutput, TipSyncState];
+      return [DBDogeIndexerBlock, DBDogeTransaction, DBTransactionInput, DBTransactionInputCoinbase, DBTransactionOutput, TipSyncState, PruneSyncState];
     case "xrp":
       entities.push(DBBlockXRP, DBTransactionXRP0, DBTransactionXRP1);
       break;

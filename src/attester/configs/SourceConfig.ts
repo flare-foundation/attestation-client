@@ -6,7 +6,6 @@ import { AttestationTypeConfig } from "./AttestationTypeConfig";
  * Class providing parameters for handling the limitations (maxTotalRoundWeight, ...) of a attestation round for a source
  * and supported attestation types.
  */
-
 export class SourceConfig implements IReflection<SourceConfig> {
   /**
    * Source as string (e.g. "BTC", "DOGE", "XRP"). For names see SourceId enum (src/verification/sources.ts).
@@ -21,7 +20,6 @@ export class SourceConfig implements IReflection<SourceConfig> {
    */
   attestationTypes: AttestationTypeConfig[] = [];
 
-  //
   /**
    * Source id. Not intended to be read from the JSON file. Recalculated from `source`
    */

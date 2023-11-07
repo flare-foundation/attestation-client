@@ -1,6 +1,5 @@
 // yarn test test/utils/EpochSettings.test.ts
 
-import { toBN } from "@flarenetwork/mcc";
 import { assert, expect } from "chai";
 import { EpochSettings } from "../../src/utils/data-structures/EpochSettings";
 import { getTestFile } from "../test-utils/test-utils";
@@ -9,37 +8,37 @@ describe(`EpochSettings (${getTestFile(__filename)})`, () => {
   const START_TIME_SEC = 15;
   const EPOCH_DURATION = 80;
   const BIT_VOTE_DEADLINE = 40;
-  let epochSettings = new EpochSettings(toBN(START_TIME_SEC), toBN(EPOCH_DURATION), toBN(BIT_VOTE_DEADLINE));
+  let epochSettings = new EpochSettings(BigInt(START_TIME_SEC), BigInt(EPOCH_DURATION), BigInt(BIT_VOTE_DEADLINE));
   let epochLength = 80000;
   let startTime = 15000;
 
   it("Should get epoch Length in ms", () => {
-    expect(epochSettings.getEpochLengthMs()).to.be.deep.eq(toBN(epochLength));
+    expect(epochSettings.getEpochLengthMs()).to.be.deep.eq(BigInt(epochLength));
   });
 
   it("Should get epoch id  for a given time", () => {
     for (let j = 0; j < 25; j++) {
-      assert(epochSettings.getEpochIdForTime(toBN(16000 + epochLength * j)).eq(toBN(j)));
+      assert(epochSettings.getEpochIdForTime(BigInt(16000 + epochLength * j)) == j);
     }
   });
   it("Should get current epoch id", () => {
-    assert(epochSettings.getCurrentEpochId().gt(toBN(20833690)));
+    assert(epochSettings.getCurrentEpochId() > BigInt(20833690));
   });
   it("Should get RoundIdTimeStart in ms", () => {
     for (let j = 0; j < 25; j++) {
-      expect(epochSettings.getRoundIdTimeStartMs(j + 100)).to.equal(epochLength * (j + 100) + startTime);
+      expect(epochSettings.getRoundIdTimeStartMs(j + 100)).to.equal(BigInt(epochLength * (j + 100) + startTime));
     }
   });
 
   it("Should get EpochIdTimeEnd in ms", () => {
     for (let j = 0; j < 25; j++) {
-      expect(epochSettings.getEpochIdTimeEndMs(j + 100)).to.equal(epochLength * (j + 101) + startTime);
+      expect(epochSettings.getEpochIdTimeEndMs(j + 100)).to.equal(BigInt(epochLength * (j + 101) + startTime));
     }
   });
 
   it("Should RoundIdRevealTimeStart in ms", () => {
     for (let j = 0; j < 25; j++) {
-      expect(epochSettings.getRoundIdRevealTimeStartMs(j + 100)).to.equal(epochLength * (j + 102) + startTime);
+      expect(epochSettings.getRoundIdRevealTimeStartMs(j + 100)).to.equal(BigInt(epochLength * (j + 102) + startTime));
     }
   });
 
@@ -53,13 +52,13 @@ describe(`EpochSettings (${getTestFile(__filename)})`, () => {
 
   it("Should get getBitVoteDurationMs", function () {
     const res = epochSettings.getBitVoteDurationMs();
-    expect(res.toNumber()).to.eq(40000);
+    expect(res).to.eq(BigInt(40000));
   });
 
   it("Should not get getBitVoteDurationMs", function () {
-    let epochSettings2 = new EpochSettings(toBN(START_TIME_SEC), toBN(EPOCH_DURATION));
+    let epochSettings2 = new EpochSettings(BigInt(START_TIME_SEC), BigInt(EPOCH_DURATION));
 
     const res = epochSettings2.getBitVoteDurationMs();
-    expect(res.toNumber()).to.eq(0);
+    expect(res).to.eq(0n);
   });
 });

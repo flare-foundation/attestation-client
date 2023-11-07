@@ -65,7 +65,7 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
     process.env.TEST_IGNORE_SUPPORTED_ATTESTATION_CHECK_TEST = "1";
     process.env.TEST_CREDENTIALS = "1";
 
-    //initializeTestGlobalLogger();
+    initializeTestGlobalLogger();
 
     const module = await Test.createTestingModule({
       imports: [VerifierDogeServerModule],

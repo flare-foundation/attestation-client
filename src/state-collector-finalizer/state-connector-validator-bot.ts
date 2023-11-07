@@ -93,10 +93,6 @@ export async function runBot(SCAddress: string, web3Rpc: string, flavor: "temp" 
     web3.eth.handleRevert = false;
   }
 
-  function toBN(inp: string | number) {
-    return web3.utils.toBN(inp);
-  }
-
   const chainId = await web3.eth.getChainId();
   const signers = getAttestationSigners(chainId);
   const voteThreshold = Math.ceil(signers.length / 2);
@@ -109,16 +105,16 @@ export async function runBot(SCAddress: string, web3Rpc: string, flavor: "temp" 
       ? (new web3.eth.Contract(AbiItemForDeploy.abi as AbiItem[], SCAddress) as any as StateConnectorTemp)
       : (new web3.eth.Contract(AbiItemForDeploy.abi as AbiItem[], SCAddress) as any as StateConnectorTempTran);
 
-  const BUFFER_WINDOW = toBN(await stateConnectorContract.methods.BUFFER_WINDOW().call());
-  const BUFFER_TIMESTAMP_OFFSET = toBN(await stateConnectorContract.methods.BUFFER_TIMESTAMP_OFFSET().call());
+  const BUFFER_WINDOW = BigInt(await stateConnectorContract.methods.BUFFER_WINDOW().call());
+  const BUFFER_TIMESTAMP_OFFSET = BigInt(await stateConnectorContract.methods.BUFFER_TIMESTAMP_OFFSET().call());
 
   // Function to calculate round start time using constant values
-  function getRoundStartTime(roundId: number) {
-    return BUFFER_WINDOW.muln(roundId).add(BUFFER_TIMESTAMP_OFFSET);
+  function getRoundStartTime(roundId: bigint) {
+    return BUFFER_WINDOW * roundId + BUFFER_TIMESTAMP_OFFSET;
   }
 
   function tsToRoundId(ts: number) {
-    return toBN(ts).sub(BUFFER_TIMESTAMP_OFFSET).div(BUFFER_WINDOW);
+    return Number((BigInt(ts) - BUFFER_TIMESTAMP_OFFSET) / BUFFER_WINDOW);
   }
 
   let botPrivateKey = "";
@@ -149,12 +145,12 @@ export async function runBot(SCAddress: string, web3Rpc: string, flavor: "temp" 
 
   while (true) {
     const now = getTimeSec();
-    const currentRound = tsToRoundId(now).toNumber();
+    const currentRound = tsToRoundId(now);
     // Bot already finalized the specific round
     if (latestFinalizedRound >= currentRound) {
-      const nextRoundStart = getRoundStartTime(currentRound + 1).toNumber();
+      const nextRoundStart = getRoundStartTime(BigInt(currentRound) + 1n);
       // Sleep until next round starts
-      await sleepMs((nextRoundStart - now) * 1000);
+      await sleepMs(Number(nextRoundStart - BigInt(now) * 1000n));
       continue;
     }
 
@@ -192,7 +188,7 @@ export async function runBot(SCAddress: string, web3Rpc: string, flavor: "temp" 
     let root = ZERO_ROOT;
 
     for (const [key, value] of Object.entries(counter)) {
-      if (value >= voteThreshold) {
+      if ((value as number) >= voteThreshold) {
         root = key;
       }
     }
@@ -201,17 +197,18 @@ export async function runBot(SCAddress: string, web3Rpc: string, flavor: "temp" 
     let tmpBlock = await web3.eth.getBlock(tmpBlockNumber);
     if (verbose) {
       console.log(
-        `BEFORE SENDING: currentRound: ${currentRound}, shouldBeForNow: ${Math.floor(
-          (now - BUFFER_TIMESTAMP_OFFSET.toNumber()) / BUFFER_WINDOW.toNumber()
-        )}, fromBlockTime: ${Math.floor((parseInt("" + tmpBlock.timestamp, 10) - BUFFER_TIMESTAMP_OFFSET.toNumber()) / BUFFER_WINDOW.toNumber())}`
+        `BEFORE SENDING: currentRound: ${currentRound}, shouldBeForNow: ${(
+          (BigInt(now) - BUFFER_TIMESTAMP_OFFSET) /
+          BUFFER_WINDOW
+        ).toString()}, fromBlockTime: ${Math.floor((parseInt("" + tmpBlock.timestamp, 10) - Number(BUFFER_TIMESTAMP_OFFSET)) / Number(BUFFER_WINDOW))}`
       );
     }
     const finalizeData = stateConnectorContract.methods.finaliseRound(currentRound, root).encodeABI();
     const tx = {
       from: botWallet.address,
       to: SCAddress,
-      gas: "0x" + toBN(DEFAULT_GAS).toString(16),
-      gasPrice: "0x" + toBN(DEFAULT_GAS_PRICE).toString(16),
+      gas: "0x" + BigInt(DEFAULT_GAS).toString(16),
+      gasPrice: "0x" + BigInt(DEFAULT_GAS_PRICE).toString(16),
       chainId: chainId,
       data: finalizeData,
     };

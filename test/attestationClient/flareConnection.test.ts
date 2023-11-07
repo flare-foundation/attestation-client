@@ -1,22 +1,26 @@
 // yarn test test/attestationClient/flareConnection.test-slow.ts
 
-import { AttestationClientConfig } from "../../src/attester/configs/AttestationClientConfig";
-import { FlareConnection } from "../../src/attester/FlareConnection";
-import { readSecureConfig } from "../../src/utils/config/configSecure";
-import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
-import { getTestFile } from "../test-utils/test-utils";
-import chai, { expect, assert } from "chai";
-import { DatabaseConnectOptions } from "../../src/utils/database/DatabaseConnectOptions";
-import { DatabaseService } from "../../src/utils/database/DatabaseService";
-import { AttesterState } from "../../src/attester/AttesterState";
-import { clearTestDatabases } from "../verification/test-utils/verifier-test-utils";
-import { StateConnectorTempTran } from "../../typechain-web3-v1/StateConnectorTempTran";
 import { traceManager } from "@flarenetwork/mcc";
-import { BitVoting } from "../../typechain-web3-v1/BitVoting";
+import { assert, expect } from "chai";
+import { spawn } from "child_process";
+import * as fs from "fs";
 import sinon from "sinon";
 import waitOn from "wait-on";
-import * as fs from "fs";
+import Web3 from "web3";
+import { AttesterClient } from "../../src/attester/AttesterClient";
+import { AttesterState } from "../../src/attester/AttesterState";
+import { FlareConnection } from "../../src/attester/FlareConnection";
+import { AttestationClientConfig } from "../../src/attester/configs/AttestationClientConfig";
+import { readSecureConfig } from "../../src/utils/config/configSecure";
+import { DatabaseConnectOptions } from "../../src/utils/database/DatabaseConnectOptions";
+import { DatabaseService } from "../../src/utils/database/DatabaseService";
 import { getWeb3, relativeContractABIPathForContractName } from "../../src/utils/helpers/web3-utils";
+import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
+import { toHex } from "../../src/verification/attestation-types/attestation-types-helpers";
+import { BitVoting } from "../../typechain-web3-v1/BitVoting";
+import { StateConnectorTempTran } from "../../typechain-web3-v1/StateConnectorTempTran";
+import { getTestFile } from "../test-utils/test-utils";
+import { clearTestDatabases } from "../verification/test-utils/verifier-test-utils";
 import {
   assertAddressesMatchPrivateKeys,
   deployTestContracts,
@@ -24,10 +28,6 @@ import {
   selfAssignAttestationProviders,
   setIntervalMining,
 } from "./utils/attestation-client-test-utils";
-import { spawn } from "child_process";
-import Web3 from "web3";
-import { toHex } from "../../src/verification/attestation-types/attestation-types-helpers";
-import { AttesterClient } from "../../src/attester/AttesterClient";
 
 const FIRST_BLOCK = 1;
 const LAST_CONFIRMED_BLOCK = 1000;
@@ -193,7 +193,7 @@ describe(`Flare Connection + Attester Client (${getTestFile(__filename)})`, () =
   it("Initialization should set epochSettings", function () {
     const epochSettings = flareConnection.epochSettings;
     assert(epochSettings);
-    expect(epochSettings.getBitVoteDurationMs().toNumber()).to.eq(8000);
+    expect(epochSettings.getBitVoteDurationMs()).to.eq(8000n);
   });
 
   it("Should get getAttestorsForAssignors", async function () {

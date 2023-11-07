@@ -146,7 +146,6 @@ describe(`Attestation round slow, (${getTestFile(__filename)})`, function () {
       pairsVer.set(pairOk2.attestation.data.request, pairOk2.verification);
       pariAtt.set(pairOk2.attestation.data.request, pairOk2.attestation);
 
-      
       // const stub = sinon.stub(round.activeGlobalConfig.verifierRouter, "verifyAttestation").callsFake(setAssignVerification(pairsVer));
       const verifierRouter = globalConfigManager.getVerifierRouter(round.roundId);
       const stub = sinon.stub(verifierRouter, "verifyAttestation").callsFake(setAssignVerification(pairsVer));

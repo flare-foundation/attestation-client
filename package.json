@@ -217,7 +217,8 @@
       "src/utils/monitoring/**/*.*",
       "src/attester/experimental/**/*.*",
       "src/verification/verifiers/ALGO",
-      "src/verification/verifiers/LTC"
+      "src/verification/verifiers/LTC",
+      "src/external-libs/*.*"
     ],
     "reporter": [
       "html",

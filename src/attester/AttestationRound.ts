@@ -1,4 +1,4 @@
-import { Managed, toBN } from "@flarenetwork/mcc";
+import { Managed } from "@flarenetwork/mcc";
 import { stringify } from "safe-stable-stringify";
 import { BitmaskAccumulator } from "../choose-subsets-lib/BitmaskAccumulator";
 import { chooseCandidate, countOnes, prefix0x, unPrefix0x } from "../choose-subsets-lib/subsets-lib";
@@ -107,28 +107,28 @@ export class AttestationRound {
     if (this.attestationClientConfig.label != "none") {
       _label = `[${this.attestationClientConfig.label}]`;
     }
-    return `#${_label} ${this.roundId}:${this.nowRelative}/${Math.floor(this.windowDurationMs / 1000)}`;
+    return `#${_label} ${this.roundId}:${this.nowRelative}/${Number(this.windowDurationMs / 1000n)}`;
   }
 
   /**
    * Returns choose epoch duration in milliseconds.
    */
   public get chooseWindowDurationMs() {
-    return this.flareConnection.epochSettings.getBitVoteDurationMs().toNumber();
+    return this.flareConnection.epochSettings.getBitVoteDurationMs();
   }
 
   /**
    * Returns voting window duration in milliseconds.
    */
   public get windowDurationMs() {
-    return this.flareConnection.epochSettings.getEpochLengthMs().toNumber();
+    return this.flareConnection.epochSettings.getEpochLengthMs();
   }
 
   /**
    * Returns offset for closing bit voting in milliseconds.
    */
   public get forceCloseBitVotingOffsetMs() {
-    return this.attestationClientConfig.forceCloseBitVotingSec * 1000;
+    return BigInt(this.attestationClientConfig.forceCloseBitVotingSec) * 1000n;
   }
 
   /**
@@ -149,7 +149,7 @@ export class AttestationRound {
    * Returns the time of sending of bit vote
    */
   get roundBitVoteTimeMs() {
-    return this.roundChooseStartTimeMs + this.chooseWindowDurationMs + this.attestationClientConfig.bitVoteTimeSec * 1000;
+    return this.roundChooseStartTimeMs + this.chooseWindowDurationMs + BigInt(this.attestationClientConfig.bitVoteTimeSec) * 1000n;
   }
 
   /**
@@ -178,7 +178,7 @@ export class AttestationRound {
    * Returns the time of sending the submitAttestation transaction, thus committing the round (Unix epoch time in ms).
    */
   public get commitEndTimeMs() {
-    return this.roundRevealStartTimeMs + this.attestationClientConfig.commitTimeSec * 1000;
+    return this.roundRevealStartTimeMs + BigInt(this.attestationClientConfig.commitTimeSec) * 1000n;
   }
 
   /**
@@ -203,7 +203,7 @@ export class AttestationRound {
    * Returns current time relative to the start of round in seconds (decimal value rounded to 1st decimal).
    */
   private get nowRelative() {
-    let diff = Date.now() - this.flareConnection.epochSettings.getRoundIdTimeStartMs(this.roundId);
+    let diff = Date.now() - Number(this.flareConnection.epochSettings.getRoundIdTimeStartMs(this.roundId));
     return (diff / 1000).toFixed(1);
   }
 
@@ -379,7 +379,6 @@ export class AttestationRound {
    */
   addAttestation(attestation: Attestation) {
     // remove duplicates (instruction hash, id, data av proof, ignore timestamp) on the fly
-    // todo: check how fast is hash
     const requestId = attestation.data.getId();
     const duplicate = this.attestationsMap.get(requestId);
 
@@ -523,9 +522,7 @@ export class AttestationRound {
         // If we encounter invalid attestation
         this.isReject = true;
         this.rejectIndex = i;
-        this.logger.error(
-          `${this.label} round #${this.roundId} cannot yet commit - encountered rejected attestation.`
-        );
+        this.logger.error(`${this.label} round #${this.roundId} cannot yet commit - encountered rejected attestation.`);
         return;
       } else {
         this.logger.error(
@@ -596,7 +593,7 @@ export class AttestationRound {
     // calculate remaining time in epoch
     const now = getTimeMs();
     const epochCommitEndTime = this.flareConnection.epochSettings.getRoundIdRevealTimeStartMs(this.roundId);
-    const commitTimeLeft = epochCommitEndTime - now;
+    const commitTimeLeft = epochCommitEndTime - BigInt(now);
 
     this.logger.info(
       `${this.label} ^w^Gcommit^^ round #${this.roundId} attestations: ${validatedHashes.length} time left ${commitTimeLeft}ms (prepare time H:${
@@ -659,7 +656,7 @@ export class AttestationRound {
   public async onChoosePhaseStart() {
     this.logger.group(
       `${this.label} choose phase started [1] ${this.attestationsProcessed}/${this.attestations.length} (${
-        (this.attestations.length * 1000) / this.flareConnection.epochSettings.getEpochLengthMs().toNumber()
+        this.attestations.length / Number(this.flareConnection.epochSettings.getEpochLengthMs() / 1000n)
       } req/sec)`
     );
     this.phase = AttestationRoundPhase.choose;
@@ -671,7 +668,7 @@ export class AttestationRound {
   public async onCommitPhaseStart() {
     this.logger.group(
       `${this.label} commit epoch started [1] ${this.attestationsProcessed}/${this.attestations.length} (${
-        (this.attestations.length * 1000) / this.flareConnection.epochSettings.getEpochLengthMs().toNumber()
+        this.attestations.length / Number(this.flareConnection.epochSettings.getEpochLengthMs() / 1000n)
       } req/sec)`
     );
     this.phase = AttestationRoundPhase.commit;
@@ -737,7 +734,7 @@ export class AttestationRound {
       const receipt = await this.flareConnection.submitAttestation(
         action,
         // commit index (collect+1)
-        toBN(this.roundId + 1),
+        this.roundId + 1,
         // commit
         this.roundMerkleRoot,
         this.roundMaskedMerkleRoot,
@@ -747,7 +744,7 @@ export class AttestationRound {
         prevRound && prevRound.random ? prevRound.random : ZERO_HASH
       );
 
-      // count the round as commited, event if receipt did not come back
+      // count the round as committed, event if receipt did not come back
 
       if (receipt) {
         this.attestStatus = AttestationRoundStatus.committed;
@@ -801,8 +798,6 @@ export class AttestationRound {
       );
     }
 
-    // this.logger.info(`^Cround #${this.roundId} reveal`);
-
     let nextRoundMerkleRoot = ZERO_HASH;
     let nextRoundMaskedMerkleRoot = ZERO_HASH;
     let nextRoundRandom = ZERO_HASH;
@@ -834,7 +829,7 @@ export class AttestationRound {
       const receipt = await this.flareConnection.submitAttestation(
         action,
         // commit index (collect+2)
-        toBN(this.roundId + 2),
+        this.roundId + 2,
         // commit
         nextRoundMerkleRoot,
         nextRoundMaskedMerkleRoot,
@@ -883,7 +878,7 @@ export class AttestationRound {
       criticalAsync("Submit bit vote", async () => {
         const receipt = await this.flareConnection.submitBitVote(
           action,
-          toBN(this.roundId + 1),
+          this.roundId + 1,
           this.bitVoteMaskWithRoundCheck, // snapshot
           this.attestations.length,
           this.numberOfValidatedAttestations,

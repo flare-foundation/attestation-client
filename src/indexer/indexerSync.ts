@@ -112,61 +112,63 @@ export class IndexerSync {
    */
   private async runSyncRaw() {
     // for status display
-    let statsN = this.indexer.N;
+    let statsN = this.indexer.indexedHeight;
     let statsTime = Date.now();
     let statsBlocksPerSec = 0;
 
-    this.indexer.T = await this.indexerToClient.getBlockHeightFromClient(`runSyncRaw1`);
+    this.indexer.tipHeight = await this.indexerToClient.getBlockHeightFromClient(`runSyncRaw1`);
 
     this.isSyncing = true;
 
     let lastN = -1;
 
     while (true) {
-      this.logger.debug1(`runSyncRaw loop N=${this.indexer.N} T=${this.indexer.T}`);
+      this.logger.debug1(`runSyncRaw loop N=${this.indexer.indexedHeight} T=${this.indexer.tipHeight}`);
       const now = Date.now();
 
       // get chain top block
       if (now > statsTime + this.indexer.config.syncUpdateTimeMs) {
         // stats
-        statsBlocksPerSec = ((this.indexer.N - statsN) * 1000) / (now - statsTime);
-        statsN = this.indexer.N;
+        statsBlocksPerSec = ((this.indexer.indexedHeight - statsN) * 1000) / (now - statsTime);
+        statsN = this.indexer.indexedHeight;
         statsTime = now;
 
         // take actual top
-        this.indexer.T = await this.indexerToClient.getBlockHeightFromClient(`runSyncRaw2`);
+        this.indexer.tipHeight = await this.indexerToClient.getBlockHeightFromClient(`runSyncRaw2`);
       }
 
       // wait until we save N+1 block
       // this never happens: lastN=-1, indexer.N>=0
-      if (lastN === this.indexer.N) {
-        this.logger.debug(`runSyncRaw wait block N=${this.indexer.N} T=${this.indexer.T}`);
+      if (lastN === this.indexer.indexedHeight) {
+        this.logger.debug(`runSyncRaw wait block N=${this.indexer.indexedHeight} T=${this.indexer.tipHeight}`);
         await sleepMs(100);
         continue;
       }
-      lastN = this.indexer.N;
+      lastN = this.indexer.indexedHeight;
 
       // status
       const dbStatus = getStateEntryString("state", this.indexer.chainConfig.name, "sync", -1);
 
-      const blocksLeft = this.indexer.T - this.indexer.N - this.indexer.chainConfig.numberOfConfirmations;
+      const blocksLeft = this.indexer.tipHeight - this.indexer.indexedHeight - this.indexer.chainConfig.numberOfConfirmations;
 
       if (statsBlocksPerSec > 0) {
-        const timeLeft = (this.indexer.T - this.indexer.N) / statsBlocksPerSec;
+        const timeLeft = (this.indexer.tipHeight - this.indexer.indexedHeight) / statsBlocksPerSec;
 
         dbStatus.valueNumber = timeLeft;
 
         this.logger.debug(
-          `sync ${this.indexer.N} to ${this.indexer.T}, ${blocksLeft} blocks (ETA: ${secToHHMMSS(timeLeft)} bps: ${round(statsBlocksPerSec, 2)} cps: ${this.indexer.cachedClient.reqsPs
-          })`
+          `sync ${this.indexer.indexedHeight} to ${this.indexer.tipHeight}, ${blocksLeft} blocks (ETA: ${secToHHMMSS(timeLeft)} bps: ${round(
+            statsBlocksPerSec,
+            2
+          )} cps: ${this.indexer.cachedClient.reqsPs})`
         );
       } else {
-        this.logger.debug(`sync ${this.indexer.N} to ${this.indexer.T}, ${blocksLeft} blocks (cps: ${this.indexer.cachedClient.reqsPs})`);
+        this.logger.debug(`sync ${this.indexer.indexedHeight} to ${this.indexer.tipHeight}, ${blocksLeft} blocks (cps: ${this.indexer.cachedClient.reqsPs})`);
       }
 
       await retry(`runSyncRaw::saveStatus`, async () => this.indexer.dbService.manager.save(dbStatus));
       // check if syncing has ended
-      if (this.indexer.N >= this.indexer.T - this.indexer.chainConfig.numberOfConfirmations) {
+      if (this.indexer.indexedHeight >= this.indexer.tipHeight - this.indexer.chainConfig.numberOfConfirmations) {
         this.logger.group("SyncRaw completed");
         this.isSyncing = false;
         this.indexer.blockProcessorManager.onSyncCompleted();
@@ -175,28 +177,28 @@ export class IndexerSync {
       }
 
       // ensure that block processor N + 1 is created
-      await this.indexer.blockProcessorManager.processSyncBlockNumber(this.indexer.N + 1);
+      await this.indexer.blockProcessorManager.processSyncBlockNumber(this.indexer.indexedHeight + 1);
 
       // triggering processors for few read ahead blocks
       for (let i = 2; i < this.indexer.chainConfig.syncReadAhead; i++) {
-        // do not allow read ahead of T - confirmations
-        if (this.indexer.N + i > this.indexer.T - this.indexer.chainConfig.numberOfConfirmations) break;
+        // do not allow read ahead of TipHeight - confirmations
+        if (this.indexer.indexedHeight + i > this.indexer.tipHeight - this.indexer.chainConfig.numberOfConfirmations) break;
 
         // eslint-disable-next-line
         criticalAsync(`runSyncRaw -> blockProcessorManager::processSyncBlockNumber exception `, () =>
-          this.indexer.blockProcessorManager.processSyncBlockNumber(this.indexer.N + i)
+          this.indexer.blockProcessorManager.processSyncBlockNumber(this.indexer.indexedHeight + i)
         );
       }
 
-      // Get the latest hash of the N + 1 block
-      const blockNp1 = await this.indexer.cachedClient.getBlock(this.indexer.N + 1);
-      this.indexer.blockNp1hash = blockNp1.stdBlockHash;
+      // Get the latest hash of the next block
+      const blockNext = await this.indexer.cachedClient.getBlock(this.indexer.indexedHeight + 1);
+      this.indexer.nextBlockHash = blockNext.stdBlockHash;
 
       // We wait until block N+1 is either saved or indicated that there is no such block
       // This is the only point in the loop that increments N
-      while (!(await this.indexer.trySaveNp1Block())) {
+      while (!(await this.indexer.trySaveNextBlock())) {
         await sleepMs(100);
-        this.logger.debug(`runSyncRaw wait save N=${this.indexer.N} T=${this.indexer.T}`);
+        this.logger.debug(`runSyncRaw wait save N=${this.indexer.indexedHeight} T=${this.indexer.tipHeight}`);
       }
     }
   }
@@ -206,9 +208,9 @@ export class IndexerSync {
    * Headers of blocks in forks are collected in addition to indexing the main fork.
    */
   private async runSyncTips() {
-    this.indexer.T = await this.indexerToClient.getBlockHeightFromClient(`runSyncTips`);
+    this.indexer.tipHeight = await this.indexerToClient.getBlockHeightFromClient(`runSyncTips`);
 
-    const startN = this.indexer.N;
+    const startN = this.indexer.indexedHeight;
 
     await this.runSyncRaw();
 
@@ -218,11 +220,11 @@ export class IndexerSync {
 
     // Collect all alternative tips
     this.logger.info(`collecting top blocks...`);
-    const blocks: BlockTipBase[] = await this.indexer.cachedClient.client.getTopLiteBlocks(this.indexer.T - startN, false);
+    const blocks: BlockTipBase[] = await this.indexer.cachedClient.client.getTopLiteBlocks(this.indexer.tipHeight - startN, false);
     this.logger.debug(`${blocks.length} block(s) collected`);
 
     // Save all block headers from tips above N
-    // Note - N may be very low compared to T, since we are
+    // Note - indexedHeight may be very low compared to tipHeight, since we are
     // before sync.
     await this.indexer.headerCollector.saveHeadersOnNewTips(blocks);
   }
@@ -231,9 +233,9 @@ export class IndexerSync {
    * Carries out syncing from the latest block. Used for testing purposes only.
    */
   private async runSyncLatestBlock() {
-    this.indexer.N = await this.indexerToClient.getBlockHeightFromClient(`getLatestBlock`);
+    this.indexer.indexedHeight = await this.indexerToClient.getBlockHeightFromClient(`getLatestBlock`);
 
-    this.logger.debug2(`runSyncLatestBlock latestBlock ${this.indexer.N}`);
+    this.logger.debug2(`runSyncLatestBlock latestBlock ${this.indexer.indexedHeight}`);
 
     await this.runSyncRaw();
   }
@@ -254,12 +256,14 @@ export class IndexerSync {
     if (dbLastSavedBlockNumber > 0 && dbLastSavedBlockNumber < syncStartBlockNumber) {
       // this can happen if indexer is not run for some time and last save block number is below sync start block number.
 
-      await this.indexer.resetDatabaseAndStop(`last database block number DB_N=${dbLastSavedBlockNumber} is below indexer start block number Sync_N=${syncStartBlockNumber} - resetting ${this.indexer.chainConfig.name} indexer DB and state`);
+      await this.indexer.resetDatabaseAndStop(
+        `last database block number DB_N=${dbLastSavedBlockNumber} is below indexer start block number Sync_N=${syncStartBlockNumber} - resetting ${this.indexer.chainConfig.name} indexer DB and state`
+      );
 
       return; //for testing
     }
 
-    this.indexer.N = Math.max(dbLastSavedBlockNumber, syncStartBlockNumber);
+    this.indexer.indexedHeight = Math.max(dbLastSavedBlockNumber, syncStartBlockNumber);
 
     this.logger.group(`Sync started (${this.indexer.syncTimeDays()} days)`);
 

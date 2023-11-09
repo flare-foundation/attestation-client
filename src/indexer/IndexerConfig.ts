@@ -5,7 +5,6 @@ import { AdditionalTypeInfo, IReflection } from "../utils/reflection/reflection"
 
 /**
  * Indexer configuration. Top level JSON deserialization object.
- *
  */
 export class IndexerConfig implements IReflection<IndexerConfig> {
   /**

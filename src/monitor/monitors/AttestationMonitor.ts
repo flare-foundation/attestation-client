@@ -1,4 +1,3 @@
-import { toBN } from "@flarenetwork/mcc";
 import { DBRoundResult } from "../../entity/attester/dbRoundResult";
 import { EpochSettings } from "../../utils/data-structures/EpochSettings";
 import { DatabaseService } from "../../utils/database/DatabaseService";
@@ -49,7 +48,7 @@ export class AttesterMonitor extends MonitorBase<MonitorAttestationConfig> {
     try {
       this.dbService = new DatabaseService(this.logger, dbConfig.connection, "attester", `${this.name}-attester`);
 
-      this.epochSettings = new EpochSettings(toBN(this.config.firstEpochStartTime), toBN(this.config.roundDurationSec));
+      this.epochSettings = new EpochSettings(BigInt(this.config.firstEpochStartTime), BigInt(this.config.roundDurationSec));
       await this.dbService.connect();
 
       // clear error
@@ -69,7 +68,7 @@ export class AttesterMonitor extends MonitorBase<MonitorAttestationConfig> {
     const transactions = this.lastState[0].transactionCount;
     const validTransactions = this.lastState[0].validTransactionCount;
 
-    const activeRound = this.epochSettings.getCurrentEpochId().toNumber();
+    const activeRound = this.epochSettings.getCurrentEpochId();
     const dbRound = this.lastState[0].roundId;
 
     resArray.push(new PerformanceMetrics(`attester.${this.name}`, `collected`, transactions, "tx"));
@@ -115,7 +114,7 @@ export class AttesterMonitor extends MonitorBase<MonitorAttestationConfig> {
 
       res.state = `running`;
 
-      const activeRound = this.epochSettings.getCurrentEpochId().toNumber();
+      const activeRound = this.epochSettings.getCurrentEpochId();
       const dbRound = dbRes[0].roundId;
 
       res.comment = `round ${dbRound} (${activeRound}) transactions ${validTransactions}/${transactions}`;

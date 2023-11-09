@@ -1,5 +1,3 @@
-import { toBN } from "@flarenetwork/mcc";
-import BN from "bn.js";
 import Web3 from "web3";
 import { BitVoting } from "../../typechain-web3-v1/BitVoting";
 import { StateConnector } from "../../typechain-web3-v1/StateConnector";
@@ -7,9 +5,9 @@ import { StateConnectorTempTran } from "../../typechain-web3-v1/StateConnectorTe
 import { BitmaskAccumulator } from "../choose-subsets-lib/BitmaskAccumulator";
 import { isValidHexString } from "../choose-subsets-lib/subsets-lib";
 import { EpochSettings } from "../utils/data-structures/EpochSettings";
+import { Web3Functions } from "../utils/helpers/Web3Functions";
 import { retry } from "../utils/helpers/promiseTimeout";
 import { getWeb3, getWeb3Contract, getWeb3StateConnectorContract } from "../utils/helpers/web3-utils";
-import { Web3Functions } from "../utils/helpers/Web3Functions";
 import { AttLogger } from "../utils/logging/logger";
 import { AttesterState } from "./AttesterState";
 import { AttestationClientConfig } from "./configs/AttestationClientConfig";
@@ -60,9 +58,8 @@ export class FlareConnection {
     const firstEpochStartTime = parseInt("" + (await this.stateConnector.methods.BUFFER_TIMESTAMP_OFFSET().call()), 10);
     const roundDurationSec = parseInt("" + (await this.stateConnector.methods.BUFFER_WINDOW().call()), 10);
     const chooseDeadlineSec = parseInt("" + (await this.bitVoting.methods.BIT_VOTE_DEADLINE().call()), 10);
-    this.epochSettings = new EpochSettings(toBN(firstEpochStartTime), toBN(roundDurationSec), toBN(chooseDeadlineSec));
+    this.epochSettings = new EpochSettings(BigInt(firstEpochStartTime), BigInt(roundDurationSec), BigInt(chooseDeadlineSec));
   }
-
   /**
    * Set attestation client state manager
    * @param attesterState
@@ -138,7 +135,7 @@ export class FlareConnection {
    */
   public async submitAttestation(
     action: string,
-    bufferNumber: BN,
+    bufferNumber: number,
     // commit
     committedMerkleRoot: string,
     committedMaskedMerkleRoot: string,
@@ -170,15 +167,15 @@ export class FlareConnection {
       this.logger.info(`${this.label} revealedRandom ............ : ^e${revealedRandom.toString()}`);
     }
 
-    const epochEndTime = this.epochSettings.getEpochIdTimeEndMs(bufferNumber) / 1000 + 5;
+    const epochEndTime = this.epochSettings.getEpochIdTimeEndMs(bufferNumber) / 1000n + 5n;
 
     const extReceipt = await retry(`${this.logger} submitAttestation signAndFinalize3`, async () =>
-      this.web3Functions.signAndFinalize3Sequenced(action, this.stateConnector.options.address, fnToEncode, epochEndTime)
+      this.web3Functions.signAndFinalize3Sequenced(action, this.stateConnector.options.address, fnToEncode, Number(epochEndTime))
     );
 
     if (extReceipt.receipt) {
-      await this.attesterState.saveRoundCommitted(bufferNumber.toNumber() - 1, extReceipt.nonce, extReceipt.receipt.transactionHash);
-      await this.attesterState.saveRoundRevealed(bufferNumber.toNumber() - 2, extReceipt.nonce, extReceipt.receipt.transactionHash);
+      await this.attesterState.saveRoundCommitted(bufferNumber - 1, extReceipt.nonce, extReceipt.receipt.transactionHash);
+      await this.attesterState.saveRoundRevealed(bufferNumber - 2, extReceipt.nonce, extReceipt.receipt.transactionHash);
       return extReceipt.receipt;
     }
     return null;
@@ -194,7 +191,7 @@ export class FlareConnection {
    */
   public async submitBitVote(
     action: string,
-    bufferNumber: BN,
+    bufferNumber: number,
     bitVote: string,
     numberOfAttestations: number,
     numberOfValidatedAttestations: number,
@@ -211,20 +208,20 @@ export class FlareConnection {
       }
 
       this.logger.info(`${this.label} action .................... : ${action}`);
-      this.logger.info(`${this.label} bufferNumber .............. : ^e${bufferNumber.toString()}`);
+      this.logger.info(`${this.label} bufferNumber .............. : ^e${bufferNumber}`);
       this.logger.info(`${this.label} bitVote ................... : ^e${bitVote} (${bitSequence})`);
       this.logger.info(`${this.label} No. attestations........... : ^e${numberOfValidatedAttestations}/${numberOfAttestations}`);
       this.logger.info(`${this.label} No. duplicates............. : ^e${duplicateCount}`);
     }
 
-    const epochEndTime = this.epochSettings.getEpochIdTimeEndMs(bufferNumber) / 1000 + 5;
+    const epochEndTime = this.epochSettings.getEpochIdTimeEndMs(bufferNumber) / 1000n + 5n;
 
     const extReceipt = await retry(`${this.logger} submitBitVote signAndFinalize3`, async () =>
-      this.web3Functions.signAndFinalize3Sequenced(action, this.bitVoting.options.address, fnToEncode, epochEndTime)
+      this.web3Functions.signAndFinalize3Sequenced(action, this.bitVoting.options.address, fnToEncode, Number(epochEndTime))
     );
 
     if (extReceipt.receipt) {
-      await this.attesterState.saveRoundBitVoted(bufferNumber.toNumber() - 1, extReceipt.nonce, extReceipt.receipt.transactionHash, bitVote);
+      await this.attesterState.saveRoundBitVoted(bufferNumber - 1, extReceipt.nonce, extReceipt.receipt.transactionHash, bitVote);
     }
 
     return extReceipt.receipt;

@@ -62,8 +62,8 @@ export async function deployTestContracts(
 
   const txStateConnector = {
     from: wallet.address,
-    gas: "0x" + web3.utils.toBN(1500000).toString(16),
-    gasPrice: "0x" + web3.utils.toBN("25000000000").toString(16),
+    gas: "0x" + BigInt(1500000).toString(16),
+    gasPrice: "0x" + BigInt("25000000000").toString(16),
     chainId,
     nonce,
     data: stateConnectorData,
@@ -71,8 +71,8 @@ export async function deployTestContracts(
 
   const txBitVoting = {
     from: wallet.address,
-    gas: "0x" + web3.utils.toBN(1500000).toString(16),
-    gasPrice: "0x" + web3.utils.toBN("25000000000").toString(16),
+    gas: "0x" + BigInt(1500000).toString(16),
+    gasPrice: "0x" + BigInt("25000000000").toString(16),
     chainId: chainId,
     nonce: nonce + 1,
     data: bitVotingData,
@@ -109,8 +109,8 @@ export async function submitAttestationRequest(stateConnector: StateConnectorTem
   const txStateConnector = {
     from: wallet.address,
     to: stateConnector.options.address,
-    gas: "0x" + web3.utils.toBN(1500000).toString(16),
-    gasPrice: "0x" + web3.utils.toBN("25000000000").toString(16),
+    gas: "0x" + BigInt(1500000).toString(16),
+    gasPrice: "0x" + BigInt("25000000000").toString(16),
     chainId,
     nonce,
     data,

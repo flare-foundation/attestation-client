@@ -1,4 +1,4 @@
-import { MccClient, prefix0x, toBN } from "@flarenetwork/mcc";
+import { MccClient, prefix0x } from "@flarenetwork/mcc";
 import Web3 from "web3";
 import { AttestationDefinitionStore } from "../../external-libs/AttestationDefinitionStore";
 import { MIC_SALT, ZERO_BYTES_32, encodeAttestationName } from "../../external-libs/utils";
@@ -69,8 +69,8 @@ export async function prepareRandomizedRequestReferencedPaymentNonexistence(
     });
   }
 
-  const deadlineBlockNumber = toBN(prevBlockQueryResult.result.blockNumber);
-  const deadlineTimestamp = toBN(prevBlockQueryResult.result.timestamp);
+  const deadlineBlockNumber = prevBlockQueryResult.result.blockNumber;
+  const deadlineTimestamp = prevBlockQueryResult.result.timestamp;
   const paymentReference = choice === "CORRECT" ? Web3.utils.randomHex(32) : prefix0x(randomTransaction.paymentReference);
   // TODO
   // let destinationAmounts = randomTransaction.
@@ -79,19 +79,19 @@ export async function prepareRandomizedRequestReferencedPaymentNonexistence(
     sourceId,
     messageIntegrityCode: ZERO_BYTES_32,
     requestBody: {
-      minimalBlockNumber: (deadlineBlockNumber.toNumber() - queryWindow).toString(),
+      minimalBlockNumber: (deadlineBlockNumber - queryWindow).toString(),
       deadlineBlockNumber: deadlineBlockNumber.toString(),
       deadlineTimestamp: deadlineTimestamp.toString(),
       destinationAddressHash: Web3.utils.randomHex(32), // TODO: "CORRECT" does not work here
-      amount: Web3.utils.randomHex(16), 
-      standardPaymentReference: paymentReference,  
-    }
+      amount: Web3.utils.randomHex(16),
+      standardPaymentReference: paymentReference,
+    },
   } as ReferencedPaymentNonexistence_Request;
   if (choice === "WRONG_MIC") {
     return request;
   }
   try {
-    let response = await verifyReferencedPaymentNonExistence(TransactionClass, request, indexedQueryManager);    
+    let response = await verifyReferencedPaymentNonExistence(TransactionClass, request, indexedQueryManager);
     if (response.status === "OK") {
       request.messageIntegrityCode = defStore.attestationResponseHash(response.response, MIC_SALT);
       logger.info(`Request augmented correctly (ReferencePaymentNonexistence)`);

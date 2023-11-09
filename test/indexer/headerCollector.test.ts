@@ -59,7 +59,7 @@ describe(`Header Collector (${getTestFile(__filename)})`, () => {
     });
 
     it("Should update N", async function () {
-      headerCollector.updateN(765468);
+      headerCollector.updateIndexedHeight(765468);
     });
 
     it("Should saveHeadersOnNewTips ", async function () {
@@ -85,7 +85,7 @@ describe(`Header Collector (${getTestFile(__filename)})`, () => {
     });
 
     it("Should readAndSaveBlocksHeaders", async function () {
-      headerCollector.updateN(76_468_241);
+      headerCollector.updateIndexedHeight(76_468_241);
 
       await headerCollector.readAndSaveBlocksHeaders(76_468_242, 76_468_244);
       let res = await dataService.manager.findOne(DBBlockXRP, { where: { blockNumber: 76_468_243 } });
@@ -94,7 +94,7 @@ describe(`Header Collector (${getTestFile(__filename)})`, () => {
 
     // Should be fixed (too long trace)
     it("Should not readAndSaveBlocksHeaders", async function () {
-      headerCollector.updateN(10);
+      headerCollector.updateIndexedHeight(10);
       const fake = sinon.fake();
       setRetryFailureCallback((string) => {
         fake();
@@ -105,7 +105,7 @@ describe(`Header Collector (${getTestFile(__filename)})`, () => {
     });
 
     it("Should runBlockHeaderCollectingRaw", function (done) {
-      const spy = sinon.spy(headerCollector.indexerToDB, "writeT");
+      const spy = sinon.spy(headerCollector.indexerToDB, "writeTipHeight");
       headerCollector
         .runBlockHeaderCollecting()
         .then(() => {})

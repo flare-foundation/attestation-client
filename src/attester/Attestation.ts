@@ -3,6 +3,7 @@ import { AttestationResponse } from "../external-libs/AttestationResponse";
 import { AttestationData } from "./AttestationData";
 import { AttestationRound } from "./AttestationRound";
 import { AttestationStatus } from "./types/AttestationStatus";
+import { ARESBase } from "../external-libs/interfaces";
 
 /**
  * Attestation class is class holding the state of an attestation throughout whole life-cycle, which includes:
@@ -30,7 +31,7 @@ export class Attestation {
   status: AttestationStatus = AttestationStatus.initial;
 
   // verification result (response by verifier)
-  verificationData!: AttestationResponse<any>;
+  verificationData!: AttestationResponse<ARESBase>;
   hash: string | undefined;
 
   // processing stats
@@ -41,6 +42,9 @@ export class Attestation {
   retry = 0;
   reverification = false;
   exception: any;
+
+  // Set only on verified requests
+  parsedRequest?: any;
 
   constructor(roundId: number, data: AttestationData) {
     this._roundId = roundId;
@@ -56,7 +60,7 @@ export class Attestation {
   }
 
   /**
-   *  Round in which the attestation is considered
+   * Round in which the attestation is considered
    */
   public get roundId() {
     if (this._testRoundId === undefined) {

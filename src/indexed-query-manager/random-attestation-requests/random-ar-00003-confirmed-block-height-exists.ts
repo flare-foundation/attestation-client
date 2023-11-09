@@ -1,4 +1,4 @@
-import { MccClient, toBN } from "@flarenetwork/mcc";
+import { MccClient } from "@flarenetwork/mcc";
 import { AttestationDefinitionStore } from "../../external-libs/AttestationDefinitionStore";
 import { MIC_SALT, ZERO_BYTES_32, encodeAttestationName } from "../../external-libs/utils";
 import { ConfirmedBlockHeightExists_Request } from "../../servers/verifier-server/src/dtos/attestation-types/ConfirmedBlockHeightExists.dto";
@@ -44,7 +44,7 @@ export async function prepareRandomizedRequestConfirmedBlockHeightExists(
     return null;
   }
 
-  const blockNumber = toBN(randomBlock.blockNumber);
+  const blockNumber = randomBlock.blockNumber;
   const request = {
     attestationType: encodeAttestationName("ConfirmedBlockHeightExists"),
     sourceId,
@@ -52,13 +52,13 @@ export async function prepareRandomizedRequestConfirmedBlockHeightExists(
     requestBody: {
       blockNumber: blockNumber.toString(),
       queryWindow: queryWindow.toString(),
-    }
+    },
   } as ConfirmedBlockHeightExists_Request;
   if (choice === "WRONG_MIC") {
     return request;
   }
   try {
-    let response = await verifyConfirmedBlockHeightExists(request, indexedQueryManager);    
+    let response = await verifyConfirmedBlockHeightExists(request, indexedQueryManager);
     if (response.status === "OK") {
       request.messageIntegrityCode = defStore.attestationResponseHash(response.response, MIC_SALT);
       logger.info(`Request augmented correctly (ConfirmedBlockHeightExists)`);

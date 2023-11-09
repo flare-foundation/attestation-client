@@ -3,7 +3,6 @@ import chai, { assert, expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
 import { AttestationDefinitionStore } from "../../src/external-libs/AttestationDefinitionStore";
 import { arrayRemoveElement } from "../../src/utils/helpers/utils";
-import { prefix0xSigned } from "../../src/verification/attestation-types/attestation-types-helpers";
 import { randomBalanceDecreasingTransactionExample } from "../random-example-generators/BalanceDecreasingTransaction";
 import { randomConfirmedBlockHeightExistsExample } from "../random-example-generators/ConfirmedBlockHeightExists";
 import { randomPaymentExample } from "../random-example-generators/Payment";
@@ -40,13 +39,6 @@ describe(`Misc verifier utils, (${getTestFile(__filename)})`,  function () {
     arrayRemoveElement(ar, el1);
 
     expect(ar.length).to.eq(2);
-  });
-
-  describe("prefixes", function () {
-    it("Should prefix signed hex", function () {
-      const res = prefix0xSigned("-1a");
-      expect(res).to.eq("-0x1a");
-    });
   });
 
   it("Should not get source name", function () {

@@ -1,6 +1,4 @@
 import { prefix0x, unPrefix0x } from "@flarenetwork/mcc";
-import BN from "bn.js";
-import { toBN } from "web3-utils";
 import { Attestation } from "../../../src/attester/Attestation";
 import { FlareConnection } from "../../../src/attester/FlareConnection";
 import { AttestationClientConfig } from "../../../src/attester/configs/AttestationClientConfig";
@@ -15,7 +13,7 @@ export class MockFlareConnection extends FlareConnection {
     super(config, logger, initWeb3);
   }
 
-  epochSettings = new EpochSettings(toBN(123), toBN(90), toBN(45));
+  epochSettings = new EpochSettings(123n, 90n, 45n);
 
   pastEventsStateConnector: any[] = [];
   pastEventsBitVote: any[] = [];
@@ -46,7 +44,7 @@ export class MockFlareConnection extends FlareConnection {
 
   async submitAttestation(
     action: string,
-    bufferNumber: BN,
+    bufferNumber: number,
     // commit
     commitedMerkleRoot: string,
     commitedMaskedMerkleRoot: string,
@@ -57,7 +55,7 @@ export class MockFlareConnection extends FlareConnection {
 
     verbose = true
   ) {
-    const roundId = bufferNumber.toNumber() - 1;
+    const roundId = bufferNumber - 1;
     this.checkHex64(commitedMerkleRoot);
     this.checkHex64(commitedMaskedMerkleRoot);
     this.checkHex64(commitedRandom);
@@ -70,7 +68,7 @@ export class MockFlareConnection extends FlareConnection {
 
   public async submitBitVote(
     action: string,
-    bufferNumber: BN,
+    bufferNumber: number,
     bitVote: string,
     numberOfAttestations: number,
     numberOfValidatedAttestations: number,

@@ -34,7 +34,7 @@ export function createBlankAtRequestEvent(
           transactionId: id,
           inUtxo: inUtxo.toString(),
           utxo: utxo.toString(),
-        }
+        },
       };
       reqData = defStore.encodeRequest(arPayment);
       break;
@@ -50,7 +50,7 @@ export function createBlankAtRequestEvent(
           destinationAddressHash: ethers.zeroPadBytes("0x123456", 32),
           amount: "100",
           standardPaymentReference: ethers.zeroPadBytes("0x222222", 32),
-        }
+        },
       };
       reqData = defStore.encodeRequest(arRef);
   }
@@ -100,19 +100,29 @@ export function createBlankBitVoteEvent(vote: string, timestamp = "1234"): BitVo
   return bitVote;
 }
 
-export function createAttestationVerificationPair(defStore: AttestationDefinitionStore, reqId: string, round: number, logIndex: number, micOk: boolean, status: AttestationResponseStatus) {
+export function createAttestationVerificationPair(
+  defStore: AttestationDefinitionStore,
+  reqId: string,
+  round: number,
+  logIndex: number,
+  micOk: boolean,
+  status: AttestationResponseStatus
+) {
   const id = Web3.utils.randomHex(32);
   const sender = Web3.utils.randomHex(32);
+
+  const requestBody = {
+    transactionId: reqId,
+    inUtxo: "0",
+    utxo: "0",
+  };
 
   const arPayment: Payment_Request = {
     attestationType: encodeAttestationName("Payment"),
     sourceId: encodeAttestationName("XRP"),
     messageIntegrityCode: ZERO_BYTES_32,
-    requestBody: {
-      transactionId: reqId,
-      inUtxo: "0",
-      utxo: "0",
-    }
+
+    requestBody,
   };
 
   const reqData = defStore.encodeRequest(arPayment);
@@ -140,11 +150,7 @@ export function createAttestationVerificationPair(defStore: AttestationDefinitio
     sourceId: arPayment.sourceId,
     votingRound: round.toString(),
     lowestUsedTimestamp: "0",
-    requestBody: {
-      transactionId: "0x9F1ADBE4958AFE4D28138C22B90DA0DBD4FE45BC72C222CB5B78D2F20F79E351".toLowerCase(),
-      inUtxo: "0",
-      utxo:  "0",  
-    },
+    requestBody,
     responseBody: {
       blockNumber: "10",
       blockTimestamp: "109214",
@@ -157,8 +163,8 @@ export function createAttestationVerificationPair(defStore: AttestationDefinitio
       intendedReceivedAmount: "12",
       standardPaymentReference: ZERO_BYTES_32,
       oneToOne: true,
-      status: "0",    
-    }
+      status: "0",
+    },
   };
 
   // const verification: Verification<ARPayment, DHPayment> = {
@@ -171,8 +177,8 @@ export function createAttestationVerificationPair(defStore: AttestationDefinitio
   const verification: AttestationResponse<Payment_Response> = {
     status,
     response,
-  }
-  
+  };
+
   if (micOk) {
     const mic = defStore.attestationResponseHash(response, MIC_SALT);
     arPayment.messageIntegrityCode = mic;

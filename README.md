@@ -1,11 +1,11 @@
 # Attestation Client Suite
 
-Current production tag is 2.0.10.
+Current production tag is 4.0.0.
 
 The Attestation Client Suite is a set of software modules for handling tasks related to performing attestations in Flare's State Connector protocol. It includes the following modules:
 
 - Attestation client
-- Chain indexers (BTC, DOGE, XRP) and verifier servers
+- Chain indexers (BTC, XRP) and verifier servers
 - Attestation client web server providing attestation results
 - Auxiliary development tools (logging, monitoring, ...)
 

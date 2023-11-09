@@ -239,9 +239,7 @@ export class IndexedQueryManager extends IIndexedQueryManager {
       if (options.startTime) {
         query = query.andWhere("transaction.timestamp >= :startTime", { startTime: options.startTime });
       }
-      query = query
-        //.orderBy("transaction.id")
-        .limit(batchSize);
+      query = query.limit(batchSize);
       result = (await query.getMany()) as DBTransactionBase[];
     }
 

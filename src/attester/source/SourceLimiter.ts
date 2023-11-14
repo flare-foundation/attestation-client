@@ -8,7 +8,7 @@ export interface EventValidateAttestation {
 }
 
 /**
- * Handles validation of attestation request for a specific round and on a specific data source
+ * Handles limitations of attestation request verification for a specific round and on a specific data source
  */
 export class SourceLimiter {
   config: SourceConfig;
@@ -21,7 +21,6 @@ export class SourceLimiter {
   constructor(config: SourceConfig, logger: AttLogger) {
     this.logger = logger;
     this.config = config;
-    // this.config = this.round.attestationRoundManager.attestationConfigManager.getSourceLimiterConfig(sourceId, round.roundId);
   }
 
   /**

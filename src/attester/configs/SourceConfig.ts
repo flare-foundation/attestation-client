@@ -6,7 +6,6 @@ import { AttestationTypeConfig } from "./AttestationTypeConfig";
  * Class providing parameters for handling the limitations (maxTotalRoundWeight, ...) of a attestation round for a source
  * and supported attestation types.
  */
-
 export class SourceConfig implements IReflection<SourceConfig> {
   /**
    * Source as string (e.g. "BTC", "DOGE", "XRP"). For names see SourceId enum (src/verification/sources.ts).
@@ -21,7 +20,6 @@ export class SourceConfig implements IReflection<SourceConfig> {
    */
   attestationTypes: AttestationTypeConfig[] = [];
 
-  //
   /**
    * Source id. Not intended to be read from the JSON file. Recalculated from `source`
    */
@@ -29,7 +27,7 @@ export class SourceConfig implements IReflection<SourceConfig> {
   /**
    * Map of supported attestation types. Not intended to be read from the JSON file. Recalculated from `attestationTypes`
    */
-  @optional() attestationTypesMap = new Map<string, AttestationTypeConfig>();
+  @optional() attestationTypesMap: Map<string, AttestationTypeConfig>;
 
   instantiate(): SourceConfig {
     return new SourceConfig();
@@ -45,8 +43,8 @@ export class SourceConfig implements IReflection<SourceConfig> {
    * Initializes `attestationTypesMap` and `sourceId`.
    */
   initialize() {
-    this.attestationTypesMap.clear();
-    if(!this.source || this.source.length === 0) {
+    this.attestationTypesMap = new Map<string, AttestationTypeConfig>();
+    if (!this.source || this.source.length === 0) {
       throw new Error(`Unsupported source id '${this.source}'`);
     }
     this.sourceId = this.source;

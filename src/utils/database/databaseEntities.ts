@@ -6,7 +6,7 @@ import {
   DBTransactionOutput,
   PruneSyncState,
   TipSyncState,
-} from "../../entity-external/DBDogeIndexerBlock";
+} from "../../entity-external/DogeExternalEntities";
 import { DBAttestationRequest } from "../../entity/attester/dbAttestationRequest";
 import { DBRoundResult } from "../../entity/attester/dbRoundResult";
 import { DBVotingRoundResult } from "../../entity/attester/dbVotingRoundResult";

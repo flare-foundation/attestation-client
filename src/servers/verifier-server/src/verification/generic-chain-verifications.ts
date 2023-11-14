@@ -12,7 +12,6 @@ import {
 import Web3 from "web3";
 import { IIndexedQueryManager } from "../../../../indexed-query-manager/IIndexedQueryManager";
 import { BlockResult, TransactionResult } from "../../../../indexed-query-manager/indexed-query-manager-types";
-import { retry } from "../../../../utils/helpers/promiseTimeout";
 import { logException } from "../../../../utils/logging/logger";
 import { VerificationStatus } from "../../../../verification/attestation-types/attestation-types";
 import {

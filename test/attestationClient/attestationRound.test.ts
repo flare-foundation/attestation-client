@@ -71,7 +71,6 @@ describe(`Attestation Round (${getTestFile(__filename)})`, function () {
     await roundAlt.initialize();
 
     defStore = new AttestationDefinitionStore("configs/type-definitions");
-
   });
 
   afterEach(function () {
@@ -98,37 +97,37 @@ describe(`Attestation Round (${getTestFile(__filename)})`, function () {
 
   it("Should get round times", function () {
     const chooseWindowDurationMs = round.chooseWindowDurationMs;
-    expect(chooseWindowDurationMs, "chooseWindowDurationMs").to.eq(45000);
+    expect(chooseWindowDurationMs, "chooseWindowDurationMs").to.eq(45000n);
 
     const windowDurationMs = round.windowDurationMs;
-    expect(windowDurationMs, "windowDurationMs").to.eq(90000);
+    expect(windowDurationMs, "windowDurationMs").to.eq(90000n);
 
     const forceCloseBitVotingOffsetMs = round.forceCloseBitVotingOffsetMs;
-    expect(forceCloseBitVotingOffsetMs, "forceCloseBitVotingOffsetMs").to.equal(2000);
+    expect(forceCloseBitVotingOffsetMs, "forceCloseBitVotingOffsetMs").to.equal(2000n);
 
     const roundStartTimeMs = round.roundStartTimeMs;
-    expect(roundStartTimeMs, "roundStartTimeMs").to.eq(123 * 1000 + 160 * 90 * 1000);
+    expect(roundStartTimeMs, "roundStartTimeMs").to.eq(123n * 1000n + 160n * 90n * 1000n);
 
     const roundChooseStartTimeMs = round.roundChooseStartTimeMs;
-    expect(roundChooseStartTimeMs, "roundChooseStartTimeMs").to.eq(123 * 1000 + 161 * 90 * 1000);
+    expect(roundChooseStartTimeMs, "roundChooseStartTimeMs").to.eq(123n * 1000n + 161n * 90n * 1000n);
 
     const roundBitVoteTimeMs = round.roundBitVoteTimeMs;
-    expect(roundBitVoteTimeMs, "roundBitVoteTimeMs").to.eq(123 * 1000 + 161 * 90 * 1000 + 45000 - 3000);
+    expect(roundBitVoteTimeMs, "roundBitVoteTimeMs").to.eq(BigInt(123 * 1000 + 161 * 90 * 1000 + 45000 - 3000));
 
     const roundForceCloseBitVotingTimeMs = round.roundForceCloseBitVotingTimeMs;
-    expect(roundForceCloseBitVotingTimeMs, "roundForceCloseBitVotingTimeMs").to.eq(123 * 1000 + 161 * 90 * 1000 + 47000);
+    expect(roundForceCloseBitVotingTimeMs, "roundForceCloseBitVotingTimeMs").to.eq(BigInt(123 * 1000 + 161 * 90 * 1000 + 47000));
 
     const roundCommitStartTimeMs = round.roundCommitStartTimeMs;
-    expect(roundCommitStartTimeMs, "roundCommitStartTimeMs").to.eq(123 * 1000 + 161 * 90 * 1000 + 45000);
+    expect(roundCommitStartTimeMs, "roundCommitStartTimeMs").to.eq(BigInt(123 * 1000 + 161 * 90 * 1000 + 45000));
 
     const roundRevealStartTimeMs = round.roundRevealStartTimeMs;
-    expect(roundRevealStartTimeMs, "roundRevealStartTimeMs").to.eq(123 * 1000 + 162 * 90 * 1000);
+    expect(roundRevealStartTimeMs, "roundRevealStartTimeMs").to.eq(BigInt(123 * 1000 + 162 * 90 * 1000));
 
     const commitEndTimeMs = round.commitEndTimeMs;
-    expect(commitEndTimeMs, "commitEndTimeMs").to.eq(123 * 1000 + 162 * 90 * 1000 - 3000);
+    expect(commitEndTimeMs, "commitEndTimeMs").to.eq(BigInt(123 * 1000 + 162 * 90 * 1000 - 3000));
 
     const roundCompleteTimeMs = round.roundCompleteTimeMs;
-    expect(roundCompleteTimeMs, "roundCompleteTimeMs").to.eq(123 * 1000 + 163 * 90 * 1000);
+    expect(roundCompleteTimeMs, "roundCompleteTimeMs").to.eq(BigInt(123 * 1000 + 163 * 90 * 1000));
   });
 
   it("Should write label", function () {
@@ -194,7 +193,7 @@ describe(`Attestation Round (${getTestFile(__filename)})`, function () {
         for (let i = 1; i < 10; i++) {
           const fakeMic = `0x0123aaa${j}`.length % 2 == 0 ? `0x0123aaa${j}` : `0x0123aaa${j}0`;
           const fakeId = `0x1d1d1d${j}`.length % 2 == 0 ? `0x1d1d1d${j}` : `0x1d1d1d${j}0`;
-  
+
           const event = createBlankAtRequestEvent(defStore, "Payment", "DOGE", 1, ethers.zeroPadBytes(fakeMic, 32), "12345", ethers.zeroPadBytes(fakeId, 32));
           const attestation = new Attestation(160, new AttestationData(event));
           attestation.index = i - 1;
@@ -224,7 +223,7 @@ describe(`Attestation Round (${getTestFile(__filename)})`, function () {
           const fakeMic = `0x0123aaa${j}`.length % 2 == 0 ? `0x0123aaa${j}` : `0x0123aaa${j}0`;
           const fakeId = `0x1d1d1d${j}`.length % 2 == 0 ? `0x1d1d1d${j}` : `0x1d1d1d${j}0`;
 
-          const event = createBlankAtRequestEvent(defStore, "Payment", "DOGE", 1,ethers.zeroPadBytes(fakeMic, 32), "12345", ethers.zeroPadBytes(fakeId, 32));
+          const event = createBlankAtRequestEvent(defStore, "Payment", "DOGE", 1, ethers.zeroPadBytes(fakeMic, 32), "12345", ethers.zeroPadBytes(fakeId, 32));
           const attestation = new Attestation(180, new AttestationData(event));
           attestation.index = i - 1;
           attestation.status = i == j ? AttestationStatus.valid : AttestationStatus.overLimit;

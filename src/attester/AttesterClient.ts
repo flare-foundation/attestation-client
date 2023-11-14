@@ -158,9 +158,9 @@ export class AttesterClient {
     this.flareConnection.setStateManager(this.attestationRoundManager.attesterState);
 
     // get block current attestation round
-    const startRoundTime = this.attestationRoundManager.epochSettings.getRoundIdTimeStartMs(this.attestationRoundManager.activeRoundId) / 1000;
-    this.logger.debug(`start round ^Y#${this.attestationRoundManager.activeRoundId}^^ time ${secToHHMMSS(startRoundTime)}`);
-    const startBlock = await this.getBlockBeforeTime(startRoundTime);
+    const startRoundTime = this.attestationRoundManager.epochSettings.getRoundIdTimeStartMs(this.attestationRoundManager.activeRoundId) / 1000n;
+    this.logger.debug(`start round ^Y#${this.attestationRoundManager.activeRoundId}^^ time ${secToHHMMSS(Number(startRoundTime))}`);
+    const startBlock = await this.getBlockBeforeTime(Number(startRoundTime));
 
     // connect to network block callback
     this.flareDataCollector = new FlareDataCollector(this, startBlock, this.config.web.refreshEventsMs);

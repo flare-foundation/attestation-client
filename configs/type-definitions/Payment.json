@@ -1,13 +1,13 @@
 {
   "name": "Payment",
-  "fullComment": " @custom:name Payment\n @custom:id 0x01\n @custom:supported BTC, DOGE, XRP\n @author Flare\n @notice The attestation type is used to prove that a native currency payment was carried out on some blockchain.\n Various blockchains support different types of native payments. For each block chain, it is specified how a payment\n transaction should be formed to be provable by this attestation type.\n The provable payments emulate usual banking payment from entity A to entity B in native currency with an optional payment reference.\n @custom:verification Based on transaction id, the transaction is fetched from the API of the blockchain node or relevant indexer.\n If the transaction cannot be fetched or the transaction is in a block that does not have sufficient [number of confirmations](/specs/attestations/configs.md#finalityconfirmation), the attestation request is rejected.\n Once the transaction is received, the [payment summary](/specs/attestations/external-chains/transactions.md#payment-summary) is computed according to the source chain.\n If summary is successfully calculated, the response is assembled from the summary.\n Otherwise, the attestation request is rejected.\n @custom:lut `blockTimestamp`",
+  "fullComment": " @custom:name Payment\n @custom:id 0x01\n @custom:supported BTC, DOGE, XRP\n @author Flare\n @notice The attestation type is used to prove that a native currency payment was carried out on some blockchain.\n Various blockchains support different types of native payments. For each block chain, it is specified how a payment\n transaction should be formed to be provable by this attestation type.\n The provable payments emulate usual banking payment from entity A to entity B in native currency with an optional payment reference.\n @custom:verification Based on transaction id, the transaction is fetched from the API of the blockchain node or relevant indexer.\n If the transaction cannot be fetched or the transaction is in a block that does not have sufficient [number of confirmations](/specs/attestations/configs.md#finalityconfirmation), the attestation request is rejected.\n Once the transaction is received, the [payment summary](/specs/attestations/external-chains/transactions.md#payment-summary) is computed according to the rules of the source chain.\n If summary is successfully calculated, the response is assembled from the summary.\n Otherwise, the attestation request is rejected.\n @custom:lut `blockTimestamp`",
   "description": "The attestation type is used to prove that a native currency payment was carried out on some blockchain.\n Various blockchains support different types of native payments. For each block chain, it is specified how a payment\n transaction should be formed to be provable by this attestation type.\n The provable payments emulate usual banking payment from entity A to entity B in native currency with an optional payment reference.",
   "supported": [
     "BTC",
     "DOGE",
     "XRP"
   ],
-  "verification": "Based on transaction id, the transaction is fetched from the API of the blockchain node or relevant indexer.\n If the transaction cannot be fetched or the transaction is in a block that does not have sufficient [number of confirmations](/specs/attestations/configs.md#finalityconfirmation), the attestation request is rejected.\n Once the transaction is received, the [payment summary](/specs/attestations/external-chains/transactions.md#payment-summary) is computed according to the source chain.\n If summary is successfully calculated, the response is assembled from the summary.\n Otherwise, the attestation request is rejected.",
+  "verification": "Based on transaction id, the transaction is fetched from the API of the blockchain node or relevant indexer.\n If the transaction cannot be fetched or the transaction is in a block that does not have sufficient [number of confirmations](/specs/attestations/configs.md#finalityconfirmation), the attestation request is rejected.\n Once the transaction is received, the [payment summary](/specs/attestations/external-chains/transactions.md#payment-summary) is computed according to the rules of the source chain.\n If summary is successfully calculated, the response is assembled from the summary.\n Otherwise, the attestation request is rejected.",
   "lut": "`blockTimestamp`",
   "proof": {
     "name": "Proof",
@@ -113,7 +113,7 @@
     "description": "Request body for Payment attestation type",
     "above": "",
     "below": "",
-    "fullComment": " @notice Request body for Payment attestation type\n @param transactionId Id of the payment transaction.\n @param inUtxo Index of the transaction input. Always 0 for the non-utxo chains.\n @param utxo Index of the transaction output. Always 0 for the non-utxo chains.",
+    "fullComment": " @notice Request body for Payment attestation type\n @param transactionId Id of the payment transaction.\n @param inUtxo For UTXO, this is the index of the transaction input with source address. Always 0 for the non-utxo chains.\n @param utxo For UTXO, this is the index of the transaction output with receiving address. Always 0 for the non-utxo chains.",
     "params": [
       {
         "name": "transactionId",
@@ -125,13 +125,13 @@
         "name": "inUtxo",
         "type": "uint256",
         "typeSimple": "uint256",
-        "comment": "Index of the transaction input. Always 0 for the non-utxo chains."
+        "comment": "For UTXO, this is the index of the transaction input with source address. Always 0 for the non-utxo chains."
       },
       {
         "name": "utxo",
-        "type": "uint16",
-        "typeSimple": "uint16",
-        "comment": "Index of the transaction output. Always 0 for the non-utxo chains."
+        "type": "uint256",
+        "typeSimple": "uint256",
+        "comment": "For UTXO, this is the index of the transaction output with receiving address. Always 0 for the non-utxo chains."
       }
     ]
   },
@@ -248,9 +248,9 @@
             "type": "uint256"
           },
           {
-            "internalType": "uint16",
+            "internalType": "uint256",
             "name": "utxo",
-            "type": "uint16"
+            "type": "uint256"
           }
         ],
         "internalType": "struct Payment.RequestBody",
@@ -297,9 +297,9 @@
             "type": "uint256"
           },
           {
-            "internalType": "uint16",
+            "internalType": "uint256",
             "name": "utxo",
-            "type": "uint16"
+            "type": "uint256"
           }
         ],
         "internalType": "struct Payment.RequestBody",
@@ -420,9 +420,9 @@
                 "type": "uint256"
               },
               {
-                "internalType": "uint16",
+                "internalType": "uint256",
                 "name": "utxo",
-                "type": "uint16"
+                "type": "uint256"
               }
             ],
             "internalType": "struct Payment.RequestBody",

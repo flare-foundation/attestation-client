@@ -1,4 +1,4 @@
-import { MccClient, prefix0x, toBN } from "@flarenetwork/mcc";
+import { MccClient, prefix0x } from "@flarenetwork/mcc";
 import Web3 from "web3";
 import { AttestationDefinitionStore } from "../../external-libs/AttestationDefinitionStore";
 import { MIC_SALT, ZERO_BYTES_32, encodeAttestationName } from "../../external-libs/utils";
@@ -50,15 +50,15 @@ export async function prepareRandomizedRequestPayment(
     requestBody: {
       transactionId: id,
       blockNumber: blockNumber,
-      utxo: toBN(0).toString(), // TODO: randomize for UTXO chains
-      inUtxo: toBN(0).toString(), // TODO: randomize for UTXO chains
-    }
+      utxo: "0", // TODO: randomize for UTXO chains
+      inUtxo: "0", // TODO: randomize for UTXO chains
+    },
   } as Payment_Request;
   if (choice === "WRONG_MIC") {
     return request;
   }
   try {
-    let response = await verifyPayment(TransactionClass, request, indexedQueryManager);    
+    let response = await verifyPayment(TransactionClass, request, indexedQueryManager);
     if (response.status === "OK") {
       request.messageIntegrityCode = defStore.attestationResponseHash(response.response, MIC_SALT);
       logger.info(`Request augmented correctly (Payment)`);

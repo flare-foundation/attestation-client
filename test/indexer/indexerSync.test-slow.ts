@@ -57,8 +57,8 @@ describe(`Indexer sync XRP ${getTestFile(__filename)})`, () => {
 
       const stub1 = sinon.stub(indexer.indexerToClient, "getBlockHeightFromClient").resolves(10 + indexer.chainConfig.numberOfConfirmations);
       await indexer.indexerSync.runSync(10);
-      expect(indexer.N, "N").to.eq(16);
-      expect(indexer.T, "T").to.eq(16);
+      expect(indexer.indexedHeight, "N").to.eq(16);
+      expect(indexer.tipHeight, "T").to.eq(16);
       const state = await indexer.dbService.manager.findOne(DBState, { where: { valueString: "sync" } });
 
       expect(state.valueNumber).to.eq(-1);

@@ -6,8 +6,7 @@ import {
   IDEDogeIndexerBlock,
   ITipSyncState,
   TipSyncState,
-} from "../entity-external/DBDogeIndexerBlock";
-import { DBTransactionBase } from "../entity/indexer/dbTransaction";
+} from "../entity-external/DogeExternalEntities";
 import { IIndexedQueryManager } from "./IIndexedQueryManager";
 import {
   BlockHeightSample,

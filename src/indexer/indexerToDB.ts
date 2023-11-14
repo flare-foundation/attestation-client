@@ -73,12 +73,12 @@ export class IndexerToDB {
   /////////////////////////////////////////////////////////////
 
   /**
-   * Saves the last top height into the database state
-   * @param T top height
+   * Saves the last tip height into the database state
+   * @param tipHeight tip height
    */
-  public async writeT(T: number) {
+  public async writeTipHeight(tipHeight: number) {
     // every update save last T
-    const stateTcheckTime = getStateEntry("T", this.chainName, T);
+    const stateTcheckTime = getStateEntry("T", this.chainName, tipHeight);
     await retry(`writeT`, async () => await this.dbService.manager.save(stateTcheckTime));
   }
 
@@ -123,7 +123,6 @@ export class IndexerToDB {
       .execute();
   }
 
-  //do we want to drop or truncate???
   /**
    * Securely drops the table given the name
    * @param name name of the table to be dropped

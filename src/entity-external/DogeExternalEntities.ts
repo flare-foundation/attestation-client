@@ -191,9 +191,9 @@ export class DBDogeTransaction {
     return baseRes;
   }
 }
-// External Postgres Database Entities (DOGE) (read only)
 
 export type IDBDogeTransaction = new () => DBDogeTransaction;
+
 export abstract class AbstractTransactionOutput {
   @Column()
   n: number;
@@ -217,6 +217,7 @@ export abstract class AbstractTransactionOutput {
   @Column()
   scriptKeyAddress: string;
 }
+
 @Entity("doge_indexer_transactionoutput")
 export class DBTransactionOutput extends AbstractTransactionOutput {
   @PrimaryColumn({ type: "bigint" })
@@ -226,6 +227,7 @@ export class DBTransactionOutput extends AbstractTransactionOutput {
   @JoinColumn({ name: "transaction_link_id" })
   transaction_link_id: DBDogeTransaction;
 }
+
 @Entity("doge_indexer_transactioninputcoinbase")
 export class DBTransactionInputCoinbase {
   @PrimaryColumn({ type: "bigint" })
@@ -272,6 +274,7 @@ export class DBTransactionInput extends AbstractTransactionOutput {
   @Column()
   vinScriptSigHex: string;
 }
+
 @Entity("doge_indexer_tipsyncstate")
 export class TipSyncState {
   @PrimaryColumn({ type: "bigint" })
@@ -289,7 +292,6 @@ export class TipSyncState {
   @Column()
   timestamp: number;
 }
-// External Postgres Database Entities (DOGE) (read only)
 
 export type ITipSyncState = new () => TipSyncState;
 

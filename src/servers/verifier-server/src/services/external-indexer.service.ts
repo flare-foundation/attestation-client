@@ -17,7 +17,7 @@ import {
   ITipSyncState,
   PruneSyncState,
   TipSyncState,
-} from "../../../../entity-external/DBDogeIndexerBlock";
+} from "../../../../entity-external/DogeExternalEntities";
 
 @Injectable()
 export class ExternalIndexerEngineService extends IIndexerEngineService {

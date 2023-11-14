@@ -125,11 +125,6 @@ class AttestationSpammer {
     }
   }
 
-  getCurrentRound() {
-    const now = Math.floor(Date.now() / 1000);
-    return Math.floor((now - this.BUFFER_TIMESTAMP_OFFSET) / this.BUFFER_WINDOW);
-  }
-
   static sendId = 0;
   async sendAttestationRequest(stateConnector: StateConnector | StateConnectorTempTran, request: ARBase) {
     // let scheme = this.definitions.find(definition => definition.id === request.attestationType);

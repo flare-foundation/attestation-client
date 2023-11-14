@@ -126,7 +126,7 @@ describe(`Attestation round slow, (${getTestFile(__filename)})`, function () {
     }
 
     it("should process attestations", async function () {
-      const time = round.roundStartTimeMs;
+      const time = Number(round.roundStartTimeMs);
 
       const clock = sinon.useFakeTimers({ now: time, shouldAdvanceTime: true });
 
@@ -146,7 +146,6 @@ describe(`Attestation round slow, (${getTestFile(__filename)})`, function () {
       pairsVer.set(pairOk2.attestation.data.request, pairOk2.verification);
       pariAtt.set(pairOk2.attestation.data.request, pairOk2.attestation);
 
-      
       // const stub = sinon.stub(round.activeGlobalConfig.verifierRouter, "verifyAttestation").callsFake(setAssignVerification(pairsVer));
       const verifierRouter = globalConfigManager.getVerifierRouter(round.roundId);
       const stub = sinon.stub(verifierRouter, "verifyAttestation").callsFake(setAssignVerification(pairsVer));
@@ -171,7 +170,7 @@ describe(`Attestation round slow, (${getTestFile(__filename)})`, function () {
     });
 
     it("Should process with weight exceeded", async function () {
-      const time = round.roundStartTimeMs;
+      const time = Number(round.roundStartTimeMs);
 
       const clock = sinon.useFakeTimers({ now: time, shouldAdvanceTime: true });
 
@@ -201,7 +200,7 @@ describe(`Attestation round slow, (${getTestFile(__filename)})`, function () {
     });
 
     it("Should process to late attestation", async function () {
-      const time = round.commitEndTimeMs + 1;
+      const time = Number(round.commitEndTimeMs + 1n);
 
       const clock = sinon.useFakeTimers({ now: time, shouldAdvanceTime: true });
 

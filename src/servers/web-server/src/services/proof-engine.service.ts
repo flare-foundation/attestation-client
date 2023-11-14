@@ -143,7 +143,7 @@ export class ProofEngineService {
    * @returns
    */
   public canReveal(roundId: number) {
-    let current = this.configService.epochSettings.getCurrentEpochId().toNumber();
+    let current = this.configService.epochSettings.getCurrentEpochId();
     return current >= roundId + 2; // we must be in the reveal phase or later for a given roundId
   }
 
@@ -162,7 +162,7 @@ export class ProofEngineService {
    * @returns
    */
   public async systemStatus(): Promise<SystemStatus> {
-    let currentBufferNumber = this.configService.epochSettings.getCurrentEpochId().toNumber();
+    let currentBufferNumber = this.configService.epochSettings.getCurrentEpochId();
     let latestAvailableRoundId = await this.maxRoundId();
     // Do not disclose the latest available round, if it is too early
     if (latestAvailableRoundId + 1 === currentBufferNumber) {

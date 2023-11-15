@@ -17,7 +17,7 @@ import { toHex as toHexPad } from "../../src/verification/attestation-types/atte
 
 import { ethers } from "ethers";
 import { AttestationDefinitionStore } from "../../src/external-libs/AttestationDefinitionStore";
-import { EncodedRequestBody } from "../../src/servers/verifier-server/src/dtos/generic/generic.dto";
+import { EncodedRequest } from "../../src/servers/verifier-server/src/dtos/generic/generic.dto";
 import { VerifierBtcServerModule } from "../../src/servers/verifier-server/src/verifier-btc-server.module";
 import {
   addressOnVout,
@@ -326,7 +326,7 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
 
       let attestationRequest = {
         abiEncodedRequest: defStore.encodeRequest(request),
-      } as EncodedRequestBody;
+      } as EncodedRequest;
 
       let resp = await sendToVerifier("Payment", "BTC", configurationService, attestationRequest, API_KEY);
 
@@ -346,7 +346,7 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
       let request = await testBalanceDecreasingTransactionRequest(defStore, selectedTransaction, TX_CLASS, CHAIN_TYPE, sourceAddressIndicator);
       let attestationRequest = {
         abiEncodedRequest: defStore.encodeRequest(request),
-      } as EncodedRequestBody;
+      } as EncodedRequest;
 
       let resp = await sendToVerifier("BalanceDecreasingTransaction", "BTC", configurationService, attestationRequest, API_KEY);
 
@@ -364,7 +364,7 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
       request.requestBody.transactionId = toHexPad(12, 32);
       let attestationRequest = {
         abiEncodedRequest: defStore.encodeRequest(request),
-      } as EncodedRequestBody;
+      } as EncodedRequest;
 
       let resp = await sendToVerifier("BalanceDecreasingTransaction", "BTC", configurationService, attestationRequest, API_KEY);
 
@@ -384,7 +384,7 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
       );
       let attestationRequest = {
         abiEncodedRequest: defStore.encodeRequest(request),
-      } as EncodedRequestBody;
+      } as EncodedRequest;
 
       let resp = await sendToVerifier("ConfirmedBlockHeightExists", "BTC", configurationService, attestationRequest, API_KEY);
       assert(resp.status === "VALID", "Wrong server response");
@@ -410,7 +410,7 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
       );
       let attestationRequest = {
         abiEncodedRequest: defStore.encodeRequest(request),
-      } as EncodedRequestBody;
+      } as EncodedRequest;
 
       let resp = await sendToVerifier("ConfirmedBlockHeightExists", "BTC", configurationService, attestationRequest, API_KEY);
       assert(resp.status === "INDETERMINATE", "Wrong server response");
@@ -442,7 +442,7 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
 
       let attestationRequest = {
         abiEncodedRequest: defStore.encodeRequest(request),
-      } as EncodedRequestBody;
+      } as EncodedRequest;
 
       let resp = await sendToVerifier("ReferencedPaymentNonexistence", "BTC", configurationService, attestationRequest, API_KEY);
 

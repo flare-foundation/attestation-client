@@ -14,7 +14,7 @@
    ],
    "sources": [
       {
-         "source": "BTC",
+         "source": "testBTC",
          "maxTotalRoundWeight": 1000,
          "attestationTypes": [
             {
@@ -36,7 +36,7 @@
          ]
       },
       {
-         "source": "XRP",
+         "source": "testXRP",
          "maxTotalRoundWeight": 1000,
          "attestationTypes": [
             {
@@ -58,7 +58,7 @@
          ]
       },
       {
-         "source": "DOGE",
+         "source": "testDOGE",
          "maxTotalRoundWeight": 1000,
          "attestationTypes": [
             {

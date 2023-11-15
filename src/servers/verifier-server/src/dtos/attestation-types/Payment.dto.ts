@@ -148,6 +148,37 @@ class IsEVMAddress implements ValidatorConstraintInterface {
 //////////////////////////////////// DTOs /////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
+/**
+ * Attestation status
+ */
+export enum AttestationResponseStatus {
+    /**
+     * Attestation request is valid.
+     */
+    VALID = "VALID",
+    /**
+     * Attestation request is invalid.
+     */
+    INVALID = "INVALID",
+    /**
+     * Attestation request cannot be confirmed neither rejected by the verifier at the moment.
+     */
+    INDETERMINATE = "INDETERMINATE",
+}
+
+/**
+ * Attestation response for specific attestation type (flattened)
+ */
+export class AttestationResponseDTO_Payment_Response {
+    constructor(params: Required<AttestationResponseDTO_Payment_Response>) {
+        Object.assign(this, params);
+    }
+
+    status: AttestationResponseStatus;
+
+    response?: Payment_Response;
+}
+
 export class Payment_ResponseBody {
     constructor(params: Required<Payment_ResponseBody>) {
         Object.assign(this, params);
@@ -268,17 +299,20 @@ export class Payment_RequestBody {
     transactionId: string;
 
     /**
-     * Index of the transaction input. Always 0 for the non-utxo chains.
+     * For UTXO, this is the index of the transaction input with source address. Always 0 for the non-utxo chains.
      */
     @Validate(IsUnsignedIntLike)
-    @ApiProperty({ description: `Index of the transaction input. Always 0 for the non-utxo chains.`, example: "123" })
+    @ApiProperty({ description: `For UTXO, this is the index of the transaction input with source address. Always 0 for the non-utxo chains.`, example: "123" })
     inUtxo: string;
 
     /**
-     * Index of the transaction output. Always 0 for the non-utxo chains.
+     * For UTXO, this is the index of the transaction output with receiving address. Always 0 for the non-utxo chains.
      */
     @Validate(IsUnsignedIntLike)
-    @ApiProperty({ description: `Index of the transaction output. Always 0 for the non-utxo chains.`, example: "123" })
+    @ApiProperty({
+        description: `For UTXO, this is the index of the transaction output with receiving address. Always 0 for the non-utxo chains.`,
+        example: "123",
+    })
     utxo: string;
 }
 export class Payment_Request {

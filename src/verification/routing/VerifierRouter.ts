@@ -161,14 +161,14 @@ export class VerifierRouter {
       }
     }
 
-    // Check if everything is configured
+    // Log unsupported option
     if (process.env.REQUIRE_ALL_ROUTES_CONFIGURED) {
       for (let definition of dataStore.definitions.values()) {
         let attestationTypeName = definition.name;
         for (let sourceName of definition.supported) {
           let sourceMap = this.routeMap.get(sourceName);
           if (sourceMap.get(definition.name) === EMPTY_VERIFIER_ROUTE) {
-            throw new Error(`The route is not set for pair ('${sourceName}','${attestationTypeName}')`);
+            this.logger.info(`The route is not set for pair ('${sourceName}','${attestationTypeName}')`);
           }
         }
       }

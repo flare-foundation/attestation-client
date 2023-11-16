@@ -1,5 +1,5 @@
 // This should always be on the top of the file, before imports
-import { BtcTransaction, ChainType, MCC, prefix0x, toBN, toHex32Bytes } from "@flarenetwork/mcc";
+import { BtcTransaction, ChainType, MCC, prefix0x, toHex32Bytes } from "@flarenetwork/mcc";
 import { INestApplication } from "@nestjs/common";
 import { WsAdapter } from "@nestjs/platform-ws";
 import { Test } from "@nestjs/testing";
@@ -17,6 +17,7 @@ import { toHex as toHexPad } from "../../src/verification/attestation-types/atte
 
 import { ethers } from "ethers";
 import { AttestationDefinitionStore } from "../../src/external-libs/AttestationDefinitionStore";
+import { MIC_SALT } from "../../src/external-libs/utils";
 import { EncodedRequest } from "../../src/servers/verifier-server/src/dtos/generic/generic.dto";
 import { VerifierBtcServerModule } from "../../src/servers/verifier-server/src/verifier-btc-server.module";
 import {
@@ -34,7 +35,6 @@ import {
 } from "../indexed-query-manager/utils/indexerTestDataGenerator";
 import { getTestFile } from "../test-utils/test-utils";
 import { sendToVerifier } from "./utils/server-test-utils";
-import { MIC_SALT } from "../../src/external-libs/utils";
 
 chai.use(chaiAsPromised);
 
@@ -436,7 +436,7 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
         selectedTransaction.timestamp - 2,
         receivingAddress,
         prefix0x(selectedTransaction.paymentReference),
-        receivedAmount.add(toBN(1)).toString()
+        (receivedAmount + 1n).toString()
       );
 
       let attestationRequest = {
@@ -473,7 +473,7 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
         selectedTransaction.timestamp + 2,
         receivingAddress,
         prefix0x(selectedTransaction.paymentReference),
-        receivedAmount.neg().toString()
+        (-receivedAmount).toString()
       );
 
       expect(() => defStore.encodeRequest(request)).to.throw();

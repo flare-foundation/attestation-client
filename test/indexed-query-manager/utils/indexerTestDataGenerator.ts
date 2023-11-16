@@ -1,4 +1,4 @@
-import { ChainType, MCC, prefix0x, toBN, unPrefix0x } from "@flarenetwork/mcc";
+import { ChainType, MCC, prefix0x, unPrefix0x } from "@flarenetwork/mcc";
 import fs from "fs";
 import { EntityManager } from "typeorm";
 import Web3 from "web3";
@@ -7,6 +7,7 @@ import { DBState } from "../../../src/entity/indexer/dbState";
 import { DBTransactionBase } from "../../../src/entity/indexer/dbTransaction";
 import { AttestationDefinitionStore } from "../../../src/external-libs/AttestationDefinitionStore";
 import { MIC_SALT, encodeAttestationName } from "../../../src/external-libs/utils";
+import { TransactionResult } from "../../../src/indexed-query-manager/indexed-query-manager-types";
 import { BalanceDecreasingTransaction_Request } from "../../../src/servers/verifier-server/src/dtos/attestation-types/BalanceDecreasingTransaction.dto";
 import { ConfirmedBlockHeightExists_Request } from "../../../src/servers/verifier-server/src/dtos/attestation-types/ConfirmedBlockHeightExists.dto";
 import { Payment_Request } from "../../../src/servers/verifier-server/src/dtos/attestation-types/Payment.dto";
@@ -21,7 +22,6 @@ import { MccTransactionType } from "../../../src/servers/verifier-server/src/ver
 import { compressBin } from "../../../src/utils/compression/compression";
 import { getUnixEpochTimestamp } from "../../../src/utils/helpers/utils";
 import { toHex } from "../../../src/verification/attestation-types/attestation-types-helpers";
-import { TransactionResult } from "../../../src/indexed-query-manager/indexed-query-manager-types";
 
 const TEST_DATA_PATH = "test/indexed-query-manager/test-data";
 
@@ -332,26 +332,26 @@ export function addressOnVout(dbTransaction: DBTransactionBase, i: number) {
 }
 
 export function totalDeliveredAmountToAddress(dbTransaction: DBTransactionBase, address: string) {
-  let spent = toBN(0);
+  let spent = BigInt(0);
   let response = JSON.parse(dbTransaction.getResponse());
   for (let i = 0; i < response.vin.length; i++) {
     if (response.vin[i]?.prevout.scriptPubKey?.address === address) {
       let value = response.vin[i]?.prevout?.value;
       if (value) {
-        spent = spent.add(toBN(Math.floor(value * BTC_IN_SATOSHI)));
+        spent = spent + BigInt(Math.floor(value * BTC_IN_SATOSHI));
       }
     }
   }
-  let received = toBN(0);
+  let received = BigInt(0);
   for (let i = 0; i < response.vout.length; i++) {
     if (response.vout[i].scriptPubKey?.address === address) {
       let value = response.vout[i].value;
       if (value) {
-        received = received.add(toBN(Math.floor(value * BTC_IN_SATOSHI)));
+        received = received + BigInt(Math.floor(value * BTC_IN_SATOSHI));
       }
     }
   }
-  return received.sub(spent);
+  return received - spent;
 }
 
 export async function testPaymentRequest(

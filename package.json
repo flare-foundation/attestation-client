@@ -95,7 +95,7 @@
     "test_endtoend": "env SQLITE=true yarn test test/attestationClient/AttestationClient.e2e-test.ts"
   },
   "dependencies": {
-    "@flarenetwork/mcc": "3.4.0-beta.1",
+    "@flarenetwork/mcc": "3.5.0",
     "@google-cloud/secret-manager": "4.2.1",
     "@nestjs/common": "9.3.9",
     "@nestjs/core": "9.3.9",

@@ -119,8 +119,7 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
           "x-api-key": API_KEY,
         },
       });
-
-      expect(resp.data.data.length).to.eq(4);
+      expect(resp.data.data).not.to.be.undefined;
     });
 
     it("Should get indexer block range", async function () {

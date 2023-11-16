@@ -1,7 +1,6 @@
 import { applyDecorators, Type } from "@nestjs/common";
 import { ApiBody, ApiExtraModels, ApiOkResponse, ApiProperty, getSchemaPath } from "@nestjs/swagger";
 import { ApiResponseWrapper } from "..";
-import { AttestationResponseDTO } from "../../../verifier-server/src/dtos/generic/generic.dto";
 
 /**
  * Open API array results properties for a given model
@@ -83,30 +82,5 @@ export function ApiBodyUnion<TTypeArray extends Array<Type<any>>>(models: TTypeA
         }),
       },
     })
-  );
-}
-
-/**
- * Open API decorator for API response wrappers given generic type, either in the direct form or in array.
- * @param model
- * @param isArray
- * @returns
- */
-export function ApiResponseAttestationResponseDTO<TModel extends Type<any>>(model: TModel) {
-  return applyDecorators(
-    ApiOkResponse({
-      schema: {
-        allOf: [
-          {
-            $ref: getSchemaPath(AttestationResponseDTO),
-            properties: {
-              response: { $ref: getSchemaPath(model) },
-            },
-          },
-        ],
-      },
-    }),
-    ApiExtraModels(model),
-    ApiExtraModels(AttestationResponseDTO)
   );
 }

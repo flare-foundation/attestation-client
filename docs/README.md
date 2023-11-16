@@ -21,7 +21,6 @@
     - [Message Integrity Checks](./attestation-protocol/message-integrity.md)
     - [Merkle Tree](./attestation-protocol/merkle-tree.md)
     - [Voting Behavior of Attestation Providers](./attestation-protocol/voting-behavior.md)
-    - [Limiting the Number of Attestation Requests](./attestation-protocol/attestation-limiter.md)
 - [Attestation Suite](./attestation-client/attestation-suite.md)
     - [Attestation Client](./attestation-client/attestation-client.md)
         - [A List of Env Variables](./attestation-client/env-variables.md)

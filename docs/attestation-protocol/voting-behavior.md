@@ -21,6 +21,4 @@ Note that the attestation request whose [MIC](./message-integrity.md) does not m
 Well behaved default set should always produce bit voting result of `valid` attestations and well behaved attestation providers should produce the Merkle root matching to the result of bit-voting. Having more members in the default set increases the chances that all well behaving attestation providers can confirm all attestations proposed by bit-voting. 
 A malfunctioning infrastructure at a member of a local set (like issues with any external network node or verifier) will cause the node to fork.
 
-Next: [Limiting attestation requests](./attestation-limiter.md)
-
 [Back to home](../README.md)

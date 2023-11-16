@@ -214,10 +214,15 @@ export class SourceManager {
    */
   private async process(attestation: Attestation) {
     const verifierRouter = this.globalConfigManager.getVerifierRouter(attestation.roundId);
-
+    if (!verifierRouter) {
+      // this should not happen
+      this.logger.error(`${this.label} Assert: verifier router for round should exist. Critical error`);
+      process.exit(1);
+      return; // Don't delete needed for testing
+    }
     // Check again, if verifier supports the attestation type
-    if (!verifierRouter || !verifierRouter.isSupported(attestation.data.sourceId, attestation.data.type)) {
-      this.logger.info(`No verifier routes for source '${attestation.data.sourceId}' for type '${attestation.data.type}'`);
+    if (!verifierRouter.isSupported(attestation.data.sourceId, attestation.data.attestationType)) {
+      this.logger.info(`No verifier routes for source '${attestation.data.sourceId}' for type '${attestation.data.attestationType}'`);
       this.onProcessed(attestation, AttestationStatus.failed);
       return;
     }

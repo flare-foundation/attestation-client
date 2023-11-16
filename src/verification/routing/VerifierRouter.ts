@@ -183,7 +183,7 @@ export class VerifierRouter {
    * @returns
    */
   private getRoute(attestation: Attestation): VerifierRoute | null {
-    let route = this.getRouteEntry(attestation.data.sourceId, attestation.data.type);
+    let route = this.getRouteEntry(attestation.data.sourceId, attestation.data.attestationType);
     if (route === EMPTY_VERIFIER_ROUTE) {
       return null;
     }

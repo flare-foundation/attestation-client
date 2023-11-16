@@ -13,13 +13,11 @@ import { prepareString } from "../utils/helpers/utils";
 import { AttLogger, logException } from "../utils/logging/logger";
 import { toHex } from "../verification/attestation-types/attestation-types-helpers";
 import { Attestation } from "./Attestation";
-import { AttestationData } from "./AttestationData";
 import { AttesterState } from "./AttesterState";
 import { BitVoteData } from "./BitVoteData";
 import { FlareConnection } from "./FlareConnection";
 import { AttestationClientConfig } from "./configs/AttestationClientConfig";
 import { GlobalAttestationConfig } from "./configs/GlobalAttestationConfig";
-import { SourceLimiter } from "./source/SourceLimiter";
 import { SourceRouter } from "./source/SourceRouter";
 import { AttestationRoundPhase, AttestationRoundStatus, NO_VOTE } from "./types/AttestationRoundEnums";
 import { AttestationStatus, SummarizedAttestationStatus, getSummarizedAttestationStatus } from "./types/AttestationStatus";
@@ -45,8 +43,6 @@ export class AttestationRound {
   activeGlobalConfig: GlobalAttestationConfig;
   attestationClientConfig: AttestationClientConfig;
 
-  // source limiter maps
-  sourceLimiters = new Map<string, SourceLimiter>();
 
   // adjacent rounds
   nextRound: AttestationRound;
@@ -356,24 +352,6 @@ export class AttestationRound {
   }
 
   /**
-   * Returns the existing source limiter for the source chain of an attestation or creates a new sourceLimiter
-   * @param data
-   * @returns
-   */
-  getSourceLimiter(data: AttestationData): SourceLimiter {
-    let sourceLimiter = this.sourceLimiters.get(data.sourceId);
-
-    if (sourceLimiter) {
-      return sourceLimiter;
-    }
-    const config = this.activeGlobalConfig.sourcesMap.get(data.sourceId);
-    sourceLimiter = new SourceLimiter(config, this.logger);
-
-    this.sourceLimiters.set(data.sourceId, sourceLimiter);
-    return sourceLimiter;
-  }
-
-  /**
    * Adds the @param attestation to the list of attestations for this round and starts the validation process
    * @param attestation
    */
@@ -387,29 +365,34 @@ export class AttestationRound {
         `${this.label} attestation ${duplicate.data.blockNumber}.${duplicate.data.logIndex} duplicate found ${attestation.data.blockNumber}.${attestation.data.logIndex}`
       );
       this.duplicateCount++;
-      // duplicates are discarded
-      return;
+      // duplicates are rejected.
+      attestation.status = AttestationStatus.failed;
     }
+
+    // Reject unparsable requests
+    if (attestation.data.attestationType === "" || attestation.data.sourceId === "") {
+      attestation.status = AttestationStatus.failed;
+    }
+
     this.attestations.push(attestation);
     attestation.round = this;
     attestation.setIndex(this.attestations.length - 1);
-    this.attestationsMap.set(requestId, attestation);
+    if (!duplicate) {
+      this.attestationsMap.set(requestId, attestation);
+    }
 
-    // check if attestation is invalid
+    // check if attestation is invalid. It can happen due to:
+    // - duplicate
+    // - invalid request
     if (attestation.status === AttestationStatus.failed) {
       this.onAttestationProcessed(attestation);
       return;
     }
 
     // start attestation process
-    if (this.getSourceLimiter(attestation.data).canProceedWithValidation(attestation)) {
-      const sourceManager = this.sourceRouter.getSourceManager(attestation.data.sourceId);
-
-      sourceManager.verifyAttestationRequest(attestation);
-      return;
-    } else {
-      this.onAttestationProcessed(attestation);
-    }
+    const sourceManager = this.sourceRouter.getSourceManager(attestation.data.sourceId);
+    sourceManager.verifyAttestationRequest(attestation);
+    return;
   }
 
   /**
@@ -453,8 +436,7 @@ export class AttestationRound {
    */
   private canCommit(): boolean {
     this.logger.debug(
-      `${this.label} canCommit(^Y#${this.roundId}^^) processed: ${this.attestationsProcessed}, all: ${this.attestations.length}, epoch phase: '${
-        AttestationRoundPhase[this.phase]
+      `${this.label} canCommit(^Y#${this.roundId}^^) processed: ${this.attestationsProcessed}, all: ${this.attestations.length}, epoch phase: '${AttestationRoundPhase[this.phase]
       }', attest status '${AttestationRoundStatus[this.attestStatus]}'`
     );
     return this.phase === AttestationRoundPhase.commit && this.attestStatus === AttestationRoundStatus.commitDataPrepared;
@@ -596,8 +578,7 @@ export class AttestationRound {
     const commitTimeLeft = epochCommitEndTime - BigInt(now);
 
     this.logger.info(
-      `${this.label} ^w^Gcommit^^ round #${this.roundId} attestations: ${validatedHashes.length} time left ${commitTimeLeft}ms (prepare time H:${
-        time1 - time0
+      `${this.label} ^w^Gcommit^^ round #${this.roundId} attestations: ${validatedHashes.length} time left ${commitTimeLeft}ms (prepare time H:${time1 - time0
       }ms M:${time2 - time1}ms)`
     );
   }
@@ -655,8 +636,7 @@ export class AttestationRound {
    */
   public async onChoosePhaseStart() {
     this.logger.group(
-      `${this.label} choose phase started [1] ${this.attestationsProcessed}/${this.attestations.length} (${
-        this.attestations.length / Number(this.flareConnection.epochSettings.getEpochLengthMs() / 1000n)
+      `${this.label} choose phase started [1] ${this.attestationsProcessed}/${this.attestations.length} (${this.attestations.length / Number(this.flareConnection.epochSettings.getEpochLengthMs() / 1000n)
       } req/sec)`
     );
     this.phase = AttestationRoundPhase.choose;
@@ -667,8 +647,7 @@ export class AttestationRound {
    */
   public async onCommitPhaseStart() {
     this.logger.group(
-      `${this.label} commit epoch started [1] ${this.attestationsProcessed}/${this.attestations.length} (${
-        this.attestations.length / Number(this.flareConnection.epochSettings.getEpochLengthMs() / 1000n)
+      `${this.label} commit epoch started [1] ${this.attestationsProcessed}/${this.attestations.length} (${this.attestations.length / Number(this.flareConnection.epochSettings.getEpochLengthMs() / 1000n)
       } req/sec)`
     );
     this.phase = AttestationRoundPhase.commit;
@@ -792,8 +771,7 @@ export class AttestationRound {
     if (!commitPreparedOrCommitted) {
       // Log unexpected attestation round statuses, but proceed with submitAttestation
       this.logger.error(
-        `${this.label} round #${this.roundId} not committed. Status: '${AttestationRoundStatus[this.attestStatus]}'. Processed attestations: ${
-          this.attestationsProcessed
+        `${this.label} round #${this.roundId} not committed. Status: '${AttestationRoundStatus[this.attestStatus]}'. Processed attestations: ${this.attestationsProcessed
         }/${this.attestations.length}`
       );
     }

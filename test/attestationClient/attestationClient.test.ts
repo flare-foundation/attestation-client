@@ -61,7 +61,7 @@ describe(`Attestation Client (${getTestFile(__filename)})`, () => {
 
     const attestation = new AttestationData(mockEvent as any);
     expect(attestation.sourceId, "attestation.sourceId should be 'BTC'").to.eq("BTC");
-    expect(attestation.type, "attestation.type should be 'Payment'").to.eq("Payment");
+    expect(attestation.attestationType, "attestation.type should be 'Payment'").to.eq("Payment");
   });
 
   ////////////////////////////////

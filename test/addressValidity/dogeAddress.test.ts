@@ -83,7 +83,7 @@ describe(`Address validity doge, ${getTestFile(__filename)}`, function () {
     it("should compute mic", async function () {
       const mic = await services.mic(request);
 
-      expect(mic.length).to.eq(66);
+      expect(mic.messageIntegrityCode.length).to.eq(66);
     });
 
     it("should prepare request", async function () {
@@ -92,7 +92,7 @@ describe(`Address validity doge, ${getTestFile(__filename)}`, function () {
       delete request.messageIntegrityCode;
       const encoded2 = await services.prepareRequest(request);
 
-      expect(encoded).to.eq(encoded2);
+      expect(encoded.abiEncodedRequest).to.eq(encoded2.abiEncodedRequest);
     });
   });
 });

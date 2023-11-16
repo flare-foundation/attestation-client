@@ -18,8 +18,16 @@ export interface getTransactionsWithinBlockRangeProps {
   returnResponse?: boolean;
 }
 
+export interface IIndexerState {
+  indexedBlockRange: BlockRange;
+  tipHeight: number;
+  lastTipUpdateTimestamp: number;
+  lastTailUpdateTimestamp: number;
+  state: string;
+}
+
 export abstract class IIndexerEngineService {
-  public abstract getStateSetting();
+  public abstract getStateSetting(): Promise<IIndexerState | null>;
 
   public abstract getBlockRange(): Promise<BlockRange | null>;
 
@@ -52,7 +60,39 @@ export class IndexerEngineService extends IIndexerEngineService {
   public async getStateSetting() {
     let stateQuery = this.manager.createQueryBuilder(DBState, "state");
     let res = await stateQuery.getMany();
-    return res;
+
+    const stateRes: IIndexerState = {
+      indexedBlockRange: {
+        first: 0,
+        last: 0,
+      },
+      tipHeight: 0,
+      lastTipUpdateTimestamp: 0,
+      lastTailUpdateTimestamp: 0,
+      state: "",
+    };
+    for (const stateObj of res) {
+      const splitName = stateObj.name.split("_");
+      if (splitName.length > 1) {
+        if (splitName[1] == "T") {
+          stateRes.tipHeight = stateObj.valueNumber;
+          stateRes.lastTipUpdateTimestamp = stateObj.timestamp;
+        }
+        if (splitName[1] == "N") {
+          stateRes.indexedBlockRange.last = stateObj.valueNumber;
+        }
+        if (splitName[1] == "Nbottom") {
+          stateRes.indexedBlockRange.first = stateObj.valueNumber;
+        }
+        if (splitName[1] == "NbottomTime") {
+          stateRes.lastTailUpdateTimestamp = stateObj.valueNumber;
+        }
+        if (splitName[1] == "state") {
+          stateRes.state = stateObj.valueString;
+        }
+      }
+    }
+    return stateRes;
   }
 
   /**

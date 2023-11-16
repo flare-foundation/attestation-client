@@ -192,7 +192,7 @@ export async function bootstrapVerifier(
 
 export function prepareAttestation(defStore: AttestationDefinitionStore, request: ARBase, startTime: number): Attestation {
   const data = new AttestationData();
-  data.type = decodeAttestationName(request.attestationType);
+  data.attestationType = decodeAttestationName(request.attestationType);
   data.sourceId = decodeAttestationName(request.sourceId);
   data.request = defStore.encodeRequest(request);
   const attestation = new Attestation(undefined, data);

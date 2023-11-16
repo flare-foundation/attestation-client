@@ -35,7 +35,7 @@ export async function runVerifierServer() {
 
   app.setGlobalPrefix(process.env.APP_BASE_PATH ?? "");
   const config = new DocumentBuilder()
-    .setTitle(`Verifier and indexer server (${verifierType})`)
+    .setTitle(`Verifier and indexer server (${process.env.TESTNET ? "test" : ""}${verifierType})`)
     .setDescription("Verifier and indexer server over an indexer database.")
     .setBasePath(basePath)
     .addApiKey({ type: "apiKey", name: "X-API-KEY", in: "header" }, "X-API-KEY")

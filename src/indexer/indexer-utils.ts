@@ -41,11 +41,6 @@ export function prepareIndexerTables(type: ChainType): IndexerTablesScheme {
       transactionTable.push(DBTransactionBTC1);
       blockTable = DBBlockBTC;
       break;
-    case ChainType.LTC:
-      transactionTable.push(DBTransactionLTC0);
-      transactionTable.push(DBTransactionLTC1);
-      blockTable = DBBlockLTC;
-      break;
     case ChainType.DOGE:
       transactionTable.push(DBTransactionDOGE0);
       transactionTable.push(DBTransactionDOGE1);
@@ -55,11 +50,6 @@ export function prepareIndexerTables(type: ChainType): IndexerTablesScheme {
       transactionTable.push(DBTransactionXRP0);
       transactionTable.push(DBTransactionXRP1);
       blockTable = DBBlockXRP;
-      break;
-    case ChainType.ALGO:
-      transactionTable.push(DBTransactionALGO0);
-      transactionTable.push(DBTransactionALGO1);
-      blockTable = DBBlockALGO;
       break;
     case ChainType.invalid:
       throw new Error("Invalid chain type");

@@ -7,8 +7,11 @@ import { ApiSecurity, ApiTags } from "@nestjs/swagger";
 import { AuthGuard } from "@nestjs/passport";
 
 import { BTCConfirmedBlockHeightExistsVerifierService } from "../../services/btc/btc-confirmed-block-height-exists-verifier.service";
-import { ConfirmedBlockHeightExists_RequestNoMic, ConfirmedBlockHeightExists_Response } from "../../dtos/attestation-types/ConfirmedBlockHeightExists.dto";
-import { AttestationResponseDTO, EncodedRequestBody, MicResponse } from "../../dtos/generic/generic.dto";
+import {
+    AttestationResponseDTO_ConfirmedBlockHeightExists_Response,
+    ConfirmedBlockHeightExists_RequestNoMic,
+} from "../../dtos/attestation-types/ConfirmedBlockHeightExists.dto";
+import { EncodedRequest, MicResponse, EncodedRequestResponse } from "../../dtos/generic/generic.dto";
 
 @ApiTags("ConfirmedBlockHeightExists")
 @Controller("ConfirmedBlockHeightExists")
@@ -25,7 +28,7 @@ export class BTCConfirmedBlockHeightExistsVerifierController {
      */
     @HttpCode(200)
     @Post()
-    async verify(@Body() body: EncodedRequestBody): Promise<AttestationResponseDTO<ConfirmedBlockHeightExists_Response>> {
+    async verify(@Body() body: EncodedRequest): Promise<AttestationResponseDTO_ConfirmedBlockHeightExists_Response> {
         return this.verifierService.verifyEncodedRequest(body.abiEncodedRequest!);
     }
 
@@ -36,7 +39,7 @@ export class BTCConfirmedBlockHeightExistsVerifierController {
      */
     @HttpCode(200)
     @Post("prepareResponse")
-    async prepareResponse(@Body() body: ConfirmedBlockHeightExists_RequestNoMic): Promise<AttestationResponseDTO<ConfirmedBlockHeightExists_Response>> {
+    async prepareResponse(@Body() body: ConfirmedBlockHeightExists_RequestNoMic): Promise<AttestationResponseDTO_ConfirmedBlockHeightExists_Response> {
         return this.verifierService.prepareResponse(body);
     }
 
@@ -47,9 +50,7 @@ export class BTCConfirmedBlockHeightExistsVerifierController {
     @HttpCode(200)
     @Post("mic")
     async mic(@Body() body: ConfirmedBlockHeightExists_RequestNoMic): Promise<MicResponse> {
-        return {
-            messageIntegrityCode: await this.verifierService.mic(body),
-        } as MicResponse;
+        return this.verifierService.mic(body);
     }
 
     /**
@@ -59,9 +60,7 @@ export class BTCConfirmedBlockHeightExistsVerifierController {
      */
     @HttpCode(200)
     @Post("prepareRequest")
-    async prepareRequest(@Body() body: ConfirmedBlockHeightExists_RequestNoMic): Promise<EncodedRequestBody> {
-        return {
-            abiEncodedRequest: await this.verifierService.prepareRequest(body),
-        } as EncodedRequestBody;
+    async prepareRequest(@Body() body: ConfirmedBlockHeightExists_RequestNoMic): Promise<EncodedRequestResponse> {
+        return this.verifierService.prepareRequest(body);
     }
 }

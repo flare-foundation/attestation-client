@@ -7,8 +7,8 @@ import { ApiSecurity, ApiTags } from "@nestjs/swagger";
 import { AuthGuard } from "@nestjs/passport";
 
 import { DOGEPaymentVerifierService } from "../../services/doge/doge-payment-verifier.service";
-import { Payment_RequestNoMic, Payment_Response } from "../../dtos/attestation-types/Payment.dto";
-import { AttestationResponseDTO, EncodedRequestBody, MicResponse } from "../../dtos/generic/generic.dto";
+import { AttestationResponseDTO_Payment_Response, Payment_RequestNoMic } from "../../dtos/attestation-types/Payment.dto";
+import { EncodedRequest, MicResponse, EncodedRequestResponse } from "../../dtos/generic/generic.dto";
 
 @ApiTags("Payment")
 @Controller("Payment")
@@ -25,7 +25,7 @@ export class DOGEPaymentVerifierController {
      */
     @HttpCode(200)
     @Post()
-    async verify(@Body() body: EncodedRequestBody): Promise<AttestationResponseDTO<Payment_Response>> {
+    async verify(@Body() body: EncodedRequest): Promise<AttestationResponseDTO_Payment_Response> {
         return this.verifierService.verifyEncodedRequest(body.abiEncodedRequest!);
     }
 
@@ -36,7 +36,7 @@ export class DOGEPaymentVerifierController {
      */
     @HttpCode(200)
     @Post("prepareResponse")
-    async prepareResponse(@Body() body: Payment_RequestNoMic): Promise<AttestationResponseDTO<Payment_Response>> {
+    async prepareResponse(@Body() body: Payment_RequestNoMic): Promise<AttestationResponseDTO_Payment_Response> {
         return this.verifierService.prepareResponse(body);
     }
 
@@ -47,9 +47,7 @@ export class DOGEPaymentVerifierController {
     @HttpCode(200)
     @Post("mic")
     async mic(@Body() body: Payment_RequestNoMic): Promise<MicResponse> {
-        return {
-            messageIntegrityCode: await this.verifierService.mic(body),
-        } as MicResponse;
+        return this.verifierService.mic(body);
     }
 
     /**
@@ -59,9 +57,7 @@ export class DOGEPaymentVerifierController {
      */
     @HttpCode(200)
     @Post("prepareRequest")
-    async prepareRequest(@Body() body: Payment_RequestNoMic): Promise<EncodedRequestBody> {
-        return {
-            abiEncodedRequest: await this.verifierService.prepareRequest(body),
-        } as EncodedRequestBody;
+    async prepareRequest(@Body() body: Payment_RequestNoMic): Promise<EncodedRequestResponse> {
+        return this.verifierService.prepareRequest(body);
     }
 }

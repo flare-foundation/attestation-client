@@ -23,49 +23,49 @@ import { WsCommandProcessorService } from "./services/ws-command-processor.servi
 import { createTypeOrmOptions } from "./utils/db-config";
 
 @Module({
-  imports: [
-    CommonModule,
-    PassportModule,
-    TypeOrmModule.forRootAsync({
-      name: "indexerDatabase",
-      useFactory: async () => createTypeOrmOptions("web"),
-    }),
-  ],
-  controllers: [
-    DOGEIndexerController,
-    DOGEPaymentVerifierController,
-    DOGEBalanceDecreasingTransactionVerifierController,
-    DOGEConfirmedBlockHeightExistsVerifierController,
-    DOGEReferencedPaymentNonexistenceVerifierController,
-    DOGEAddressValidityVerifierController,
-  ],
-  providers: [
-    {
-      provide: "VERIFIER_CONFIG",
-      useFactory: async () => {
-        const config = new ExternalDBVerifierConfigurationService();
-        await config.initialize();
-        return config;
-      },
-    },
-    {
-      provide: "VERIFIER_PROCESSOR",
-      useFactory: async (config: ExternalDBVerifierConfigurationService, manager: EntityManager) => new DOGEProcessorService(config, manager),
-      inject: [
-        { token: "VERIFIER_CONFIG", optional: false },
-        { token: getEntityManagerToken("indexerDatabase"), optional: false },
-      ],
-    },
-    WsCommandProcessorService,
-    WsServerGateway,
-    WsCommandProcessorService,
-    ExternalIndexerEngineService,
-    HeaderApiKeyStrategy,
-    DOGEPaymentVerifierService,
-    DOGEBalanceDecreasingTransactionVerifierService,
-    DOGEConfirmedBlockHeightExistsVerifierService,
-    DOGEReferencedPaymentNonexistenceVerifierService,
-    DOGEAddressValidityVerifierService,
-  ],
+    imports: [
+        CommonModule,
+        PassportModule,
+        TypeOrmModule.forRootAsync({
+            name: "indexerDatabase",
+            useFactory: async () => createTypeOrmOptions("web"),
+        }),
+    ],
+    controllers: [
+        DOGEIndexerController,
+        DOGEAddressValidityVerifierController,
+        DOGEBalanceDecreasingTransactionVerifierController,
+        DOGEConfirmedBlockHeightExistsVerifierController,
+        DOGEPaymentVerifierController,
+        DOGEReferencedPaymentNonexistenceVerifierController,
+    ],
+    providers: [
+        {
+            provide: "VERIFIER_CONFIG",
+            useFactory: async () => {
+                const config = new ExternalDBVerifierConfigurationService();
+                await config.initialize();
+                return config;
+            },
+        },
+        {
+            provide: "VERIFIER_PROCESSOR",
+            useFactory: async (config: ExternalDBVerifierConfigurationService, manager: EntityManager) => new DOGEProcessorService(config, manager),
+            inject: [
+                { token: "VERIFIER_CONFIG", optional: false },
+                { token: getEntityManagerToken("indexerDatabase"), optional: false },
+            ],
+        },
+        WsCommandProcessorService,
+        WsServerGateway,
+        WsCommandProcessorService,
+        ExternalIndexerEngineService,
+        HeaderApiKeyStrategy,
+        DOGEAddressValidityVerifierService,
+        DOGEBalanceDecreasingTransactionVerifierService,
+        DOGEConfirmedBlockHeightExistsVerifierService,
+        DOGEPaymentVerifierService,
+        DOGEReferencedPaymentNonexistenceVerifierService,
+    ],
 })
 export class VerifierDogeServerModule {}

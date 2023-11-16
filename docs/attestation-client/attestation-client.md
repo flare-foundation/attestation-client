@@ -29,7 +29,7 @@ Managing attestation rounds is done by [AttestationRoundManager](../../src/attes
 
 [AttestationRound](../../src/attester/AttestationRound.ts) also implements all the actions to be executed during the life-cycle of the attestation round, like calculating bit-vote, bit-voting, calculating bit-vote result, assembling commit data, submitting vote and revealing vote.
 
-The attestations in a given [AttestationRound](../../src/attester/AttestationRound.ts) are sorted by the order of arrival (duplicates omitted) in the list inside [AttestationRound](../../src/attester/AttestationRound.ts).
+The attestations in a given [AttestationRound](../../src/attester/AttestationRound.ts) are sorted by the order of arrival in the list inside [AttestationRound](../../src/attester/AttestationRound.ts).
 As they are processed (validated) they are marked by `1` if [AttestationStatus](../../src/attester/types/AttestationStatus.ts) is `valid` an `0` otherwise. If the attestation client runs as a part of a default set, marks are collected into a bit vector (bit-vote) and sent to [BitVoting](../../contracts/BitVoting.sol) smart contract before the end of the `choose` phase (see [Bit voting](../attestation-protocol/bit-voting.md)).
 
 `BitVote` event emitted on [BitVoting](../../contracts/BitVoting.sol) smart contract by each bit-vote sent by attestation clients is read and parsed into [BitVoteData](../../src/attester/BitVoteData.ts) that is assigned to an attestation round according to the timestamps. After bit-votes of all attesters in the default set are collected (after the end of `choose` phase), the result of bit voting is calculated and attestations that were chosen are marked for inclusion into the [Merkle tree](../attestation-protocol/merkle-tree.md).

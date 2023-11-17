@@ -185,7 +185,7 @@ export class DBDogeTransaction {
     if (returnResponse) {
       return {
         ...baseRes,
-        response: JSON.stringify(this.response),
+        response: this.response,
       };
     }
     return baseRes;
@@ -294,3 +294,20 @@ export class TipSyncState {
 }
 
 export type ITipSyncState = new () => TipSyncState;
+
+
+@Entity("doge_indexer_prunesyncstate")
+export class PruneSyncState {
+  @PrimaryColumn({ type: "bigint" })
+  id: string;
+
+  @Column()
+  latestIndexedTailHeight: number;
+
+  @Column()
+  timestamp: number;
+}
+// External Postgres Database Entities (DOGE) (read only)
+
+export type IPruneSyncState = new () => PruneSyncState;
+

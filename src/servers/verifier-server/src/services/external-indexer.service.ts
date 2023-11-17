@@ -6,14 +6,16 @@ import { EntityManager, SelectQueryBuilder } from "typeorm";
 import { ApiDBBlock } from "../dtos/indexer/ApiDbBlock";
 import { ApiDBTransaction } from "../dtos/indexer/ApiDbTransaction";
 import { BlockRange } from "../dtos/indexer/BlockRange.dto";
-import { IIndexerEngineService, getTransactionsWithinBlockRangeProps } from "./indexer-engine.service";
+import { IIndexerEngineService, IIndexerState, getTransactionsWithinBlockRangeProps } from "./indexer-engine.service";
 import { ExternalDBVerifierConfigurationService } from "./verifier-configuration.service";
 import {
   DBDogeIndexerBlock,
   DBDogeTransaction,
   IDBDogeTransaction,
   IDEDogeIndexerBlock,
+  IPruneSyncState,
   ITipSyncState,
+  PruneSyncState,
   TipSyncState,
 } from "../../../../entity-external/DogeExternalEntities";
 
@@ -23,6 +25,7 @@ export class ExternalIndexerEngineService extends IIndexerEngineService {
   private transactionTable: IDBDogeTransaction;
   private blockTable: IDEDogeIndexerBlock;
   private tipState: ITipSyncState;
+  private pruneState: IPruneSyncState;
 
   constructor(
     @Inject("VERIFIER_CONFIG") private configService: ExternalDBVerifierConfigurationService,
@@ -32,6 +35,7 @@ export class ExternalIndexerEngineService extends IIndexerEngineService {
     this.transactionTable = DBDogeTransaction;
     this.blockTable = DBDogeIndexerBlock;
     this.tipState = TipSyncState;
+    this.pruneState = PruneSyncState;
   }
 
   private joinTransactionQuery(query: SelectQueryBuilder<DBDogeTransaction>) {
@@ -45,8 +49,22 @@ export class ExternalIndexerEngineService extends IIndexerEngineService {
    * Gets the state entries from the indexer database.
    * @returns
    */
-  public async getStateSetting() {
-    throw new Error("Not implemented");
+  public async getStateSetting(): Promise<IIndexerState> {
+    const queryTop = this.manager.createQueryBuilder(this.tipState, "state");
+    const res = await queryTop.getOne();
+    const queryPrune = this.manager.createQueryBuilder(this.pruneState, "state");
+    const resPrune = await queryPrune.getOne();
+    const state = {
+      indexedBlockRange: {
+        first: res.latestIndexedHeight,
+        last: resPrune.latestIndexedTailHeight,
+      },
+      tipHeight: res.latestTipHeight,
+      lastTipUpdateTimestamp: res.timestamp,
+      lastTailUpdateTimestamp: resPrune.timestamp,
+      state: res.syncState,
+    };
+    return state;
   }
 
   /**

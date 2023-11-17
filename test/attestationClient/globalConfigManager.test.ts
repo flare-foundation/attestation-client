@@ -78,16 +78,6 @@ describe(`Global Config Manager (${getTestFile(__filename)})`, function () {
     expect(config.startRoundId).to.eq(150);
   });
 
-  it("Should not get SourceLimiterConfig #1", function () {
-    const config = globalConfigManager.getGlobalConfig(10).sourcesMap.get("INVALID");
-    assert(!config);
-  });
-
-  it("Should get SourceLimiterConfig", function () {
-    const config = globalConfigManager.getGlobalConfig(170).sourcesMap.get("DOGE");
-    assert(config);
-  });
-
   it("Should get VerifierRouter", function () {
     const verifierRouter = globalConfigManager.getVerifierRouter(170);
     assert(verifierRouter);
@@ -98,22 +88,5 @@ describe(`Global Config Manager (${getTestFile(__filename)})`, function () {
     const config = globalConfigManager.getVerifierRouter(10);
     assert(!config);
     assert(stub.called);
-  });
-
-  describe("Global Attestation Config", function () {
-    it("should verify supported types", function () {
-      const res = globalConfigManager.globalAttestationConfigs[0].sourceAndTypeSupported("DOGE", "ConfirmedBlockHeightExists");
-      assert(res);
-    });
-
-    it("should deny unsupported chains", function () {
-      const res = globalConfigManager.globalAttestationConfigs[0].sourceAndTypeSupported("INVALID", "ConfirmedBlockHeightExists");
-      assert(!res);
-    });
-
-    it("should deny unsupported types", function () {
-      const res = globalConfigManager.globalAttestationConfigs[0].sourceAndTypeSupported("DOGE", "INVALID");
-      assert(!res);
-    });
   });
 });

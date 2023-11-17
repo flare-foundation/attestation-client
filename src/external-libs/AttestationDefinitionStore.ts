@@ -62,7 +62,7 @@ export class AttestationDefinitionStore {
      * @param salt
      * @returns
      */
-    attestationResponseHash<T extends ARESBase>(response: T, salt?: string): string | null | undefined {
+    attestationResponseHash<T extends ARESBase>(response: T, salt?: string): string {
         const attestationType = decodeAttestationName(response.attestationType);
         const definition = this.getDefinitionForDecodedAttestationType(attestationType);
         if (!definition) {

@@ -6,8 +6,8 @@ import { AttestationResponse, AttestationResponseStatus } from "../../../../../e
 import { ExampleData } from "../../../../../external-libs/interfaces";
 import { MIC_SALT, ZERO_BYTES_32, encodeAttestationName, serializeBigInts } from "../../../../../external-libs/utils";
 import { getAttestationStatus } from "../../../../../verification/attestation-types/attestation-types";
-import { Payment_Request, Payment_RequestNoMic, Payment_Response } from "../../dtos/attestation-types/Payment.dto";
-import { AttestationResponseDTO } from "../../dtos/generic/generic.dto";
+import { AttestationResponseDTO_Payment_Response, Payment_Request, Payment_RequestNoMic, Payment_Response } from "../../dtos/attestation-types/Payment.dto";
+import { EncodedRequestResponse, MicResponse } from "../../dtos/generic/generic.dto";
 import { verifyPayment } from "../../verification/generic-chain-verifications";
 import { XRPProcessorService } from "../verifier-processors/xrp-processor.service";
 
@@ -22,79 +22,88 @@ export class XRPPaymentVerifierService {
         this.store = new AttestationDefinitionStore("configs/type-definitions");
     }
 
-    private async verifyRequest(request: Payment_RequestNoMic | Payment_Request): Promise<AttestationResponse<Payment_Response>> {
-        if (request.attestationType !== encodeAttestationName("Payment") || request.sourceId !== encodeAttestationName("XRP")) {
+    //-$$$<end-constructor> End of custom code section. Do not change this comment.
+
+    async verifyRequestInternal(request: Payment_Request | Payment_RequestNoMic): Promise<AttestationResponseDTO_Payment_Response> {
+        if (
+            request.attestationType !== encodeAttestationName("Payment") ||
+            request.sourceId !== encodeAttestationName((process.env.TESTNET ? "test" : "") + "XRP")
+        ) {
             throw new HttpException(
                 {
                     status: HttpStatus.BAD_REQUEST,
-                    error: `Attestation type and source id combination not supported: (${request.attestationType}, ${request.sourceId}). This source supports attestation type 'Payment' (0x5061796d656e7400000000000000000000000000000000000000000000000000) and source id 'XRP' (0x5852500000000000000000000000000000000000000000000000000000000000).`,
+                    error: `Attestation type and source id combination not supported: (${request.attestationType}, ${
+                        request.sourceId
+                    }). This source supports attestation type 'Payment' (${encodeAttestationName("Payment")}) and source id 'XRP' (${encodeAttestationName(
+                        (process.env.TESTNET ? "test" : "") + "XRP",
+                    )}).`,
                 },
-                HttpStatus.BAD_REQUEST
+                HttpStatus.BAD_REQUEST,
             );
         }
 
-        let fixedRequest = {
+        const fixedRequest = {
             ...request,
         } as Payment_Request;
         if (!fixedRequest.messageIntegrityCode) {
             fixedRequest.messageIntegrityCode = ZERO_BYTES_32;
         }
+
+        return this.verifyRequest(fixedRequest);
+    }
+
+    async verifyRequest(fixedRequest: Payment_Request): Promise<AttestationResponseDTO_Payment_Response> {
+        //-$$$<start-verifyRequest> Start of custom code section. Do not change this comment.
+
         const result = await verifyPayment(XrpTransaction, fixedRequest, this.processor.indexedQueryManager, this.processor.client);
         return serializeBigInts({
             status: getAttestationStatus(result.status),
             response: result.response,
         }) as AttestationResponse<Payment_Response>;
+
+        //-$$$<end-verifyRequest> End of custom code section. Do not change this comment.
     }
 
-    //-$$$<end-constructor> End of custom code section. Do not change this comment.
-
-    public async verifyEncodedRequest(abiEncodedRequest: string): Promise<AttestationResponseDTO<Payment_Response>> {
+    public async verifyEncodedRequest(abiEncodedRequest: string): Promise<AttestationResponseDTO_Payment_Response> {
         const requestJSON = this.store.parseRequest<Payment_Request>(abiEncodedRequest);
-        //-$$$<start-verifyEncodedRequest> Start of custom code section. Do not change this comment.
-
-        const response = await this.verifyRequest(requestJSON);
-
-        //-$$$<end-verifyEncodedRequest> End of custom code section. Do not change this comment.
-
+        const response = await this.verifyRequestInternal(requestJSON);
         return response;
     }
 
-    public async prepareResponse(request: Payment_RequestNoMic): Promise<AttestationResponseDTO<Payment_Response>> {
-        //-$$$<start-prepareResponse> Start of custom code section. Do not change this comment.
-
-        const response = await this.verifyRequest(request);
-
-        //-$$$<end-prepareResponse> End of custom code section. Do not change this comment.
-
+    public async prepareResponse(request: Payment_RequestNoMic): Promise<AttestationResponseDTO_Payment_Response> {
+        const response = await this.verifyRequestInternal(request);
         return response;
     }
 
-    public async mic(request: Payment_RequestNoMic): Promise<string | undefined> {
-        //-$$$<start-mic> Start of custom code section. Do not change this comment.
-
-        const result = await this.verifyRequest(request);
+    public async mic(request: Payment_RequestNoMic): Promise<MicResponse> {
+        const result = await this.verifyRequestInternal(request);
+        if (result.status !== AttestationResponseStatus.VALID) {
+            return new MicResponse({ status: result.status });
+        }
         const response = result.response;
-
-        //-$$$<end-mic> End of custom code section. Do not change this comment.
-
-        if (!response) return undefined;
-        return this.store.attestationResponseHash<Payment_Response>(response, MIC_SALT)!;
+        if (!response) return new MicResponse({ status: result.status });
+        return new MicResponse({
+            status: AttestationResponseStatus.VALID,
+            messageIntegrityCode: this.store.attestationResponseHash<Payment_Response>(response, MIC_SALT),
+        });
     }
 
-    public async prepareRequest(request: Payment_RequestNoMic): Promise<string | undefined> {
-        //-$$$<start-prepareRequest> Start of custom code section. Do not change this comment.
-
-        const result = await this.verifyRequest(request);
+    public async prepareRequest(request: Payment_RequestNoMic): Promise<EncodedRequestResponse> {
+        const result = await this.verifyRequestInternal(request);
+        if (result.status !== AttestationResponseStatus.VALID) {
+            return new EncodedRequestResponse({ status: result.status });
+        }
         const response = result.response;
 
-        //-$$$<end-prepareRequest> End of custom code section. Do not change this comment.
-
-        if (!response) return undefined;
+        if (!response) return new EncodedRequestResponse({ status: result.status });
         const newRequest = {
             ...request,
             messageIntegrityCode: this.store.attestationResponseHash<Payment_Response>(response, MIC_SALT)!,
         } as Payment_Request;
 
-        return this.store.encodeRequest(newRequest);
+        return new EncodedRequestResponse({
+            status: AttestationResponseStatus.VALID,
+            abiEncodedRequest: this.store.encodeRequest(newRequest),
+        });
     }
 }

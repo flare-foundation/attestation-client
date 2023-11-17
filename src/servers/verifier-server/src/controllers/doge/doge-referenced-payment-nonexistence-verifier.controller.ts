@@ -8,10 +8,10 @@ import { AuthGuard } from "@nestjs/passport";
 
 import { DOGEReferencedPaymentNonexistenceVerifierService } from "../../services/doge/doge-referenced-payment-nonexistence-verifier.service";
 import {
+    AttestationResponseDTO_ReferencedPaymentNonexistence_Response,
     ReferencedPaymentNonexistence_RequestNoMic,
-    ReferencedPaymentNonexistence_Response,
 } from "../../dtos/attestation-types/ReferencedPaymentNonexistence.dto";
-import { AttestationResponseDTO, EncodedRequestBody, MicResponse } from "../../dtos/generic/generic.dto";
+import { EncodedRequest, MicResponse, EncodedRequestResponse } from "../../dtos/generic/generic.dto";
 
 @ApiTags("ReferencedPaymentNonexistence")
 @Controller("ReferencedPaymentNonexistence")
@@ -28,7 +28,7 @@ export class DOGEReferencedPaymentNonexistenceVerifierController {
      */
     @HttpCode(200)
     @Post()
-    async verify(@Body() body: EncodedRequestBody): Promise<AttestationResponseDTO<ReferencedPaymentNonexistence_Response>> {
+    async verify(@Body() body: EncodedRequest): Promise<AttestationResponseDTO_ReferencedPaymentNonexistence_Response> {
         return this.verifierService.verifyEncodedRequest(body.abiEncodedRequest!);
     }
 
@@ -39,7 +39,7 @@ export class DOGEReferencedPaymentNonexistenceVerifierController {
      */
     @HttpCode(200)
     @Post("prepareResponse")
-    async prepareResponse(@Body() body: ReferencedPaymentNonexistence_RequestNoMic): Promise<AttestationResponseDTO<ReferencedPaymentNonexistence_Response>> {
+    async prepareResponse(@Body() body: ReferencedPaymentNonexistence_RequestNoMic): Promise<AttestationResponseDTO_ReferencedPaymentNonexistence_Response> {
         return this.verifierService.prepareResponse(body);
     }
 
@@ -50,9 +50,7 @@ export class DOGEReferencedPaymentNonexistenceVerifierController {
     @HttpCode(200)
     @Post("mic")
     async mic(@Body() body: ReferencedPaymentNonexistence_RequestNoMic): Promise<MicResponse> {
-        return {
-            messageIntegrityCode: await this.verifierService.mic(body),
-        } as MicResponse;
+        return this.verifierService.mic(body);
     }
 
     /**
@@ -62,9 +60,7 @@ export class DOGEReferencedPaymentNonexistenceVerifierController {
      */
     @HttpCode(200)
     @Post("prepareRequest")
-    async prepareRequest(@Body() body: ReferencedPaymentNonexistence_RequestNoMic): Promise<EncodedRequestBody> {
-        return {
-            abiEncodedRequest: await this.verifierService.prepareRequest(body),
-        } as EncodedRequestBody;
+    async prepareRequest(@Body() body: ReferencedPaymentNonexistence_RequestNoMic): Promise<EncodedRequestResponse> {
+        return this.verifierService.prepareRequest(body);
     }
 }

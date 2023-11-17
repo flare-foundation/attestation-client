@@ -2,7 +2,7 @@ import axios from "axios";
 import { Attestation } from "../../attester/Attestation";
 import { AttestationDefinitionStore } from "../../external-libs/AttestationDefinitionStore";
 import { AttestationResponse } from "../../external-libs/AttestationResponse";
-import { EncodedRequestBody } from "../../servers/verifier-server/src/dtos/generic/generic.dto";
+import { EncodedRequest } from "../../servers/verifier-server/src/dtos/generic/generic.dto";
 import { retry } from "../../utils/helpers/promiseTimeout";
 import { AttLogger, getGlobalLogger } from "../../utils/logging/logger";
 import { VerifierAttestationTypeRouteConfig } from "./configs/VerifierAttestationTypeRouteConfig";
@@ -114,6 +114,8 @@ export class VerifierRouter {
     this.routeMap = new Map<string, Map<string, VerifierAttestationTypeRouteConfig>>(); //different type as promised
 
     // set up all possible routes
+    // Note that specific protocol (on mainnet or testnets) may not support all these routes. Actual
+    // support is based on the specific global configurations.
     for (let definition of dataStore.definitions.values()) {
       let attestationTypeName = definition.name;
       for (let sourceName of definition.supported) {
@@ -159,14 +161,14 @@ export class VerifierRouter {
       }
     }
 
-    // Check if everything is configured
+    // Log unsupported option
     if (process.env.REQUIRE_ALL_ROUTES_CONFIGURED) {
       for (let definition of dataStore.definitions.values()) {
         let attestationTypeName = definition.name;
         for (let sourceName of definition.supported) {
           let sourceMap = this.routeMap.get(sourceName);
           if (sourceMap.get(definition.name) === EMPTY_VERIFIER_ROUTE) {
-            throw new Error(`The route is not set for pair ('${sourceName}','${attestationTypeName}')`);
+            this.logger.info(`The route is not set for pair ('${sourceName}','${attestationTypeName}')`);
           }
         }
       }
@@ -181,7 +183,7 @@ export class VerifierRouter {
    * @returns
    */
   private getRoute(attestation: Attestation): VerifierRoute | null {
-    let route = this.getRouteEntry(attestation.data.sourceId, attestation.data.type);
+    let route = this.getRouteEntry(attestation.data.sourceId, attestation.data.attestationType);
     if (route === EMPTY_VERIFIER_ROUTE) {
       return null;
     }
@@ -207,7 +209,7 @@ export class VerifierRouter {
     if (route) {
       const attestationRequest = {
         abiEncodedRequest: attestation.data.request,
-      } as EncodedRequestBody;
+      } as EncodedRequest;
 
       // Can throw exception
       const resp = await retry(

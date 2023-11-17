@@ -224,8 +224,7 @@ export class AttestationRoundManager {
         const eta = Number(windowDurationMs - (BigInt(now) - roundStartTimeMs) / 1000n);
         if (eta >= 0) {
           this.logger.debug(
-            `${this.label}!round: ^Y#${activeRound.roundId}^^ ETA: ${round(eta, 0)} sec ^Wattestation requests: ${activeRound.attestationsProcessed}/${
-              activeRound.attestations.length
+            `${this.label}!round: ^Y#${activeRound.roundId}^^ ETA: ${round(eta, 0)} sec ^Wattestation requests: ${activeRound.attestationsProcessed}/${activeRound.attestations.length
             }  `
           );
         }
@@ -399,14 +398,14 @@ export class AttestationRoundManager {
     const verifier = this.globalConfigManager.getVerifierRouter(roundId);
     if (!globalConfig || !verifier) {
       // this should not happen
-      attestation.status = AttestationStatus.failed;
       this.logger.error(`${this.label} Assert: both global config and verifier router for round should exist. Critical error`);
       process.exit(1);
       return; // Don't delete needed for testing
     }
-    const attestationSupported = globalConfig.sourceAndTypeSupported(data.sourceId, data.type);
-    if (!attestationSupported || !verifier.isSupported(data.sourceId, data.type)) {
-      this.logger.error(`${this.label} Attestation type for source ${data.sourceId} and type ${data.type} not supported for request: ${data.request}`);
+
+    // IMPORTANT: attestationType, sourceID = ("", "") should fail here, marking unparsable attestation request.
+    if (!verifier.isSupported(data.sourceId, data.attestationType)) {
+      this.logger.error(`${this.label} Attestation type for source ${data.sourceId} and type ${data.attestationType} not supported for request: ${data.request}`);
       attestation.status = AttestationStatus.failed;
     }
     return attestation;

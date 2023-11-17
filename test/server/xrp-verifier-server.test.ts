@@ -15,7 +15,7 @@ import { VerifierConfigurationService } from "../../src/servers/verifier-server/
 import { getUnixEpochTimestamp } from "../../src/utils/helpers/utils";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
 import { AttestationDefinitionStore } from "../../src/external-libs/AttestationDefinitionStore";
-import { EncodedRequestBody } from "../../src/servers/verifier-server/src/dtos/generic/generic.dto";
+import { EncodedRequest } from "../../src/servers/verifier-server/src/dtos/generic/generic.dto";
 import { VerifierXrpServerModule } from "../../src/servers/verifier-server/src/verifier-xrp-server.module";
 import {
   generateTestIndexerDB,
@@ -111,7 +111,7 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
     let request = await testPaymentRequest(defStore, selectedTransaction, TX_CLASS, CHAIN_TYPE);
     let attestationRequest = {
       abiEncodedRequest: defStore.encodeRequest(request),
-    } as EncodedRequestBody;
+    } as EncodedRequest;
 
     let resp = await sendToVerifier("Payment", "XRP", configurationService, attestationRequest, API_KEY);
 
@@ -129,7 +129,7 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
 
     let attestationRequest = {
       abiEncodedRequest: defStore.encodeRequest(request),
-    } as EncodedRequestBody;
+    } as EncodedRequest;
 
     let resp = await sendToVerifier("BalanceDecreasingTransaction", "XRP", configurationService, attestationRequest, API_KEY);
 
@@ -148,7 +148,7 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
     request.requestBody.transactionId = "0x0000000000000000000000000000000000000000000000000000000000000000";
     let attestationRequest = {
       abiEncodedRequest: defStore.encodeRequest(request),
-    } as EncodedRequestBody;
+    } as EncodedRequest;
 
     let resp = await sendToVerifier("BalanceDecreasingTransaction", "XRP", configurationService, attestationRequest, API_KEY);
 
@@ -168,7 +168,7 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
     );
     let attestationRequest = {
       abiEncodedRequest: defStore.encodeRequest(request),
-    } as EncodedRequestBody;
+    } as EncodedRequest;
 
     let resp = await sendToVerifier("ConfirmedBlockHeightExists", "XRP", configurationService, attestationRequest, API_KEY);
 
@@ -195,7 +195,7 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
     );
     let attestationRequest = {
       abiEncodedRequest: defStore.encodeRequest(request),
-    } as EncodedRequestBody;
+    } as EncodedRequest;
 
     let resp = await sendToVerifier("ConfirmedBlockHeightExists", "XRP", configurationService, attestationRequest, API_KEY);
     assert(resp.status === "INDETERMINATE", "Wrong server response");
@@ -223,7 +223,7 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
 
     let attestationRequest = {
       abiEncodedRequest: defStore.encodeRequest(request),
-    } as EncodedRequestBody;
+    } as EncodedRequest;
 
     let resp = await sendToVerifier("ReferencedPaymentNonexistence", "XRP", configurationService, attestationRequest, API_KEY);
     assert(resp.status === "INVALID", "Wrong server response");
@@ -251,7 +251,7 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
 
     let attestationRequest = {
       abiEncodedRequest: defStore.encodeRequest(request),
-    } as EncodedRequestBody;
+    } as EncodedRequest;
 
     let resp = await sendToVerifier("ReferencedPaymentNonexistence", "XRP", configurationService, attestationRequest, API_KEY);
 

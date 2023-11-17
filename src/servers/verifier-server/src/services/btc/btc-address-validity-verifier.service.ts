@@ -5,8 +5,13 @@ import { AttestationResponse, AttestationResponseStatus } from "../../../../../e
 import { ExampleData } from "../../../../../external-libs/interfaces";
 import { MIC_SALT, ZERO_BYTES_32, encodeAttestationName, serializeBigInts } from "../../../../../external-libs/utils";
 import { getAttestationStatus } from "../../../../../verification/attestation-types/attestation-types";
-import { AddressValidity_Request, AddressValidity_RequestNoMic, AddressValidity_Response } from "../../dtos/attestation-types/AddressValidity.dto";
-import { AttestationResponseDTO } from "../../dtos/generic/generic.dto";
+import {
+    AddressValidity_Request,
+    AddressValidity_RequestNoMic,
+    AddressValidity_Response,
+    AttestationResponseDTO_AddressValidity_Response,
+} from "../../dtos/attestation-types/AddressValidity.dto";
+import { EncodedRequestResponse, MicResponse } from "../../dtos/generic/generic.dto";
 import { verifyAddressBTC } from "../../verification/address-validity/address-validity-btc";
 
 @Injectable()
@@ -21,96 +26,97 @@ export class BTCAddressValidityVerifierService {
         this.exampleData = JSON.parse(readFileSync("src/servers/verifier-server/src/example-data/AddressValidity.json", "utf8"));
     }
 
-    private verifyRequest(request: AddressValidity_RequestNoMic | AddressValidity_Request): AttestationResponse<AddressValidity_Response> {
-        if (request.attestationType !== encodeAttestationName("AddressValidity") || request.sourceId !== encodeAttestationName("BTC")) {
+    //-$$$<end-constructor> End of custom code section. Do not change this comment.
+
+    async verifyRequestInternal(request: AddressValidity_Request | AddressValidity_RequestNoMic): Promise<AttestationResponseDTO_AddressValidity_Response> {
+        if (
+            request.attestationType !== encodeAttestationName("AddressValidity") ||
+            request.sourceId !== encodeAttestationName((process.env.TESTNET ? "test" : "") + "BTC")
+        ) {
             throw new HttpException(
                 {
                     status: HttpStatus.BAD_REQUEST,
-                    error: `Attestation type and source id combination not supported: (${request.attestationType}, ${request.sourceId}). This source supports attestation type 'AddressValidity' (0x4164647265737356616c69646974790000000000000000000000000000000000) and source id 'BTC' (0x4254430000000000000000000000000000000000000000000000000000000000).`,
+                    error: `Attestation type and source id combination not supported: (${request.attestationType}, ${
+                        request.sourceId
+                    }). This source supports attestation type 'AddressValidity' (${encodeAttestationName(
+                        "AddressValidity",
+                    )}) and source id 'BTC' (${encodeAttestationName((process.env.TESTNET ? "test" : "") + "BTC")}).`,
                 },
                 HttpStatus.BAD_REQUEST,
             );
         }
 
-        let fixedRequest = {
+        const fixedRequest = {
             ...request,
         } as AddressValidity_Request;
         if (!fixedRequest.messageIntegrityCode) {
             fixedRequest.messageIntegrityCode = ZERO_BYTES_32;
         }
-        const result = verifyAddressBTC(request.requestBody.addressStr);
+
+        return this.verifyRequest(fixedRequest);
+    }
+
+    async verifyRequest(fixedRequest: AddressValidity_Request): Promise<AttestationResponseDTO_AddressValidity_Response> {
+        //-$$$<start-verifyRequest> Start of custom code section. Do not change this comment.
+
+        const result = verifyAddressBTC(fixedRequest.requestBody.addressStr);
 
         const status = getAttestationStatus(result.status);
         if (status != AttestationResponseStatus.VALID) return { status };
 
         const response: AddressValidity_Response = serializeBigInts({
-            attestationType: request.attestationType,
-            sourceId: request.sourceId,
+            attestationType: fixedRequest.attestationType,
+            sourceId: fixedRequest.sourceId,
             votingRound: "0",
             lowestUsedTimestamp: "0xffffffffffffffff",
-            requestBody: request.requestBody,
+            requestBody: fixedRequest.requestBody,
             responseBody: result.response,
         });
         return { status, response } as AttestationResponse<AddressValidity_Response>;
+
+        //-$$$<end-verifyRequest> End of custom code section. Do not change this comment.
     }
 
-    //-$$$<end-constructor> End of custom code section. Do not change this comment.
-
-    public async verifyEncodedRequest(abiEncodedRequest: string): Promise<AttestationResponseDTO<AddressValidity_Response>> {
+    public async verifyEncodedRequest(abiEncodedRequest: string): Promise<AttestationResponseDTO_AddressValidity_Response> {
         const requestJSON = this.store.parseRequest<AddressValidity_Request>(abiEncodedRequest);
-        //-$$$<start-verifyEncodedRequest> Start of custom code section. Do not change this comment.
-
-        // PUT YOUR CUSTOM CODE HERE
-
-        const response = await this.verifyRequest(requestJSON);
-
-        //-$$$<end-verifyEncodedRequest> End of custom code section. Do not change this comment.
-
+        const response = await this.verifyRequestInternal(requestJSON);
         return response;
     }
 
-    public async prepareResponse(request: AddressValidity_RequestNoMic): Promise<AttestationResponseDTO<AddressValidity_Response>> {
-        //-$$$<start-prepareResponse> Start of custom code section. Do not change this comment.
-
-        // PUT YOUR CUSTOM CODE HERE
-
-        const response = await this.verifyRequest(request);
-
-        //-$$$<end-prepareResponse> End of custom code section. Do not change this comment.
-
+    public async prepareResponse(request: AddressValidity_RequestNoMic): Promise<AttestationResponseDTO_AddressValidity_Response> {
+        const response = await this.verifyRequestInternal(request);
         return response;
     }
 
-    public async mic(request: AddressValidity_RequestNoMic): Promise<string | undefined> {
-        //-$$$<start-mic> Start of custom code section. Do not change this comment.
-
-        // PUT YOUR CUSTOM CODE HERE
-
-        const result = await this.verifyRequest(request);
+    public async mic(request: AddressValidity_RequestNoMic): Promise<MicResponse> {
+        const result = await this.verifyRequestInternal(request);
+        if (result.status !== AttestationResponseStatus.VALID) {
+            return new MicResponse({ status: result.status });
+        }
         const response = result.response;
-
-        //-$$$<end-mic> End of custom code section. Do not change this comment.
-
-        if (!response) return undefined;
-        return this.store.attestationResponseHash<AddressValidity_Response>(response, MIC_SALT)!;
+        if (!response) return new MicResponse({ status: result.status });
+        return new MicResponse({
+            status: AttestationResponseStatus.VALID,
+            messageIntegrityCode: this.store.attestationResponseHash<AddressValidity_Response>(response, MIC_SALT),
+        });
     }
 
-    public async prepareRequest(request: AddressValidity_RequestNoMic): Promise<string | undefined> {
-        //-$$$<start-prepareRequest> Start of custom code section. Do not change this comment.
-
-        // PUT YOUR CUSTOM CODE HERE
-
-        const result = await this.verifyRequest(request);
+    public async prepareRequest(request: AddressValidity_RequestNoMic): Promise<EncodedRequestResponse> {
+        const result = await this.verifyRequestInternal(request);
+        if (result.status !== AttestationResponseStatus.VALID) {
+            return new EncodedRequestResponse({ status: result.status });
+        }
         const response = result.response;
 
-        //-$$$<end-prepareRequest> End of custom code section. Do not change this comment.
-
-        if (!response) return undefined;
+        if (!response) return new EncodedRequestResponse({ status: result.status });
         const newRequest = {
             ...request,
             messageIntegrityCode: this.store.attestationResponseHash<AddressValidity_Response>(response, MIC_SALT)!,
         } as AddressValidity_Request;
 
-        return this.store.encodeRequest(newRequest);
+        return new EncodedRequestResponse({
+            status: AttestationResponseStatus.VALID,
+            abiEncodedRequest: this.store.encodeRequest(newRequest),
+        });
     }
 }

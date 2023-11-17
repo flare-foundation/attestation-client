@@ -81,8 +81,7 @@ export class AttesterClient {
     try {
       // handle Attestation Request
       if (event.event === "AttestationRequest") {
-        // if attestation request is not well formatted, exception is thrown (event is ignored)
-        // IMPORTANT: Note that such attestation request is ignored and skipped in indexing.
+        // if attestation request is not well formatted the attestation type and source id are ZERO_BYTES_32
         const attestationData = new AttestationData(event);
 
         // eslint-disable-next-line
@@ -92,8 +91,9 @@ export class AttesterClient {
       // attestation request is non-parsable. It is ignored
       logException(
         error,
-        `${this.label} processEvent(AttestationRequest) - unparsable attestation request: ${(event as AttestationRequest)?.returnValues?.data}`
+        `${this.label} processEvent(AttestationRequest) - critical error while parsing attestation request: ${(event as AttestationRequest)?.returnValues?.data}`
       );
+      process.exit(1);      
     }
 
     try {

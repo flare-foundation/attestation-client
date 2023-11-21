@@ -557,6 +557,7 @@ export class Indexer {
 
     while (true) {
       const status = await this.cachedClient.client.getNodeStatus();
+      this.logger.info(`Completed ledgers ${status.data.result.state.complete_ledgers}`);
 
       if (status.isSynced) {
         if (waiting) {
@@ -574,6 +575,7 @@ export class Indexer {
       waiting = true;
 
       this.logger.info(`waiting for node to be synced...`);
+      await sleepMs(1000);
     }
   }
 

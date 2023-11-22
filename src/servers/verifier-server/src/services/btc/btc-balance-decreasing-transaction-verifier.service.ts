@@ -43,7 +43,9 @@ export class BTCBalanceDecreasingTransactionVerifierService {
                         request.sourceId
                     }). This source supports attestation type 'BalanceDecreasingTransaction' (${encodeAttestationName(
                         "BalanceDecreasingTransaction",
-                    )}) and source id 'BTC' (${encodeAttestationName((process.env.TESTNET ? "test" : "") + "BTC")}).`,
+                    )}) and source id '${(process.env.TESTNET ? "test" : "") + "BTC"}' (${encodeAttestationName(
+                        (process.env.TESTNET ? "test" : "") + "BTC",
+                    )}).`,
                 },
                 HttpStatus.BAD_REQUEST,
             );

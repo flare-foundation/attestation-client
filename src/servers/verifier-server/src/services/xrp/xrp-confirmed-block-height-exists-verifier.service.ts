@@ -42,7 +42,9 @@ export class XRPConfirmedBlockHeightExistsVerifierService {
                         request.sourceId
                     }). This source supports attestation type 'ConfirmedBlockHeightExists' (${encodeAttestationName(
                         "ConfirmedBlockHeightExists",
-                    )}) and source id 'XRP' (${encodeAttestationName((process.env.TESTNET ? "test" : "") + "XRP")}).`,
+                    )}) and source id '${(process.env.TESTNET ? "test" : "") + "XRP"}' (${encodeAttestationName(
+                        (process.env.TESTNET ? "test" : "") + "XRP",
+                    )}).`,
                 },
                 HttpStatus.BAD_REQUEST,
             );

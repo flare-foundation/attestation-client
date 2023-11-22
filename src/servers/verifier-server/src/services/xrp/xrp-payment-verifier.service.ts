@@ -34,9 +34,9 @@ export class XRPPaymentVerifierService {
                     status: HttpStatus.BAD_REQUEST,
                     error: `Attestation type and source id combination not supported: (${request.attestationType}, ${
                         request.sourceId
-                    }). This source supports attestation type 'Payment' (${encodeAttestationName("Payment")}) and source id 'XRP' (${encodeAttestationName(
-                        (process.env.TESTNET ? "test" : "") + "XRP",
-                    )}).`,
+                    }). This source supports attestation type 'Payment' (${encodeAttestationName("Payment")}) and source id '${
+                        (process.env.TESTNET ? "test" : "") + "XRP"
+                    }' (${encodeAttestationName((process.env.TESTNET ? "test" : "") + "XRP")}).`,
                 },
                 HttpStatus.BAD_REQUEST,
             );

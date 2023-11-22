@@ -211,6 +211,9 @@ export class VerifierRouter {
         abiEncodedRequest: attestation.data.request,
       } as EncodedRequest;
 
+      this.logger.info(`Calling verifier route: ${route.url}`)
+      this.logger.info(`Request body: ${attestationRequest}`)
+
       // Can throw exception
       const resp = await retry(
         `VerifierRouter::verifyAttestation`,

@@ -38,9 +38,9 @@ export class DOGEAddressValidityVerifierService {
                     status: HttpStatus.BAD_REQUEST,
                     error: `Attestation type and source id combination not supported: (${request.attestationType}, ${
                         request.sourceId
-                    }). This source supports attestation type 'AddressValidity' (${encodeAttestationName(
-                        "AddressValidity",
-                    )}) and source id 'DOGE' (${encodeAttestationName((process.env.TESTNET ? "test" : "") + "DOGE")}).`,
+                    }). This source supports attestation type 'AddressValidity' (${encodeAttestationName("AddressValidity")}) and source id '${
+                        (process.env.TESTNET ? "test" : "") + "DOGE"
+                    }' (${encodeAttestationName((process.env.TESTNET ? "test" : "") + "DOGE")}).`,
                 },
                 HttpStatus.BAD_REQUEST,
             );

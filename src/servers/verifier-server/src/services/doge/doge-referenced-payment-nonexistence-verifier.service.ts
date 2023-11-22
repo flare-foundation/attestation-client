@@ -43,7 +43,9 @@ export class DOGEReferencedPaymentNonexistenceVerifierService {
                         request.sourceId
                     }). This source supports attestation type 'ReferencedPaymentNonexistence' (${encodeAttestationName(
                         "ReferencedPaymentNonexistence",
-                    )}) and source id 'DOGE' (${encodeAttestationName((process.env.TESTNET ? "test" : "") + "DOGE")}).`,
+                    )}) and source id '${(process.env.TESTNET ? "test" : "") + "DOGE"}' (${encodeAttestationName(
+                        (process.env.TESTNET ? "test" : "") + "DOGE",
+                    )}).`,
                 },
                 HttpStatus.BAD_REQUEST,
             );

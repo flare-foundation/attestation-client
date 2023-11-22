@@ -43,7 +43,9 @@ export class BTCReferencedPaymentNonexistenceVerifierService {
                         request.sourceId
                     }). This source supports attestation type 'ReferencedPaymentNonexistence' (${encodeAttestationName(
                         "ReferencedPaymentNonexistence",
-                    )}) and source id 'BTC' (${encodeAttestationName((process.env.TESTNET ? "test" : "") + "BTC")}).`,
+                    )}) and source id '${(process.env.TESTNET ? "test" : "") + "BTC"}' (${encodeAttestationName(
+                        (process.env.TESTNET ? "test" : "") + "BTC",
+                    )}).`,
                 },
                 HttpStatus.BAD_REQUEST,
             );

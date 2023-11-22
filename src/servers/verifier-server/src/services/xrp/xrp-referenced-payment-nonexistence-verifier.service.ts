@@ -43,7 +43,9 @@ export class XRPReferencedPaymentNonexistenceVerifierService {
                         request.sourceId
                     }). This source supports attestation type 'ReferencedPaymentNonexistence' (${encodeAttestationName(
                         "ReferencedPaymentNonexistence",
-                    )}) and source id 'XRP' (${encodeAttestationName((process.env.TESTNET ? "test" : "") + "XRP")}).`,
+                    )}) and source id '${(process.env.TESTNET ? "test" : "") + "XRP"}' (${encodeAttestationName(
+                        (process.env.TESTNET ? "test" : "") + "XRP",
+                    )}).`,
                 },
                 HttpStatus.BAD_REQUEST,
             );

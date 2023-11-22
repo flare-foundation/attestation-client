@@ -34,9 +34,9 @@ export class BTCPaymentVerifierService {
                     status: HttpStatus.BAD_REQUEST,
                     error: `Attestation type and source id combination not supported: (${request.attestationType}, ${
                         request.sourceId
-                    }). This source supports attestation type 'Payment' (${encodeAttestationName("Payment")}) and source id 'BTC' (${encodeAttestationName(
-                        (process.env.TESTNET ? "test" : "") + "BTC",
-                    )}).`,
+                    }). This source supports attestation type 'Payment' (${encodeAttestationName("Payment")}) and source id '${
+                        (process.env.TESTNET ? "test" : "") + "BTC"
+                    }' (${encodeAttestationName((process.env.TESTNET ? "test" : "") + "BTC")}).`,
                 },
                 HttpStatus.BAD_REQUEST,
             );

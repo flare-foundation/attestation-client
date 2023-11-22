@@ -47,7 +47,7 @@ export function getRetryFailureCallback() {
 }
 
 /**
- * Async function retry wrapper and error handler. Enables guaarded call of the proposed
+ * Async function retry wrapper and error handler. Enables guarded call of the proposed
  * async function call `funct`, with prescribed timeout, number of retires and back-off
  * on retires.
  * @param label logging label

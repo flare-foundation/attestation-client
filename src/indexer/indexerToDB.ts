@@ -37,7 +37,7 @@ export class IndexerToDB {
   /**
    * @returns Returns last N saved into the database
    */
-  public async getNfromDB(): Promise<number> {
+  public async getIndexedHeightFromDB(): Promise<number> {
     const res = await this.dbService.manager.findOne(DBState, { where: { name: getChainN(this.chainName) } });
 
     if (res === undefined || res === null) return 0;

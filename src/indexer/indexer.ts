@@ -692,7 +692,7 @@ export class Indexer {
     this.indexedHeight = startBlockNumber;
 
     // N is last completed block - confirmed and stored in DB
-    const dbLastDBBlockNumber = await this.indexerToDB.getNfromDB();
+    const dbLastDBBlockNumber = await this.indexerToDB.getIndexedHeightFromDB();
     if (dbLastDBBlockNumber > 0) {
       this.indexedHeight = dbLastDBBlockNumber;
     }

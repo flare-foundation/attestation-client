@@ -135,7 +135,7 @@ export class GlobalConfigManager {
   /**
    * @returns verifier router for a given @param roundId
    */
-  public getVerifierRouter(roundId: number): VerifierRouter {
+  public getVerifierRouter(roundId: number): VerifierRouter | undefined {
     let result = this.getVerifierRouterWithConfig(roundId);
     return result?.router; // ? is needed for testing, when undefined is returned
   }
@@ -303,7 +303,6 @@ export class GlobalConfigManager {
     if (!valid) {
       throw new Error(`Global configuration in file '${filename}' is invalid`);
     }
-    config.initialize();
     return config;
   }
 

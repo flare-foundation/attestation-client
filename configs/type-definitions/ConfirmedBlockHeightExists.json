@@ -1,11 +1,14 @@
 {
   "name": "ConfirmedBlockHeightExists",
-  "fullComment": " @custom:name ConfirmedBlockHeightExists\n @custom:id 0x02\n @custom:supported BTC, DOGE, XRP\n @author Flare\n @notice The intention of this attestation type is for a dapp to be able to see what is the confirmed height of an external chain and to calculate what is the block production (time wise) in a given time range.\n @custom:verification For the given `blockNumber`, it is checked that the block is confirmed by at least `numberOfConfirmations`.\n If it is not, the request is rejected. We note a block on the tip of the chain is confirmed by 1 block.\n Then `lowestQueryWindowBlock` is determined and its number and timestamp are extracted.\n Current confirmation heights consensus:\n | `Chain` | `chainId` | `numberOfConfirmations` |\n | ------- | --------- | ----------------------- |\n | `BTC`   | 0         | 6                       |\n | `DOGE`  | 2         | 60                      |\n | `XRP`   | 3         | 3                       |\n @custom:lut `lowestQueryWindowBlockTimestamp`",
+  "fullComment": " @custom:name ConfirmedBlockHeightExists\n @custom:id 0x02\n @custom:supported BTC, DOGE, XRP, testBTC, testDOGE, testXRP\n @author Flare\n @notice The intention of this attestation type is for a dapp to be able to see what is the confirmed height of an external chain and to calculate what is the block production (time wise) in a given time range.\n @custom:verification For the given `blockNumber`, it is checked that the block is confirmed by at least `numberOfConfirmations`.\n If it is not, the request is rejected. We note a block on the tip of the chain is confirmed by 1 block.\n Then `lowestQueryWindowBlock` is determined and its number and timestamp are extracted.\n Current confirmation heights consensus:\n | `Chain` | `chainId` | `numberOfConfirmations` |\n | ------- | --------- | ----------------------- |\n | `BTC`   | 0         | 6                       |\n | `DOGE`  | 2         | 60                      |\n | `XRP`   | 3         | 3                       |\n @custom:lut `lowestQueryWindowBlockTimestamp`",
   "description": "The intention of this attestation type is for a dapp to be able to see what is the confirmed height of an external chain and to calculate what is the block production (time wise) in a given time range.",
   "supported": [
     "BTC",
     "DOGE",
-    "XRP"
+    "XRP",
+    "testBTC",
+    "testDOGE",
+    "testXRP"
   ],
   "verification": "For the given `blockNumber`, it is checked that the block is confirmed by at least `numberOfConfirmations`.\n If it is not, the request is rejected. We note a block on the tip of the chain is confirmed by 1 block.\n Then `lowestQueryWindowBlock` is determined and its number and timestamp are extracted.\n Current confirmation heights consensus:\n | `Chain` | `chainId` | `numberOfConfirmations` |\n | ------- | --------- | ----------------------- |\n | `BTC`   | 0         | 6                       |\n | `DOGE`  | 2         | 60                      |\n | `XRP`   | 3         | 3                       |",
   "lut": "`lowestQueryWindowBlockTimestamp`",

@@ -60,7 +60,7 @@ export class Attestation {
   }
 
   /**
-   *  Round in which the attestation is considered
+   * Round in which the attestation is considered
    */
   public get roundId() {
     if (this._testRoundId === undefined) {

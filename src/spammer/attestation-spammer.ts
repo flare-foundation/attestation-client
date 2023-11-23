@@ -18,6 +18,7 @@ import { getTimeMs } from "../utils/helpers/internetTime";
 import { getWeb3, getWeb3StateConnectorContract } from "../utils/helpers/web3-utils";
 import { getGlobalLogger, logException, setGlobalLoggerLabel, setLoggerName } from "../utils/logging/logger";
 import { SpammerCredentials } from "./SpammerConfiguration";
+import { decodeAttestationName, encodeAttestationName } from "../external-libs/utils";
 
 const args = yargs
   .option("chain", { alias: "c", type: "string", description: "Chain (XRP, BTC, LTC, DOGE)", default: "BTC" })
@@ -123,11 +124,6 @@ class AttestationSpammer {
     if (this.web3Functions_2) {
       this.logger.info(`Sending from address2 ${this.web3Functions_2.account.address}`);
     }
-  }
-
-  getCurrentRound() {
-    const now = Math.floor(Date.now() / 1000);
-    return Math.floor((now - this.BUFFER_TIMESTAMP_OFFSET) / this.BUFFER_WINDOW);
   }
 
   static sendId = 0;
@@ -268,6 +264,9 @@ class AttestationSpammer {
         );
 
         if (attRequest) {
+          attRequest.sourceId = process.env.TESTNET 
+            ? encodeAttestationName("test" + decodeAttestationName(attRequest.sourceId))
+            : attRequest.sourceId;
           try {
             await this.sendAttestationRequest(this.stateConnector, attRequest);
           } catch (e0) {

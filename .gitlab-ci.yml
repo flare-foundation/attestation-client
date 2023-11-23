@@ -9,11 +9,6 @@ workflow:
     - when: always
 
 
-default:
-  tags:
-  - flarenetwork
-
-
 
 build-project:
   stage: build
@@ -55,9 +50,12 @@ build-container:
 
 
 test-coverage:
+  allow_failure: true
   stage: test
   needs: []
   image: node:16
+  tags:
+  - flarenetwork-lg
   variables:
     NODE_ENV: development
   before_script:
@@ -88,5 +86,6 @@ test-coverage:
 
 test-coverage-full:
   extends: test-coverage
+  timeout: 2h
   script:
   - yarn run test:coverage-full

@@ -1,8 +1,8 @@
-import { Managed, toBN } from "@flarenetwork/mcc";
+import { Managed } from "@flarenetwork/mcc";
 import { criticalAsync } from "../indexer/indexer-utils";
 import { EpochSettings } from "../utils/data-structures/EpochSettings";
-import { attesterEntities } from "../utils/database/databaseEntities";
 import { DatabaseService } from "../utils/database/DatabaseService";
+import { attesterEntities } from "../utils/database/databaseEntities";
 import { getTimeMs } from "../utils/helpers/internetTime";
 import { catchErrorAndJustLog } from "../utils/helpers/promiseTimeout";
 import { MOCK_NULL_WHEN_TESTING, round, sleepMs } from "../utils/helpers/utils";
@@ -12,9 +12,9 @@ import { AttestationData } from "./AttestationData";
 import { AttestationRound } from "./AttestationRound";
 import { AttesterState } from "./AttesterState";
 import { BitVoteData } from "./BitVoteData";
-import { AttestationClientConfig } from "./configs/AttestationClientConfig";
 import { FlareConnection } from "./FlareConnection";
 import { GlobalConfigManager } from "./GlobalConfigManager";
+import { AttestationClientConfig } from "./configs/AttestationClientConfig";
 import { SourceRouter } from "./source/SourceRouter";
 import { AttestationStatus } from "./types/AttestationStatus";
 
@@ -100,7 +100,7 @@ export class AttestationRoundManager {
       throw new Error("AttestationRoundManager can be initialized only once");
     }
     // initialize activeRoundId for the first time, before first load of global configuration, verifier routing configurations
-    this.activeRoundId = this.epochSettings.getEpochIdForTime(toBN(getTimeMs())).toNumber();
+    this.activeRoundId = this.epochSettings.getEpochIdForTime(BigInt(getTimeMs()));
 
     // loads global configurations and initializes them for further refreshes/updates
     await this.globalConfigManager.initialize();
@@ -118,7 +118,7 @@ export class AttestationRoundManager {
     await this.dbServiceAttester.connect();
 
     // update active round again since waiting for DB connection can take time
-    this.activeRoundId = this.epochSettings.getEpochIdForTime(toBN(getTimeMs())).toNumber();
+    this.activeRoundId = this.epochSettings.getEpochIdForTime(BigInt(getTimeMs()));
     this.startRoundId = this.activeRoundId;
 
     this.attesterState = new AttesterState(this.dbServiceAttester);
@@ -137,7 +137,7 @@ export class AttestationRoundManager {
   private async startRoundUpdate(): Promise<void> {
     while (true) {
       try {
-        const epochId: number = this.epochSettings.getEpochIdForTime(toBN(getTimeMs())).toNumber();
+        const epochId: number = this.epochSettings.getEpochIdForTime(BigInt(getTimeMs()));
         this.activeRoundId = epochId;
 
         const activeRound = this.getRoundOrCreateIt(epochId);
@@ -214,18 +214,17 @@ export class AttestationRoundManager {
    * @param windowDurationMs
    * @param roundCommitStartTimeMs
    */
-  private initRoundSampler(activeRound: AttestationRound, roundStartTimeMs: number, windowDurationMs: number, roundCommitStartTimeMs: number) {
+  private initRoundSampler(activeRound: AttestationRound, roundStartTimeMs: bigint, windowDurationMs: bigint, roundCommitStartTimeMs: bigint) {
     const intervalId = setInterval(
       () => {
         const now = getTimeMs();
         if (now > roundCommitStartTimeMs) {
           clearInterval(intervalId);
         }
-        const eta = (windowDurationMs - (now - roundStartTimeMs)) / 1000;
+        const eta = Number(windowDurationMs - (BigInt(now) - roundStartTimeMs) / 1000n);
         if (eta >= 0) {
           this.logger.debug(
-            `${this.label}!round: ^Y#${activeRound.roundId}^^ ETA: ${round(eta, 0)} sec ^Wattestation requests: ${activeRound.attestationsProcessed}/${
-              activeRound.attestations.length
+            `${this.label}!round: ^Y#${activeRound.roundId}^^ ETA: ${round(eta, 0)} sec ^Wattestation requests: ${activeRound.attestationsProcessed}/${activeRound.attestations.length
             }  `
           );
         }
@@ -288,29 +287,41 @@ export class AttestationRoundManager {
     this.logger.info(`${this.label} ^w^Rcollect phase started^^ round ^Y#${roundId}^^`);
 
     // trigger start choose phase
-    this.schedule(`${this.label} schedule:startChoosePhase`, async () => await activeRound.onChoosePhaseStart(), activeRound.roundChooseStartTimeMs - now);
+    this.schedule(
+      `${this.label} schedule:startChoosePhase`,
+      async () => await activeRound.onChoosePhaseStart(),
+      Number(activeRound.roundChooseStartTimeMs) - now
+    );
 
     // trigger sending bit vote result
-    this.schedule(`${this.label} schedule:bitVote`, async () => await activeRound.onSubmitBitVote(), activeRound.roundBitVoteTimeMs - now);
+    this.schedule(`${this.label} schedule:bitVote`, async () => await activeRound.onSubmitBitVote(), Number(activeRound.roundBitVoteTimeMs) - now);
 
     // trigger start commit phase
-    this.schedule(`${this.label} schedule:startCommitPhase`, async () => await activeRound.onCommitPhaseStart(), activeRound.roundCommitStartTimeMs - now);
+    this.schedule(
+      `${this.label} schedule:startCommitPhase`,
+      async () => await activeRound.onCommitPhaseStart(),
+      Number(activeRound.roundCommitStartTimeMs) - now
+    );
 
     // trigger forced closing of bit voting and vote count
-    this.schedule(`${this.label} schedule:closeBitVoting`, async () => await activeRound.closeBitVoting(), activeRound.roundForceCloseBitVotingTimeMs - now);
+    this.schedule(
+      `${this.label} schedule:closeBitVoting`,
+      async () => await activeRound.closeBitVoting(),
+      Number(activeRound.roundForceCloseBitVotingTimeMs) - now
+    );
 
     // trigger start reveal epoch
-    this.schedule(`${this.label} schedule:startRevealEpoch`, () => activeRound.onRevealPhaseStart(), activeRound.roundRevealStartTimeMs - now);
+    this.schedule(`${this.label} schedule:startRevealEpoch`, () => activeRound.onRevealPhaseStart(), Number(activeRound.roundRevealStartTimeMs) - now);
 
     // trigger reveal. Here most of submitAttestation calls to StateConnector happen
     this.schedule(
       `${this.label} schedule:submitAttestation`,
       () => activeRound.onSubmitAttestation(),
-      activeRound.roundCompleteTimeMs + this.attestationClientConfig.commitTimeSec * 1000 - now
+      Number(activeRound.roundCompleteTimeMs + BigInt(this.attestationClientConfig.commitTimeSec) * 1000n) - now
     );
 
     // trigger end of reveal epoch, cycle is completed at this point
-    this.schedule(`${this.label} schedule:completed`, () => activeRound.onFinalisePhaseStart(), activeRound.roundCompleteTimeMs - now);
+    this.schedule(`${this.label} schedule:completed`, () => activeRound.onFinalisePhaseStart(), Number(activeRound.roundCompleteTimeMs) - now);
 
     this.rounds.set(roundId, activeRound);
     this.cleanup();
@@ -325,7 +336,7 @@ export class AttestationRoundManager {
       this.schedule(
         `${this.label} schedule:firstCommit`,
         () => activeRound!.onFirstCommit(),
-        activeRound.roundRevealStartTimeMs + this.attestationClientConfig.commitTimeSec * 1000 - now
+        Number(activeRound.roundRevealStartTimeMs + BigInt(this.attestationClientConfig.commitTimeSec) * 1000n) - now
       );
     }
 
@@ -339,9 +350,9 @@ export class AttestationRoundManager {
    * @returns
    */
   public async onAttestationRequest(attestationData: AttestationData) {
-    const epochId: number = this.epochSettings.getEpochIdForTime(attestationData.timeStamp.mul(toBN(1000))).toNumber();
+    const epochId: number = this.epochSettings.getEpochIdForTime(attestationData.timeStamp * 1000n);
 
-    this.activeRoundId = this.epochSettings.getEpochIdForTime(toBN(getTimeMs())).toNumber();
+    this.activeRoundId = this.epochSettings.getEpochIdForTime(BigInt(getTimeMs()));
 
     if (epochId < this.startRoundId) {
       this.logger.debug(`${this.label} epoch too low ^Y#${epochId}^^`);
@@ -365,7 +376,7 @@ export class AttestationRoundManager {
    * Cleans up old attestation rounds to prevent memory leaks.
    */
   private cleanup() {
-    const epochId = this.epochSettings.getCurrentEpochId().toNumber();
+    const epochId = this.epochSettings.getCurrentEpochId();
 
     // clear old epochs
     if (this.rounds.has(epochId - 10)) {
@@ -387,14 +398,14 @@ export class AttestationRoundManager {
     const verifier = this.globalConfigManager.getVerifierRouter(roundId);
     if (!globalConfig || !verifier) {
       // this should not happen
-      attestation.status = AttestationStatus.failed;
       this.logger.error(`${this.label} Assert: both global config and verifier router for round should exist. Critical error`);
       process.exit(1);
       return; // Don't delete needed for testing
     }
-    const attestationSupported = globalConfig.sourceAndTypeSupported(data.sourceId, data.type);
-    if (!attestationSupported || !verifier.isSupported(data.sourceId, data.type)) {
-      this.logger.error(`${this.label} Attestation type for source ${data.sourceId} and type ${data.type} not supported for request: ${data.request}`);
+
+    // IMPORTANT: attestationType, sourceID = ("", "") should fail here, marking unparsable attestation request.
+    if (!verifier.isSupported(data.sourceId, data.attestationType)) {
+      this.logger.error(`${this.label} Attestation type for source ${data.sourceId} and type ${data.attestationType} not supported for request: ${data.request}`);
       attestation.status = AttestationStatus.failed;
     }
     return attestation;

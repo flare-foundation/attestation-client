@@ -50,10 +50,13 @@ async function deployTempStateConnector(web3Rpc: string, flavor: string) {
     })
     .encodeABI();
 
+  let gasDec = 1500000;
+  let gasPriceDec = 25000000000;
+
   const tx = {
     from: botWallet.address,
-    gas: "0x" + web3.utils.toBN(1500000).toString(16),
-    gasPrice: "0x" + web3.utils.toBN("25000000000").toString(16),
+    gas: "0x" + gasDec.toString(16),
+    gasPrice: "0x" + gasPriceDec.toString(16),
     chainId: chainId,
     data: constructorData,
   };

@@ -33,7 +33,7 @@ function randomBodies(fullRandom = false) {
     const requestBody = {
         transactionId: randSol("bytes32", "Payment" + (fullRandom ? Math.random().toString() : "")),
         inUtxo: randSol("uint256", "Payment" + (fullRandom ? Math.random().toString() : "")),
-        utxo: randSol("uint16", "Payment" + (fullRandom ? Math.random().toString() : "")),
+        utxo: randSol("uint256", "Payment" + (fullRandom ? Math.random().toString() : "")),
     } as Payment_RequestBody;
 
     const responseBody = {

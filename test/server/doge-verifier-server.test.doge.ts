@@ -1,5 +1,5 @@
 // This should always be on the top of the file, before imports
-import { ChainType, DogeTransaction, MCC, prefix0x, toBN, toHex32Bytes } from "@flarenetwork/mcc";
+import { ChainType, DogeTransaction, MCC, prefix0x, toHex32Bytes } from "@flarenetwork/mcc";
 import { INestApplication } from "@nestjs/common";
 import { WsAdapter } from "@nestjs/platform-ws";
 import { Test } from "@nestjs/testing";
@@ -15,7 +15,8 @@ import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/log
 import { toHex as toHexPad } from "../../src/verification/attestation-types/attestation-types-helpers";
 
 import { AttestationDefinitionStore } from "../../src/external-libs/AttestationDefinitionStore";
-import { EncodedRequestBody } from "../../src/servers/verifier-server/src/dtos/generic/generic.dto";
+import { MIC_SALT } from "../../src/external-libs/utils";
+import { EncodedRequest } from "../../src/servers/verifier-server/src/dtos/generic/generic.dto";
 import { VerifierDogeServerModule } from "../../src/servers/verifier-server/src/verifier-doge-server.module";
 import {
   addressOnVout,
@@ -32,7 +33,6 @@ import {
 } from "../indexed-query-manager/utils/indexerTestDataGenerator";
 import { getTestFile } from "../test-utils/test-utils";
 import { sendToVerifier } from "./utils/server-test-utils";
-import { MIC_SALT } from "../../src/external-libs/utils";
 
 chai.use(chaiAsPromised);
 
@@ -65,7 +65,7 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
     process.env.TEST_IGNORE_SUPPORTED_ATTESTATION_CHECK_TEST = "1";
     process.env.TEST_CREDENTIALS = "1";
 
-    //initializeTestGlobalLogger();
+    initializeTestGlobalLogger();
 
     const module = await Test.createTestingModule({
       imports: [VerifierDogeServerModule],
@@ -121,7 +121,7 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
 
     let attestationRequest = {
       abiEncodedRequest: defStore.encodeRequest(request),
-    } as EncodedRequestBody;
+    } as EncodedRequest;
 
     let resp = await sendToVerifier("Payment", "DOGE", configurationService, attestationRequest, API_KEY);
     assert(resp.status === "VALID", "Wrong server response");
@@ -140,7 +140,7 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
     let request = await testBalanceDecreasingTransactionRequest(defStore, selectedTransaction, TX_CLASS, CHAIN_TYPE, sourceAddressIndicator);
     let attestationRequest = {
       abiEncodedRequest: defStore.encodeRequest(request),
-    } as EncodedRequestBody;
+    } as EncodedRequest;
 
     let resp = await sendToVerifier("BalanceDecreasingTransaction", "DOGE", configurationService, attestationRequest, API_KEY);
 
@@ -158,7 +158,7 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
     request.requestBody.transactionId = toHexPad(12, 32);
     let attestationRequest = {
       abiEncodedRequest: defStore.encodeRequest(request),
-    } as EncodedRequestBody;
+    } as EncodedRequest;
 
     let resp = await sendToVerifier("BalanceDecreasingTransaction", "DOGE", configurationService, attestationRequest, API_KEY);
 
@@ -178,7 +178,7 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
     );
     let attestationRequest = {
       abiEncodedRequest: defStore.encodeRequest(request),
-    } as EncodedRequestBody;
+    } as EncodedRequest;
 
     let resp = await sendToVerifier("ConfirmedBlockHeightExists", "DOGE", configurationService, attestationRequest, API_KEY);
     assert(resp.status === "VALID", "Wrong server response");
@@ -204,7 +204,7 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
     );
     let attestationRequest = {
       abiEncodedRequest: defStore.encodeRequest(request),
-    } as EncodedRequestBody;
+    } as EncodedRequest;
 
     let resp = await sendToVerifier("ConfirmedBlockHeightExists", "DOGE", configurationService, attestationRequest, API_KEY);
     assert(resp.status === "INDETERMINATE", "Wrong server response");
@@ -230,12 +230,12 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
       selectedTransaction.timestamp - 2,
       receivingAddress,
       prefix0x(selectedTransaction.paymentReference),
-      receivedAmount.add(toBN(1)).toString()
+      (receivedAmount + 1n).toString()
     );
 
     let attestationRequest = {
       abiEncodedRequest: defStore.encodeRequest(request),
-    } as EncodedRequestBody;
+    } as EncodedRequest;
 
     let resp = await sendToVerifier("ReferencedPaymentNonexistence", "DOGE", configurationService, attestationRequest, API_KEY);
 

@@ -214,10 +214,15 @@ export class SourceManager {
    */
   private async process(attestation: Attestation) {
     const verifierRouter = this.globalConfigManager.getVerifierRouter(attestation.roundId);
-
+    if (!verifierRouter) {
+      // this should not happen
+      this.logger.error(`${this.label} Assert: verifier router for round should exist. Critical error`);
+      process.exit(1);
+      return; // Don't delete needed for testing
+    }
     // Check again, if verifier supports the attestation type
-    if (!verifierRouter || !verifierRouter.isSupported(attestation.data.sourceId, attestation.data.type)) {
-      this.logger.info(`No verifier routes for source '${attestation.data.sourceId}' for type '${attestation.data.type}'`);
+    if (!verifierRouter.isSupported(attestation.data.sourceId, attestation.data.attestationType)) {
+      this.logger.info(`No verifier routes for source '${attestation.data.sourceId}' for type '${attestation.data.attestationType}'`);
       this.onProcessed(attestation, AttestationStatus.failed);
       return;
     }
@@ -244,16 +249,16 @@ export class SourceManager {
         let status = verification.status;
         if (status === AttestationResponseStatus.VALID) {
           // check message integrity
-          // const originalRequest = getAttestationTypeAndSource(attestation.data.request);
           const requestPrefix = AttestationDefinitionStore.extractPrefixFromRequest(attestation.data.request);
           const micOk =
-            requestPrefix.messageIntegrityCode.toLowerCase() === this.globalConfigManager.definitionStore.attestationResponseHash(verification.response, MIC_SALT).toLowerCase();
+            requestPrefix.messageIntegrityCode.toLowerCase() ===
+            this.globalConfigManager.definitionStore.attestationResponseHash(verification.response, MIC_SALT).toLowerCase();
           if (micOk) {
             // augment the attestation response with the round id
             verification.response.votingRound = attestation.roundId.toString();
             // calculate the correct hash, with given roundId
             const hash = this.globalConfigManager.definitionStore.attestationResponseHash(verification.response);
-            
+
             // verify that the request bodies match
             const actualRequest = this.globalConfigManager.definitionStore.parseRequest(attestation.data.request);
 
@@ -266,12 +271,12 @@ export class SourceManager {
               if (encodedReconstructedRequest.toLowerCase() !== attestation.data.request.toLowerCase()) {
                 this.logger.error2(`${this.label} MISMATCH REQUEST BODY for ${attestation.data.request}`);
                 this.onProcessed(attestation, AttestationStatus.invalid, verification);
-                return;              
+                return;
               }
-            } catch(error) {
-              this.logger.error2(`${this.label} UNPARSABLE RECONSTRUCTED REQUEST for ${attestation.data.request}`);
+            } catch (error) {
+              this.logger.error2(`${this.label} UNPARSABLE RECONSTRUCTED REQUEST for ${attestation.data.request}, reconstructed ${reconstructedRequest}`);
               this.onProcessed(attestation, AttestationStatus.invalid, verification);
-              return;            
+              return;
             }
 
             // Everything is OK

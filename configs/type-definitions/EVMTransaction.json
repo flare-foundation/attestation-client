@@ -1,10 +1,14 @@
 {
   "name": "EVMTransaction",
-  "fullComment": " @custom:name EVMTransaction\n @custom:id 0x06\n @custom:supported ETH, FLR\n @author Flare\n @notice The purpose of this type is to relay transactions from an evm chain to FLARE chain.\n This type is only relevant for the evm-compatible chains.\n @custom:verification If transaction with `transactionId` is contained a block on main branch with at least `requiredConfirmations`, the specified data is relayed.\n If an indicated event does not exist, the request is rejected.\n @custom:lut `timestamp`",
+  "fullComment": " @custom:name EVMTransaction\n @custom:id 0x06\n @custom:supported ETH, FLR, SGB, testETH, testFLR, testSGB\n @author Flare\n @notice The purpose of this type is to relay transactions from an evm chain to FLARE chain.\n This type is only relevant for the evm-compatible chains.\n @custom:verification If transaction with `transactionId` is contained a block on main branch with at least `requiredConfirmations`, the specified data is relayed.\n If an indicated event does not exist, the request is rejected.\n @custom:lut `timestamp`",
   "description": "The purpose of this type is to relay transactions from an evm chain to FLARE chain.\n This type is only relevant for the evm-compatible chains.",
   "supported": [
     "ETH",
-    "FLR"
+    "FLR",
+    "SGB",
+    "testETH",
+    "testFLR",
+    "testSGB"
   ],
   "verification": "If transaction with `transactionId` is contained a block on main branch with at least `requiredConfirmations`, the specified data is relayed.\n If an indicated event does not exist, the request is rejected.",
   "lut": "`timestamp`",

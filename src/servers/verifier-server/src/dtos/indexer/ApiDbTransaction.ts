@@ -34,7 +34,7 @@ export class ApiDBTransaction {
   /**
    * Validator node API response for transaction description. For UTXO chains additional information may be embedded into response.
    */
-  response: string = "";
+  response: string | any = "";
 
   /**
    * True if it is native payment.

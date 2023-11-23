@@ -2,7 +2,7 @@ import { Controller, Get, Param, ParseIntPipe, Query, UseGuards } from "@nestjs/
 import { AuthGuard } from "@nestjs/passport";
 import { ApiSecurity, ApiTags } from "@nestjs/swagger";
 import { getGlobalLogger } from "../../../../../utils/logging/logger";
-import { IndexerEngineService } from "../../services/indexer-engine.service";
+import { IIndexerState, IndexerEngineService } from "../../services/indexer-engine.service";
 import { ApiResponseWrapper, handleApiResponse } from "../../../../common/src";
 import { ApiDBState } from "../../dtos/indexer/ApiDbState";
 import { BlockRange } from "../../dtos/indexer/BlockRange.dto";
@@ -24,7 +24,7 @@ export class DOGEIndexerController {
    * @returns
    */
   @Get("state")
-  public async indexerState(): Promise<ApiResponseWrapper<ApiDBState[]>> {
+  public async indexerState(): Promise<ApiResponseWrapper<IIndexerState>> {
     throw new Error("Not implemented")
     // return handleApiResponse(this.indexerEngine.getStateSetting(), this.logger);
   }

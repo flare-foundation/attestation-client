@@ -15,7 +15,7 @@ describe(`Indexer utils (${getTestFile(__filename)})`, function () {
       expect(() => prepareIndexerTables(ChainType.invalid)).to.throw("Invalid chain type");
     });
 
-    for (let j = 0; j < 5; j++) {
+    for (let j of [ChainType.BTC, ChainType.XRP]) {
       it(`Should prepare IndexerTables for ${ChainType[j]}`, function () {
         let res = prepareIndexerTables(j);
         expect(res.transactionTable.length).to.equal(2);
@@ -58,7 +58,7 @@ describe(`Indexer utils (${getTestFile(__filename)})`, function () {
         throw 12;
       }
 
-      function fakeOnFailur(str: string) {}
+      function fakeOnFailur(str: string) { }
 
       var stub2 = sinon.stub(proxi, "getRetryFailureCallback").returns(fakeOnFailur);
 

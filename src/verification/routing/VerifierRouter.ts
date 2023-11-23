@@ -214,17 +214,12 @@ export class VerifierRouter {
       this.logger.info(`Calling verifier route: ${route.url}`)
       this.logger.info(`Request body: ${attestationRequest}`)
 
-      // Can throw exception
-      const resp = await retry(
-        `VerifierRouter::verifyAttestation`,
-        async () =>
-          axios.post(this.transformRoute(route.url), attestationRequest, {
-            headers: {
-              "x-api-key": route.apiKey,
-            },
-          }),
-        VERIFIER_TIMEOUT
-      );
+      // Can throw exception. Retries are handled earlier.
+      const resp = await axios.post(this.transformRoute(route.url), attestationRequest, {
+        headers: {
+          "x-api-key": route.apiKey,
+        },
+      });
 
       return resp.data as AttestationResponse<any>;
     }

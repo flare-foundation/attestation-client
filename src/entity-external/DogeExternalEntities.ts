@@ -156,9 +156,10 @@ export class DBDogeTransaction {
   }
 
   toTransactionResult(): TransactionResult {
+    const response = JSON.stringify(this.response)
     return {
       getResponse() {
-        return JSON.stringify(this.response);
+        return response;
       },
       chainType: ChainType.DOGE,
       transactionId: this.transactionId,

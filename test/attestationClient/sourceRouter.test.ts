@@ -41,7 +41,7 @@ describe(`SourceRouter (${getTestFile(__filename)})`, function () {
 
   it("Should initialize Source", function () {
     sourceRouter.initializeSourcesForRound(170);
-    expect(sourceRouter.sourceManagers.size).to.eq(8);  // BTC, DOGE, XRP, ETH, FLR, testBTC, testDOGE, testXRP
+    expect(sourceRouter.sourceManagers.size).to.eq(12);  // BTC, DOGE, XRP, ETH, FLR, SGB, testBTC, testDOGE, testXRP, testETH, testFLR, testSGB
   });
 
   it("Should get SourceManager", function () {

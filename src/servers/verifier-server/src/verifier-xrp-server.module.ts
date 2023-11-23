@@ -10,11 +10,9 @@ import { XRPConfirmedBlockHeightExistsVerifierController } from "./controllers/x
 import { XRPIndexerController } from "./controllers/xrp/xrp-indexer.controller";
 import { XRPPaymentVerifierController } from "./controllers/xrp/xrp-payment-verifier.controller";
 import { XRPReferencedPaymentNonexistenceVerifierController } from "./controllers/xrp/xrp-referenced-payment-nonexistence-verifier.controller";
-import { WsServerGateway } from "./gateways/ws-server.gateway";
 import { IndexerEngineService } from "./services/indexer-engine.service";
 import { VerifierConfigurationService } from "./services/verifier-configuration.service";
 import { XRPProcessorService } from "./services/verifier-processors/xrp-processor.service";
-import { WsCommandProcessorService } from "./services/ws-command-processor.service";
 import { XRPAddressValidityVerifierService } from "./services/xrp/xrp-address-validity-verifier.service";
 import { XRPBalanceDecreasingTransactionVerifierService } from "./services/xrp/xrp-balance-decreasing-transaction-verifier.service";
 import { XRPConfirmedBlockHeightExistsVerifierService } from "./services/xrp/xrp-confirmed-block-height-exists-verifier.service";
@@ -56,9 +54,6 @@ import { createTypeOrmOptions } from "./utils/db-config";
                 { token: getEntityManagerToken("indexerDatabase"), optional: false },
             ],
         },
-        WsCommandProcessorService,
-        WsServerGateway,
-        WsCommandProcessorService,
         IndexerEngineService,
         HeaderApiKeyStrategy,
         XRPAddressValidityVerifierService,

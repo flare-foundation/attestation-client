@@ -1,6 +1,5 @@
 import { ValidationPipe } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
-import { WsAdapter } from "@nestjs/platform-ws";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import helmet from "helmet";
 import { getGlobalLogger } from "../../../utils/logging/logger";
@@ -25,7 +24,6 @@ function moduleForDataSource(): any {
 export async function runVerifierServer() {
   const moduleClass = moduleForDataSource();
   const app = await NestFactory.create(moduleClass);
-  app.useWebSocketAdapter(new WsAdapter(app));
 
   app.use(helmet());
   app.useGlobalPipes(new ValidationPipe({ transform: true }));

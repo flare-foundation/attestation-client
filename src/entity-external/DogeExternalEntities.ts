@@ -156,7 +156,7 @@ export class DBDogeTransaction {
   }
 
   toTransactionResult(): TransactionResult {
-    const response = JSON.stringify(this.response);
+    const response = JSON.stringify(this.response)
     return {
       getResponse() {
         return response;

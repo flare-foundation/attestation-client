@@ -10,7 +10,6 @@ import { DOGEConfirmedBlockHeightExistsVerifierController } from "./controllers/
 import { DOGEIndexerController } from "./controllers/doge/doge-indexer.controller";
 import { DOGEPaymentVerifierController } from "./controllers/doge/doge-payment-verifier.controller";
 import { DOGEReferencedPaymentNonexistenceVerifierController } from "./controllers/doge/doge-referenced-payment-nonexistence-verifier.controller";
-import { WsServerGateway } from "./gateways/ws-server.gateway";
 import { DOGEAddressValidityVerifierService } from "./services/doge/doge-address-validity-verifier.service";
 import { DOGEBalanceDecreasingTransactionVerifierService } from "./services/doge/doge-balance-decreasing-transaction-verifier.service";
 import { DOGEConfirmedBlockHeightExistsVerifierService } from "./services/doge/doge-confirmed-block-height-exists-verifier.service";
@@ -19,7 +18,6 @@ import { DOGEReferencedPaymentNonexistenceVerifierService } from "./services/dog
 import { ExternalIndexerEngineService } from "./services/external-indexer.service";
 import { ExternalDBVerifierConfigurationService } from "./services/verifier-configuration.service";
 import { DOGEProcessorService } from "./services/verifier-processors/doge-processor.service";
-import { WsCommandProcessorService } from "./services/ws-command-processor.service";
 import { createTypeOrmOptions } from "./utils/db-config";
 
 @Module({
@@ -56,9 +54,6 @@ import { createTypeOrmOptions } from "./utils/db-config";
                 { token: getEntityManagerToken("indexerDatabase"), optional: false },
             ],
         },
-        WsCommandProcessorService,
-        WsServerGateway,
-        WsCommandProcessorService,
         ExternalIndexerEngineService,
         HeaderApiKeyStrategy,
         DOGEAddressValidityVerifierService,

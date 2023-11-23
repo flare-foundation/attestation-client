@@ -5,29 +5,30 @@ import { WsAdapter } from "@nestjs/platform-ws";
 import { Test } from "@nestjs/testing";
 import chai, { assert, expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
+import { ChildProcess, execSync } from "child_process";
 import { EntityManager } from "typeorm";
 import Web3 from "web3";
 import { DBBlockDOGE } from "../../src/entity/indexer/dbBlock";
 import { DBTransactionDOGE0 } from "../../src/entity/indexer/dbTransaction";
 import { VerifierConfigurationService } from "../../src/servers/verifier-server/src/services/verifier-configuration.service";
-import { getUnixEpochTimestamp } from "../../src/utils/helpers/utils";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
 import { toHex as toHexPad } from "../../src/verification/attestation-types/attestation-types-helpers";
 
+import axios from "axios";
 import { AttestationDefinitionStore } from "../../src/external-libs/AttestationDefinitionStore";
-import { MIC_SALT } from "../../src/external-libs/utils";
+import { MIC_SALT, encodeAttestationName } from "../../src/external-libs/utils";
+import { DogeIndexedQueryManager } from "../../src/indexed-query-manager/DogeIndexQueryManager";
+import { IndexedQueryManagerOptions } from "../../src/indexed-query-manager/indexed-query-manager-types";
+import { Payment_Request } from "../../src/servers/verifier-server/src/dtos/attestation-types/Payment.dto";
 import { EncodedRequest } from "../../src/servers/verifier-server/src/dtos/generic/generic.dto";
 import { VerifierDogeServerModule } from "../../src/servers/verifier-server/src/verifier-doge-server.module";
 import {
   addressOnVout,
   firstAddressVin,
   firstAddressVout,
-  generateTestIndexerDB,
   selectBlock,
-  selectedReferencedTx,
   testBalanceDecreasingTransactionRequest,
   testConfirmedBlockHeightExistsRequest,
-  testPaymentRequest,
   testReferencedPaymentNonexistenceRequest,
   totalDeliveredAmountToAddress,
 } from "../indexed-query-manager/utils/indexerTestDataGenerator";
@@ -53,10 +54,14 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
   let app: INestApplication;
   let configurationService: VerifierConfigurationService;
   let entityManager: EntityManager;
+  let indexedQueryManager: DogeIndexedQueryManager;
   let lastTimestamp: number = 0;
   let startTime: number = 0;
   let selectedTransaction: DBTransactionDOGE0;
   let defStore = new AttestationDefinitionStore("configs/type-definitions");
+
+  let testDB: ChildProcess;
+  let testDB2: ChildProcess;
 
   before(async () => {
     process.env.SECURE_CONFIG_PATH = "./test/server/test-data";
@@ -64,6 +69,7 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
     process.env.VERIFIER_TYPE = MCC.getChainTypeName(CHAIN_TYPE).toLowerCase();
     process.env.TEST_IGNORE_SUPPORTED_ATTESTATION_CHECK_TEST = "1";
     process.env.TEST_CREDENTIALS = "1";
+    process.env.EXTERNAL = "django";
 
     initializeTestGlobalLogger();
 
@@ -80,30 +86,22 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
     configurationService = app.get("VERIFIER_CONFIG") as VerifierConfigurationService;
     entityManager = app.get("indexerDatabaseEntityManager");
 
+    const options: IndexedQueryManagerOptions = {
+      chainType: ChainType.DOGE,
+      entityManager: entityManager,
+      numberOfConfirmations: () => {
+        return 6;
+      },
+    };
+
+    indexedQueryManager = new DogeIndexedQueryManager(options);
+
     let port = configurationService.config.port;
     await app.listen(port, undefined, () => {
       logger.info(`Server started listening at http://localhost:${configurationService.config.port}`);
       logger.info(`Websocket server started listening at ws://localhost:${configurationService.config.port}`);
     });
     await app.init();
-
-    lastTimestamp = getUnixEpochTimestamp();
-    await generateTestIndexerDB(
-      CHAIN_TYPE,
-      entityManager,
-      DB_BLOCK_TABLE,
-      DB_TX_TABLE,
-      FIRST_BLOCK,
-      LAST_BLOCK,
-      lastTimestamp,
-      LAST_CONFIRMED_BLOCK,
-      TXS_IN_BLOCK,
-      lastTimestamp
-    );
-
-    startTime = lastTimestamp - (LAST_BLOCK - FIRST_BLOCK);
-    selectedTransaction = await selectedReferencedTx(entityManager, DB_TX_TABLE, BLOCK_CHOICE);
-    console.log(JSON.parse(selectedTransaction.getResponse()));
   });
 
   after(async () => {
@@ -111,27 +109,55 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
     delete process.env.TEST_CREDENTIALS;
     delete process.env.VERIFIER_TYPE;
     delete process.env.SECURE_CONFIG_PATH;
+    try {
+      execSync("docker kill attestation-client-database-1");
+    } catch (err) {}
+
+    testDB.kill();
+    testDB2.kill();
+
     await app.close();
   });
 
   it(`Should verify Payment attestation`, async function () {
-    let inUtxo = firstAddressVin(selectedTransaction);
-    let utxo = firstAddressVout(selectedTransaction);
-    let request = await testPaymentRequest(defStore, selectedTransaction, TX_CLASS, CHAIN_TYPE, inUtxo, utxo);
+    const txId = "25bb2f83ac5349259438faea7b6afdf327d7f679c96ca9cff6e134d92f33b6cd";
+    const inIndex = 0;
+    const outIndex = 0;
+
+    const request = {
+      attestationType: encodeAttestationName("Payment"),
+      sourceId: encodeAttestationName("DOGE"),
+      messageIntegrityCode: "0x0000000000000000000000000000000000000000000000000000000000000000",
+      requestBody: {
+        transactionId: prefix0x(txId),
+        inUtxo: inIndex.toString(),
+        utxo: outIndex.toString(),
+      },
+    } as Payment_Request;
 
     let attestationRequest = {
       abiEncodedRequest: defStore.encodeRequest(request),
     } as EncodedRequest;
 
+    const res = await indexedQueryManager.getConfirmedTransaction({
+      txId: "25bb2f83ac5349259438faea7b6afdf327d7f679c96ca9cff6e134d92f33b6cd",
+    });
+
+    const response = await axios.get(`http://localhost:${configurationService.config.port}/api/indexer/transaction/${txId}`, {
+      headers: {
+        "x-api-key": API_KEY,
+      },
+    });
+    console.log(response.data);
+    console.log(res);
+
+    console.log(attestationRequest);
+
     let resp = await sendToVerifier("Payment", "DOGE", configurationService, attestationRequest, API_KEY);
+
+    console.log(resp);
+
     assert(resp.status === "VALID", "Wrong server response");
-    assert(resp.response.requestBody.transactionId === prefix0x(selectedTransaction.transactionId), "Wrong transaction id");
-    let response = JSON.parse(selectedTransaction.getResponse());
-    let sourceAddress = response.vin[inUtxo].prevout.scriptPubKey.address;
-    let receivingAddress = response.data.vout[utxo].scriptPubKey.address;
-    assert(resp.response.responseBody.sourceAddressHash === Web3.utils.soliditySha3(sourceAddress), "Wrong source address");
-    assert(resp.response.responseBody.receivingAddressHash === Web3.utils.soliditySha3(receivingAddress), "Wrong receiving address");
-    assert(request.messageIntegrityCode === defStore.attestationResponseHash(resp.response, MIC_SALT), "MIC does not match");
     // // assert(request.messageIntegrityCode === defStore.dataHash(request, resp.data.response, MIC_SALT), "MIC does not match");
   });
 

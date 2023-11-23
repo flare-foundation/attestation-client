@@ -1,0 +1,16 @@
+version: "3"
+
+services:
+  database:
+    image: "postgres"
+    restart: always
+
+    ports:
+      - 5432:5432
+
+    environment:
+      POSTGRES_USER: db
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: db
+    volumes:
+      - ./test/server/test-data/db/dbdump_4958001-4960568:/entrypoint/dump.sql

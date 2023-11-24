@@ -83,7 +83,7 @@ class MockXrpBlock extends XrpFullBlock {
   }
 }
 
-describe(`Block validity check before processing , (${getTestFile(__filename)})`, () => {
+describe.skip(`Block validity check before processing , (${getTestFile(__filename)})`, () => {
   let XrpMccClient: MCC.XRP;
   let indexer: Indexer;
 

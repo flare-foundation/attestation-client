@@ -1,18 +1,16 @@
 import { Managed } from "@flarenetwork/mcc";
 import { criticalAsync } from "../../indexer/indexer-utils";
-import { PriorityQueue } from "../../utils/data-structures/PriorityQueue";
 import { getTimeMs, getTimeSec } from "../../utils/helpers/internetTime";
-import { arrayRemoveElement } from "../../utils/helpers/utils";
 import { AttLogger, logException } from "../../utils/logging/logger";
 
 import { AttestationDefinitionStore } from "../../external-libs/AttestationDefinitionStore";
 import { AttestationResponse, AttestationResponseStatus } from "../../external-libs/AttestationResponse";
+import { ARBase, ARESBase } from "../../external-libs/interfaces";
+import { MIC_SALT } from "../../external-libs/utils";
 import { VerifierSourceRouteConfig } from "../../verification/routing/configs/VerifierSourceRouteConfig";
 import { Attestation } from "../Attestation";
 import { GlobalConfigManager } from "../GlobalConfigManager";
 import { AttestationStatus } from "../types/AttestationStatus";
-import { MIC_SALT } from "../../external-libs/utils";
-import { ARBase, ARESBase } from "../../external-libs/interfaces";
 
 @Managed()
 export class SourceManager {
@@ -25,11 +23,7 @@ export class SourceManager {
 
   // queues
   attestationsQueue = new Array<Attestation>();
-  attestationsPriorityQueue = new PriorityQueue<Attestation>();
   attestationProcessing = new Set<Attestation>();
-
-  delayQueueTimer: NodeJS.Timeout | undefined = undefined;
-  delayQueueStartTime = 0;
 
   latestRoundId = 0;
 
@@ -152,63 +146,8 @@ export class SourceManager {
   }
 
   /**
-   * Puts attestation from processing queue into into delay queue priority queue
-   * It makes sure there is a mechanism that will run startNext if nothing is in process
-   * @param attestation
-   * @param startTime delay time in sec
-   */
-  private enQueueDelayed(attestation: Attestation, startTime: number) {
-    switch (attestation.status) {
-      case AttestationStatus.queued:
-        arrayRemoveElement(this.attestationsQueue, attestation);
-        break;
-      case AttestationStatus.processing:
-        this.attestationProcessing.delete(attestation);
-        break;
-    }
-
-    this.attestationsPriorityQueue.push(attestation, startTime);
-    this.updateDelayQueueTimer();
-  }
-
-  /**
-   * Set ups the timer for processing priority queue for the time of the
-   * top element.
-   * @returns
-   */
-  private updateDelayQueueTimer(): void {
-    if (this.attestationsPriorityQueue.length() == 0) return;
-
-    // set time to the first time in queue
-    const firstStartTime = this.attestationsPriorityQueue.peekKey()!;
-
-    // if start time has passed then just call startNext (no timeout is needed)
-    if (firstStartTime < getTimeMs()) {
-      this.startNext();
-      return;
-    }
-
-    // check if time is before last time
-    if (this.delayQueueTimer === undefined || firstStartTime < this.delayQueueStartTime) {
-      // delete old timer if it exists
-      if (this.delayQueueTimer !== undefined) {
-        clearTimeout(this.delayQueueTimer);
-        this.delayQueueTimer = undefined;
-      }
-
-      // setup new timer
-      this.delayQueueStartTime = firstStartTime;
-      this.delayQueueTimer = setTimeout(() => {
-        this.logger.debug(`${this.label} priority queue timeout`);
-
-        this.startNext();
-        this.delayQueueTimer = undefined;
-      }, firstStartTime - getTimeMs());
-    }
-  }
-
-  /**
-   * Starts the validation process for the attestation
+   * Starts the validation process for the attestation.
+   * This function should never fail due to exception in normal operations. If it does, it is a critical error stopping the application.
    * @param attestation
    * @returns
    */
@@ -314,8 +253,10 @@ export class SourceManager {
         if (attestation.retry < this.maxFailedRetries) {
           this.logger.warning(`${this.label} transaction verification error (retry ${attestation.retry})`);
           attestation.retry++;
-          this.enQueueDelayed(attestation, getTimeMs() + this.delayBeforeRetryMs);
+          // eslint-disable-next-line
+          criticalAsync(`SourceManager::retry number ${attestation.retry + 1}`, () => this.process(attestation!));
         } else {
+          // too many retries, just log and mark as failed
           this.logger.error2(`${this.label} transaction verification error ${attestation.data.request}`);
           this.onProcessed(attestation, AttestationStatus.error);
         }
@@ -371,8 +312,7 @@ export class SourceManager {
   }
 
   /**
-   * Processes the next attestation in the priority queue if expected startTime
-   * of is reached otherwise the next attestation in the queue
+   * Processes the next attestation in the queue
    */
   private startNext(): void {
     try {
@@ -381,25 +321,9 @@ export class SourceManager {
           this.logger.debug(`${this.label} # startNext heartbeat`);
           setTimeout(() => {
             this.startNext();
-          }, 100);
-          // todo: for how long do I want to wait??????
+          }, 100); // retry in 100 ms
         }
-        //
         return;
-      }
-
-      // check if there is queued priority transaction to be processed
-      while (this.attestationsPriorityQueue.length() && this.canProcessNextAttestation()) {
-        // check if queue start time is reached
-        const startTime = this.attestationsPriorityQueue.peekKey()!;
-        if (getTimeMs() < startTime) break;
-
-        // take top and process it then start new top timer
-        const attestation = this.attestationsPriorityQueue.pop();
-        this.updateDelayQueueTimer();
-
-        // eslint-disable-next-line
-        criticalAsync(`SourceManager::startNext::process-1`, () => this.process(attestation!));
       }
 
       // check if there is any queued transaction to be processed

@@ -4,6 +4,7 @@ services:
   database:
     image: "postgres"
     restart: always
+    container_name: test-db-doge
 
     ports:
       - 5432:5432
@@ -13,4 +14,4 @@ services:
       POSTGRES_PASSWORD: secret
       POSTGRES_DB: db
     volumes:
-      - ./test/server/test-data/db/dbdump_4958001-4960568:/entrypoint/dump.sql
+      - ./db/dbdump_4958001-4960568:/entrypoint/dump.sql

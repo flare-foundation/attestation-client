@@ -156,9 +156,10 @@ export class DBDogeTransaction {
   }
 
   toTransactionResult(): TransactionResult {
+    const response = JSON.stringify(this.response);
     return {
       getResponse() {
-        return JSON.stringify(this.response);
+        return response;
       },
       chainType: ChainType.DOGE,
       transactionId: this.transactionId,
@@ -295,7 +296,6 @@ export class TipSyncState {
 
 export type ITipSyncState = new () => TipSyncState;
 
-
 @Entity("doge_indexer_prunesyncstate")
 export class PruneSyncState {
   @PrimaryColumn({ type: "bigint" })
@@ -310,4 +310,3 @@ export class PruneSyncState {
 // External Postgres Database Entities (DOGE) (read only)
 
 export type IPruneSyncState = new () => PruneSyncState;
-

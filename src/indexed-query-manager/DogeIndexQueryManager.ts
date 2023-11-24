@@ -130,8 +130,31 @@ export class DogeIndexedQueryManager extends IIndexedQueryManager {
 
     const res = await query.getMany();
 
+    const result = res.map((val) => val.toTransactionResult());
+
+    let lowerQueryWindowBlock: BlockResult;
+    let upperQueryWindowBlock: BlockResult;
+
+    if (params.startBlockNumber !== undefined) {
+      const lowerQueryWindowBlockResult = await this.queryBlock({
+        blockNumber: params.startBlockNumber,
+        confirmed: true,
+      });
+      lowerQueryWindowBlock = lowerQueryWindowBlockResult.result;
+    }
+
+    if (params.endBlockNumber !== undefined) {
+      const upperQueryWindowBlockResult = await this.queryBlock({
+        blockNumber: params.endBlockNumber,
+        confirmed: true,
+      });
+      upperQueryWindowBlock = upperQueryWindowBlockResult.result;
+    }
+
     return {
-      result: res.map((val) => val.toTransactionResult()),
+      result,
+      startBlock: lowerQueryWindowBlock,
+      endBlock: upperQueryWindowBlock,
     };
   }
 
@@ -239,7 +262,7 @@ export class DogeIndexedQueryManager extends IIndexedQueryManager {
     if (process.env.NODE_ENV === "development" && this.entityManager.connection.options.type == "better-sqlite3") {
       query = query.orderBy("RANDOM()").limit(batchSize);
     } else {
-      query = query.orderBy("RAND()").limit(batchSize);
+      query = query.orderBy("RANDOM()").limit(batchSize);
     }
 
     const blocks = await query.getMany();

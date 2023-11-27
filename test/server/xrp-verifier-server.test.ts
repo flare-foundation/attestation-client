@@ -1,6 +1,6 @@
 // This should always be on the top of the file, before imports
 
-import { ChainType, MCC, prefix0x, standardAddressHash, XrpTransaction } from "@flarenetwork/mcc";
+import { ChainType, MCC, prefix0x, standardAddressHash, unPrefix0x, XrpTransaction, ZERO_BYTES_32 } from "@flarenetwork/mcc";
 import { INestApplication } from "@nestjs/common";
 import { WsAdapter } from "@nestjs/platform-ws";
 import { Test } from "@nestjs/testing";
@@ -29,6 +29,8 @@ import {
 import { getTestFile } from "../test-utils/test-utils";
 import { sendToVerifier } from "./utils/server-test-utils";
 import { MIC_SALT } from "../../src/external-libs/utils";
+import { IndexedQueryManagerOptions, RandomTransactionOptions } from "../../src/indexed-query-manager/indexed-query-manager-types";
+import { IndexedQueryManager } from "../../src/indexed-query-manager/IndexedQueryManager";
 
 chai.use(chaiAsPromised);
 
@@ -53,6 +55,8 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
   let startTime: number = 0;
   let selectedTransaction: DBTransactionXRP0;
   let defStore = new AttestationDefinitionStore("configs/type-definitions");
+
+  let indexedQueryManager: IndexedQueryManager;
 
   before(async () => {
     process.env.SECURE_CONFIG_PATH = "./test/server/test-data";
@@ -82,6 +86,16 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
       logger.info(`Websocket server started listening at ws://localhost:${configurationService.config.port}`);
     });
     await app.init();
+
+    const options: IndexedQueryManagerOptions = {
+      chainType: ChainType.XRP,
+      entityManager: entityManager,
+      numberOfConfirmations: () => {
+        return 6;
+      },
+    };
+
+    indexedQueryManager = new IndexedQueryManager(options);
 
     lastTimestamp = getUnixEpochTimestamp();
     await generateTestIndexerDB(
@@ -262,6 +276,34 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
       "Incorrect first overflow block timestamp"
     );
     assert(request.messageIntegrityCode === defStore.attestationResponseHash(resp.response, MIC_SALT), "MIC does not match");
+  });
+
+  describe("Random transactions", function () {
+    it("Should provide random transactions", async function () {
+      const options: RandomTransactionOptions = {};
+
+      const tx = await indexedQueryManager.fetchRandomTransactions(1, options);
+
+      expect(tx.length).to.eq(1);
+    });
+
+    it("Should provide random transactions with reference", async function () {
+      const options: RandomTransactionOptions = { mustHavePaymentReference: true };
+
+      const tx = await indexedQueryManager.fetchRandomTransactions(1, options);
+
+      expect(tx.length).to.eq(1);
+      expect(tx[0].paymentReference).to.not.eq(unPrefix0x(ZERO_BYTES_32));
+    });
+
+    it("Should provide random transactions without reference", async function () {
+      const options: RandomTransactionOptions = { mustNotHavePaymentReference: true };
+
+      const tx = await indexedQueryManager.fetchRandomTransactions(1, options);
+
+      expect(tx.length).to.eq(1);
+      expect(tx[0].paymentReference).to.eq(unPrefix0x(ZERO_BYTES_32));
+    });
   });
 
   // it(`Should return correct supported source and types`, async function () {

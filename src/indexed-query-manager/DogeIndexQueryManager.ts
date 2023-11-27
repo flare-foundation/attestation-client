@@ -235,23 +235,29 @@ export class DogeIndexedQueryManager extends IIndexedQueryManager {
     ZERO_PAYMENT_REFERENCE;
 
     if (options.mustHavePaymentReference) {
-      query = query.andWhere(`transaction.paymentReference != ${ZERO_PAYMENT_REFERENCE}`);
+      query = query.andWhere(`transaction.paymentReference != '${ZERO_PAYMENT_REFERENCE}'`);
     }
     if (options.mustNotHavePaymentReference) {
-      query = query.andWhere(`transaction.paymentReference == ${ZERO_PAYMENT_REFERENCE}`);
+      query = query.andWhere(`transaction.paymentReference = '${ZERO_PAYMENT_REFERENCE}'`);
     }
     if (options.mustBeNativePayment) {
-      query = query.andWhere("transaction.isNativePayment = 1");
+      query = query.andWhere("transaction.isNativePayment = true");
     }
     if (options.mustNotBeNativePayment) {
-      query = query.andWhere("transaction.isNativePayment = 0");
+      query = query.andWhere("transaction.isNativePayment = false");
     }
     if (options.startTime) {
       query = query.andWhere("transaction.timestamp >= :startTime", { startTime: options.startTime });
     }
+
+    query = query.leftJoinAndSelect("transaction.transactionoutput_set", "transactionOutput");
+    query = query.leftJoinAndSelect("transaction.transactioninputcoinbase_set", "transactionInputCoinbase");
+    query = query.leftJoinAndSelect("transaction.transactioninput_set", "transactionInput");
+
     query = query.limit(batchSize).offset(Math.min(randN, txCount - batchSize));
 
-    return (await query.getMany()).map((trans) => trans.toTransactionResult());
+    let transactions = await query.getMany();
+    return transactions.map((trans) => trans.toTransactionResult());
   }
 
   public async fetchRandomConfirmedBlocks(batchSize = 100, startTime?: number): Promise<BlockResult[]> {

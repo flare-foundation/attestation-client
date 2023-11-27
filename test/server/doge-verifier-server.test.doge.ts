@@ -69,7 +69,7 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
     initializeTestGlobalLogger();
 
     console.log("Setting test db");
-    testDB = exec("docker-compose -f ./test/server/test-data/test-doge-db-docker.yml up -d");
+    testDB = exec("docker-compose -f ./test/server/test-data/test-doge-db-docker.yml up");
 
     let set = false;
 
@@ -300,7 +300,7 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
     assert(resp.status === "VALID", "Wrong server response");
   });
 
-  it.skip(`Should not verify Referenced Payment Nonexistence attestation`, async function () {
+  it(`Should not verify Referenced Payment Nonexistence attestation`, async function () {
     const options: RandomTransactionOptions = { mustBeNativePayment: true };
     const range = await indexedQueryManager.fetchRandomTransactions(1, options);
     console.log(range);
@@ -326,8 +326,6 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
     } as EncodedRequest;
 
     let resp = await sendToVerifier("ReferencedPaymentNonexistence", "DOGE", configurationService, attestationRequest, API_KEY);
-
-    console.log(resp);
 
     assert(resp.status === "VALID", "Wrong server response");
 

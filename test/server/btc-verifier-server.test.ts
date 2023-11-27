@@ -1,5 +1,5 @@
 // This should always be on the top of the file, before imports
-import { BtcTransaction, ChainType, MCC, prefix0x, toHex32Bytes } from "@flarenetwork/mcc";
+import { BtcTransaction, ChainType, MCC, prefix0x, toHex32Bytes, unPrefix0x } from "@flarenetwork/mcc";
 import { INestApplication } from "@nestjs/common";
 import { WsAdapter } from "@nestjs/platform-ws";
 import { Test } from "@nestjs/testing";
@@ -17,7 +17,7 @@ import { toHex as toHexPad } from "../../src/verification/attestation-types/atte
 
 import { ethers } from "ethers";
 import { AttestationDefinitionStore } from "../../src/external-libs/AttestationDefinitionStore";
-import { MIC_SALT } from "../../src/external-libs/utils";
+import { MIC_SALT, ZERO_BYTES_32 } from "../../src/external-libs/utils";
 import { EncodedRequest } from "../../src/servers/verifier-server/src/dtos/generic/generic.dto";
 import { VerifierBtcServerModule } from "../../src/servers/verifier-server/src/verifier-btc-server.module";
 import {
@@ -35,6 +35,8 @@ import {
 } from "../indexed-query-manager/utils/indexerTestDataGenerator";
 import { getTestFile } from "../test-utils/test-utils";
 import { sendToVerifier } from "./utils/server-test-utils";
+import { IndexedQueryManagerOptions, RandomTransactionOptions } from "../../src/indexed-query-manager/indexed-query-manager-types";
+import { IndexedQueryManager } from "../../src/indexed-query-manager/IndexedQueryManager";
 
 chai.use(chaiAsPromised);
 
@@ -59,6 +61,8 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
   let startTime: number = 0;
   let selectedTransaction: DBTransactionBTC0;
   let defStore = new AttestationDefinitionStore("configs/type-definitions");
+
+  let indexedQueryManager: IndexedQueryManager;
 
   before(async () => {
     process.env.SECURE_CONFIG_PATH = "./test/server/test-data";
@@ -104,6 +108,16 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
     );
     startTime = lastTimestamp - (LAST_BLOCK - FIRST_BLOCK);
     selectedTransaction = await selectedReferencedTx(entityManager, DB_TX_TABLE, BLOCK_CHOICE);
+
+    const options: IndexedQueryManagerOptions = {
+      chainType: ChainType.BTC,
+      entityManager: entityManager,
+      numberOfConfirmations: () => {
+        return 6;
+      },
+    };
+
+    indexedQueryManager = new IndexedQueryManager(options);
   });
 
   after(async () => {
@@ -478,7 +492,33 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
 
       expect(() => defStore.encodeRequest(request)).to.throw();
     });
+    describe("Random transactions", function () {
+      it("Should provide random transactions", async function () {
+        const options: RandomTransactionOptions = {};
 
+        const tx = await indexedQueryManager.fetchRandomTransactions(1, options);
+
+        expect(tx.length).to.eq(1);
+      });
+
+      it("Should provide random transactions with reference", async function () {
+        const options: RandomTransactionOptions = { mustHavePaymentReference: true };
+
+        const tx = await indexedQueryManager.fetchRandomTransactions(1, options);
+
+        expect(tx.length).to.eq(1);
+        expect(tx[0].paymentReference).to.not.eq(unPrefix0x(ZERO_BYTES_32));
+      });
+
+      it("Should provide random transactions without reference", async function () {
+        const options: RandomTransactionOptions = { mustNotHavePaymentReference: true };
+
+        const tx = await indexedQueryManager.fetchRandomTransactions(1, options);
+
+        expect(tx.length).to.eq(1);
+        expect(tx[0].paymentReference).to.eq(unPrefix0x(ZERO_BYTES_32));
+      });
+    });
     // it(`Should return correct supported source and types`, async function () {
     //   let processor = app.get("VERIFIER_PROCESSOR") as VerifierProcessor;
     //   assert(processor.supportedSource() === MCC.getChainTypeName(CHAIN_TYPE).toUpperCase(), `Supported source should be ${MCC.getChainTypeName(CHAIN_TYPE).toUpperCase()}`);

@@ -250,11 +250,11 @@ export class DogeIndexedQueryManager extends IIndexedQueryManager {
       query = query.andWhere("transaction.timestamp >= :startTime", { startTime: options.startTime });
     }
 
+    query = query.limit(batchSize).offset(Math.min(randN, txCount - batchSize));
+
     query = query.leftJoinAndSelect("transaction.transactionoutput_set", "transactionOutput");
     query = query.leftJoinAndSelect("transaction.transactioninputcoinbase_set", "transactionInputCoinbase");
     query = query.leftJoinAndSelect("transaction.transactioninput_set", "transactionInput");
-
-    query = query.limit(batchSize).offset(Math.min(randN, txCount - batchSize));
 
     let transactions = await query.getMany();
     return transactions.map((trans) => trans.toTransactionResult());

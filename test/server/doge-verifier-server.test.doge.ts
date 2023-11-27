@@ -300,10 +300,10 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
     assert(resp.status === "VALID", "Wrong server response");
   });
 
-  it(`Should not verify Referenced Payment Nonexistence attestation`, async function () {
+  it.skip(`Should not verify Referenced Payment Nonexistence attestation`, async function () {
+    //there is not transaction with a defined reference in the db
     const options: RandomTransactionOptions = { mustBeNativePayment: true };
     const range = await indexedQueryManager.fetchRandomTransactions(1, options);
-    console.log(range);
 
     const requestBody: ReferencedPaymentNonexistence_RequestBody = {
       minimalBlockNumber: "4960557",

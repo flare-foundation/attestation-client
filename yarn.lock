@@ -765,10 +765,10 @@
   resolved "https://registry.yarnpkg.com/@fastify/busboy/-/busboy-2.0.0.tgz#f22824caff3ae506b18207bad4126dbc6ccdb6b8"
   integrity sha512-JUFJad5lv7jxj926GPgymrWQxxjPYuJNiNjNMzqT+HiuP6Vl3dk5xzG+8sTX96np0ZAluvaMzPsjhHZ5rNuNQQ==
 
-"@flarenetwork/mcc@3.5.0":
-  version "3.5.0"
-  resolved "https://registry.yarnpkg.com/@flarenetwork/mcc/-/mcc-3.5.0.tgz#5ba93c86a03accf1fdd46dc73772c5e60bc2f11f"
-  integrity sha512-rjNwdUtrB9Fu5q+YGa268X4nAYMDZ6IZVk2fRd4pBMThunRWpLfsgauR6k3dWlm0OlTADaqy+vDEeKk0DNFTUA==
+"@flarenetwork/mcc@4.0.1":
+  version "4.0.1"
+  resolved "https://registry.yarnpkg.com/@flarenetwork/mcc/-/mcc-4.0.1.tgz#4df48dc3ea8ee6103680eea1963a4ed432793425"
+  integrity sha512-c3Uo0mzXvUqn6/ee17l2F5uv2jJLbVXuGCAk0c90yEC8HerKs0+VQY/1UdF7oDTl0xySxYUeam7p0qcXnQislA==
   dependencies:
     axios "^1.6.2"
     axios-retry "^3.9.1"

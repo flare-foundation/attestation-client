@@ -33,17 +33,8 @@ import { sendToVerifier } from "./utils/server-test-utils";
 
 chai.use(chaiAsPromised);
 
-const NUMBER_OF_CONFIRMATIONS = 6;
-const FIRST_BLOCK = 100;
-const LAST_BLOCK = 203;
-const LAST_CONFIRMED_BLOCK = 200;
 const CHAIN_TYPE = ChainType.DOGE;
-const DB_BLOCK_TABLE = DBBlockDOGE;
-const DB_TX_TABLE = DBTransactionDOGE0;
-const TX_CLASS = DogeTransaction;
-const BLOCK_CHOICE = 150;
-const TXS_IN_BLOCK = 10;
-const BLOCK_QUERY_WINDOW = 40;
+
 const API_KEY = "123456";
 
 describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFile(__filename)})`, () => {
@@ -51,9 +42,7 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
   let configurationService: VerifierConfigurationService;
   let entityManager: EntityManager;
   let indexedQueryManager: DogeIndexedQueryManager;
-  let lastTimestamp: number = 0;
-  let startTime: number = 0;
-  let selectedTransaction: DBTransactionDOGE0;
+
   let defStore = new AttestationDefinitionStore("configs/type-definitions");
 
   let testDB: ChildProcess;
@@ -153,6 +142,14 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
     const txId = "25bb2f83ac5349259438faea7b6afdf327d7f679c96ca9cff6e134d92f33b6cd";
     const inIndex = 0;
     const outIndex = 0;
+
+    const tx = await axios.get(`http://localhost:${configurationService.config.port}/api/indexer/transaction/${txId}`, {
+      headers: {
+        "x-api-key": API_KEY,
+      },
+    });
+
+    console.log(tx);
 
     const request = {
       attestationType: encodeAttestationName("Payment"),

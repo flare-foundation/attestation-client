@@ -206,7 +206,9 @@ export class DogeIndexedQueryManager extends IIndexedQueryManager {
       .orderBy("block.blockNumber", "DESC")
       .limit(1);
 
-    return (await query.getOne()).toBlockResult();
+    const res = await query.getOne();
+
+    return res ? res.toBlockResult() : undefined;
   }
 
   protected async getFirstConfirmedOverflowBlock(timestamp: number, blockNumber: number): Promise<BlockResult | undefined> {
@@ -218,7 +220,9 @@ export class DogeIndexedQueryManager extends IIndexedQueryManager {
       .orderBy("block.blockNumber", "ASC")
       .limit(1);
 
-    return (await query.getOne()).toBlockResult();
+    const res = await query.getOne();
+
+    return res ? res.toBlockResult() : undefined;
   }
 
   public async fetchRandomTransactions(batchSize = 100, options: RandomTransactionOptions): Promise<TransactionResult[]> {

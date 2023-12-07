@@ -1,5 +1,5 @@
 // This should always be on the top of the file, before imports
-import { ChainType, DogeTransaction, MCC, prefix0x, sleepMs, toHex32Bytes } from "@flarenetwork/mcc";
+import { ChainType, MCC, prefix0x, sleepMs, toHex32Bytes } from "@flarenetwork/mcc";
 import { INestApplication } from "@nestjs/common";
 import { WsAdapter } from "@nestjs/platform-ws";
 import { Test } from "@nestjs/testing";
@@ -7,8 +7,6 @@ import chai, { assert, expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
 import { ChildProcess, exec, execSync } from "child_process";
 import { EntityManager } from "typeorm";
-import { DBBlockDOGE } from "../../src/entity/indexer/dbBlock";
-import { DBTransactionDOGE0 } from "../../src/entity/indexer/dbTransaction";
 import { VerifierConfigurationService } from "../../src/servers/verifier-server/src/services/verifier-configuration.service";
 import { getGlobalLogger, initializeTestGlobalLogger } from "../../src/utils/logging/logger";
 
@@ -126,6 +124,8 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
         "x-api-key": API_KEY,
       },
     });
+
+    console.log(resp.data);
     expect(resp.data.status).to.eq("OK");
   });
 
@@ -143,13 +143,13 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
     const inIndex = 0;
     const outIndex = 0;
 
-    const tx = await axios.get(`http://localhost:${configurationService.config.port}/api/indexer/transaction/${txId}`, {
-      headers: {
-        "x-api-key": API_KEY,
-      },
-    });
+    // const tx = await axios.get(`http://localhost:${configurationService.config.port}/api/indexer/transaction/${txId}`, {
+    //   headers: {
+    //     "x-api-key": API_KEY,
+    //   },
+    // });
 
-    console.log(tx);
+    // console.log(tx);
 
     const request = {
       attestationType: encodeAttestationName("Payment"),

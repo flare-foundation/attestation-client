@@ -266,7 +266,7 @@ describe(`Attester client integration (sometimes it fails due to time uncertaint
       stateConnector,
       web3,
       spammerWallet,
-      bufferWindowDurationSec / 5, //to get duplicates
+      bufferWindowDurationSec / 2, //to get duplicates
       [attestationXRP.data.request, attestationBTC.data.request],
       SPAMMER_FREQUENCIES,
       SPAMMER_GAPS

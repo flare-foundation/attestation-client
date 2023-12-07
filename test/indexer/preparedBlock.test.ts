@@ -23,6 +23,11 @@ describe(`PreparedBlock, (${getTestFile(__filename)})`, function () {
     augTx1 = augmentTransactionUtxo(DBTransactionBTC1, ChainType.BTC, block, tx);
   });
 
+  it("should use mediantime as a timestamp", function () {
+    expect(augTx0.timestamp).to.eq(block.unixTimestamp);
+    expect(augTx0.timestamp).to.eq(block._data.mediantime);
+  });
+
   it("Should construct preparedBlock", function () {
     let preparedBlocks = new PreparedBlock(augBlock, [augTx0, augTx1]);
     assert(preparedBlocks.block instanceof DBBlockBTC);

@@ -93,6 +93,7 @@ function addBtcTransactionResponse(transaction: TransactionResult, transactionIn
   }
   let json = JSON.parse(txStr);
   json.txid = unPrefix0x(transaction.transactionId);
+  json.mediantime = transaction.timestamp - 3300;
   if (paymentReference) {
     setFirstOPReturn(json.vout, paymentReference);
 

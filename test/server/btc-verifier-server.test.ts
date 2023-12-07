@@ -211,6 +211,16 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
     });
   });
 
+  describe.only("indexed queries", function () {
+    it("fetch random transactions", async function () {
+      const options: RandomTransactionOptions = { mustHavePaymentReference: true, mustNotBeNativePayment: true };
+
+      const tx1 = await indexedQueryManager.fetchRandomTransactions(1, options);
+
+      console.log(tx1);
+    });
+  });
+
   describe("verifier", function () {
     it(`Should get MIC`, async function () {
       let inUtxo = firstAddressVin(selectedTransaction);

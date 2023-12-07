@@ -118,11 +118,13 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
     await app.close();
   });
 
-  describe.skip("indexed queries", function () {
-    it("should get last confirmed number", async function () {
-      const number = await indexedQueryManager.getLastConfirmedBlockNumber();
+  describe("indexed queries", function () {
+    it("fetch random transactions", async function () {
+      const options: RandomTransactionOptions = { mustHavePaymentReference: true };
 
-      console.log(number);
+      const tx1 = await indexedQueryManager.fetchRandomTransactions(1, options);
+
+      console.log(tx1);
     });
   });
 

@@ -202,6 +202,9 @@ export class IndexedQueryManager extends IIndexedQueryManager {
     let result: DBTransactionBase[] = [];
     let maxReps = 10;
     while (result.length === 0) {
+      if (maxReps === 0) {
+        return [];
+      }
       let tableId = 0;
       if (process.env.TEST_CREDENTIALS) {
         tableId = 0;
@@ -241,6 +244,8 @@ export class IndexedQueryManager extends IIndexedQueryManager {
       }
       query = query.limit(batchSize);
       result = await query.getMany();
+
+      maxReps--;
     }
 
     return result;

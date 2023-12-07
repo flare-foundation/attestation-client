@@ -14,4 +14,4 @@ services:
       POSTGRES_PASSWORD: secret
       POSTGRES_DB: db
     volumes:
-      - ./db/dbdump_4958001-4960568:/entrypoint/dump.sql
+      - ./db/dbdump-4958001-4960500:/entrypoint/dump.sql

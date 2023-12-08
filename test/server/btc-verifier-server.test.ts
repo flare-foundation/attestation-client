@@ -247,6 +247,32 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
         expect(tx.length).to.eq(5);
         expect(tx[3].paymentReference).to.not.eq(ZERO_PAYMENT_REFERENCE);
       });
+
+      it("should return random block", async function () {
+        const blocks = await indexedQueryManager.fetchRandomConfirmedBlocks(5);
+
+        expect(blocks.length).to.eq(5);
+      });
+
+      it("should return random block after timestamp", async function () {
+        const timestamp = 1702041712;
+
+        const blocks = await indexedQueryManager.fetchRandomConfirmedBlocks(5, timestamp);
+
+        expect(blocks.length).to.eq(5);
+
+        for (let block of blocks) {
+          expect(block.timestamp).is.greaterThan(timestamp);
+        }
+      });
+
+      it("should return empty array if no blocks", async function () {
+        const timestamp = 2702041712;
+
+        const blocks = await indexedQueryManager.fetchRandomConfirmedBlocks(5, timestamp);
+
+        expect(blocks.length).to.eq(0);
+      });
     });
   });
 

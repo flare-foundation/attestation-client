@@ -21,6 +21,7 @@ import { MIC_SALT, ZERO_BYTES_32 } from "../../src/external-libs/utils";
 import { EncodedRequest } from "../../src/servers/verifier-server/src/dtos/generic/generic.dto";
 import { VerifierBtcServerModule } from "../../src/servers/verifier-server/src/verifier-btc-server.module";
 import {
+  ZERO_PAYMENT_REFERENCE,
   addressOnVout,
   firstAddressVin,
   firstAddressVout,
@@ -211,13 +212,41 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
     });
   });
 
-  describe.only("indexed queries", function () {
-    it("fetch random transactions", async function () {
-      const options: RandomTransactionOptions = { mustHavePaymentReference: true, mustNotBeNativePayment: true };
+  describe("indexed queries", function () {
+    describe("fatch random transaction", function () {
+      it("should return random tx", async function () {
+        const options: RandomTransactionOptions = {};
 
-      const tx1 = await indexedQueryManager.fetchRandomTransactions(1, options);
+        const tx = await indexedQueryManager.fetchRandomTransactions(5, options);
 
-      console.log(tx1);
+        expect(tx.length).to.eq(5);
+      });
+
+      it("should return empty array if no transactions", async function () {
+        const options: RandomTransactionOptions = { mustHavePaymentReference: true, mustNotBeNativePayment: true };
+
+        const tx = await indexedQueryManager.fetchRandomTransactions(1, options);
+
+        expect(tx.length).to.eq(0);
+      });
+
+      it("should return transactions without reference", async function () {
+        const options: RandomTransactionOptions = { mustNotHavePaymentReference: true };
+
+        const tx = await indexedQueryManager.fetchRandomTransactions(5, options);
+
+        expect(tx.length).to.eq(5);
+        expect(tx[3].paymentReference).to.eq(ZERO_PAYMENT_REFERENCE);
+      });
+
+      it("should return transactions with reference", async function () {
+        const options: RandomTransactionOptions = { mustHavePaymentReference: true };
+
+        const tx = await indexedQueryManager.fetchRandomTransactions(5, options);
+
+        expect(tx.length).to.eq(5);
+        expect(tx[3].paymentReference).to.not.eq(ZERO_PAYMENT_REFERENCE);
+      });
     });
   });
 

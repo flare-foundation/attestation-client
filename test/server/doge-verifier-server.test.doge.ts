@@ -124,7 +124,7 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
 
       const tx1 = await indexedQueryManager.fetchRandomTransactions(1, options);
 
-      console.log(tx1);
+      expect(tx1.length).to.eq(0);
     });
   });
 
@@ -146,6 +146,106 @@ describe(`Test ${MCC.getChainTypeName(CHAIN_TYPE)} verifier server (${getTestFil
         },
       });
       expect(resp.data.status).to.eq("OK");
+    });
+
+    it(`Should get mic Payment`, async function () {
+      const txId = "25bb2f83ac5349259438faea7b6afdf327d7f679c96ca9cff6e134d92f33b6cd";
+      const inIndex = 0;
+      const outIndex = 0;
+
+      const request = {
+        attestationType: encodeAttestationName("Payment"),
+        sourceId: encodeAttestationName("DOGE"),
+        messageIntegrityCode: "0x0000000000000000000000000000000000000000000000000000000000000000",
+        requestBody: {
+          transactionId: prefix0x(txId),
+          inUtxo: inIndex.toString(),
+          utxo: outIndex.toString(),
+        },
+      } as Payment_Request;
+
+      let resp = await axios.post(`http://localhost:${configurationService.config.port}/Payment/mic`, request, {
+        headers: {
+          "x-api-key": API_KEY,
+        },
+      });
+      expect(!resp.data.messageIntegrityCode).to.be.false;
+    });
+    it(`Should not get mic Payment, wrong Chain`, async function () {
+      const txId = "25bb2f83ac5349259438faea7b6afdf327d7f679c96ca9cff6e134d92f33b6cd";
+      const inIndex = 0;
+      const outIndex = 0;
+
+      const request = {
+        attestationType: encodeAttestationName("Payment"),
+        sourceId: encodeAttestationName("BTC"),
+        messageIntegrityCode: "0x0000000000000000000000000000000000000000000000000000000000000000",
+        requestBody: {
+          transactionId: prefix0x(txId),
+          inUtxo: inIndex.toString(),
+          utxo: outIndex.toString(),
+        },
+      } as Payment_Request;
+
+      let func = async () => {
+        return;
+        await axios.post(`http://localhost:${configurationService.config.port}/Payment/mic`, request, {
+          headers: {
+            "x-api-key": API_KEY,
+          },
+        });
+      };
+      await expect(func()).to.eventually.throw;
+    });
+
+    it(`Should not get mic Payment, wrong Type`, async function () {
+      const txId = "25bb2f83ac5349259438faea7b6afdf327d7f679c96ca9cff6e134d92f33b6cd";
+      const inIndex = 0;
+      const outIndex = 0;
+
+      const request = {
+        attestationType: encodeAttestationName("BalanceDecreasingTransaction"),
+        sourceId: encodeAttestationName("DOGE"),
+        requestBody: {
+          transactionId: prefix0x(txId),
+          inUtxo: inIndex.toString(),
+          utxo: outIndex.toString(),
+        },
+      } as Payment_Request;
+
+      let func = async () => {
+        return;
+        await axios.post(`http://localhost:${configurationService.config.port}/Payment/mic`, request, {
+          headers: {
+            "x-api-key": API_KEY,
+          },
+        });
+      };
+      await expect(func()).to.eventually.throw;
+    });
+
+    it(`Should get mic Payment`, async function () {
+      const txId = "25bb2f83ac5349259438faea7b6afdf327d7f679c96ca9cff6e134d92f33b6cd";
+      const inIndex = 100;
+      const outIndex = 0;
+
+      const request = {
+        attestationType: encodeAttestationName("Payment"),
+        sourceId: encodeAttestationName("DOGE"),
+        messageIntegrityCode: "0x0000000000000000000000000000000000000000000000000000000000000000",
+        requestBody: {
+          transactionId: prefix0x(txId),
+          inUtxo: inIndex.toString(),
+          utxo: outIndex.toString(),
+        },
+      } as Payment_Request;
+
+      let resp = await axios.post(`http://localhost:${configurationService.config.port}/Payment/mic`, request, {
+        headers: {
+          "x-api-key": API_KEY,
+        },
+      });
+      expect(!resp.data.messageIntegrityCode).to.be.true;
     });
 
     it(`Should verify Payment attestation`, async function () {

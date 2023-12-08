@@ -202,6 +202,9 @@ export class IndexedQueryManager extends IIndexedQueryManager {
     let result: DBTransactionBase[] = [];
     let maxReps = 10;
     while (result.length === 0) {
+      if (maxReps === 0) {
+        return [];
+      }
       let tableId = 0;
       if (process.env.TEST_CREDENTIALS) {
         tableId = 0;
@@ -225,22 +228,24 @@ export class IndexedQueryManager extends IIndexedQueryManager {
       // .andWhere("transaction.id < :upper", {upper: randN + 100000})
 
       if (options.mustHavePaymentReference) {
-        query = query.andWhere("transaction.paymentReference != ''");
+        query = query.andWhere("transaction.paymentReference != '0000000000000000000000000000000000000000000000000000000000000000'");
       }
       if (options.mustNotHavePaymentReference) {
-        query = query.andWhere("transaction.paymentReference == ''");
+        query = query.andWhere("transaction.paymentReference == '0000000000000000000000000000000000000000000000000000000000000000'");
       }
       if (options.mustBeNativePayment) {
-        query = query.andWhere("transaction.isNativePayment = 1");
+        query = query.andWhere("transaction.isNativePayment = true");
       }
       if (options.mustNotBeNativePayment) {
-        query = query.andWhere("transaction.isNativePayment = 0");
+        query = query.andWhere("transaction.isNativePayment = false");
       }
       if (options.startTime) {
         query = query.andWhere("transaction.timestamp >= :startTime", { startTime: options.startTime });
       }
       query = query.limit(batchSize);
-      result = (await query.getMany()) as DBTransactionBase[];
+      result = await query.getMany();
+
+      maxReps--;
     }
 
     return result;

@@ -8,16 +8,17 @@ export async function createTypeOrmOptions(loggerLabel: string): Promise<TypeOrm
   // Entity definition
   let verifierType = process.env.VERIFIER_TYPE;
   const config = await readSecureConfig(new VerifierServerConfig(), `verifier-server/${verifierType}-verifier`);
-
   // connecting to external postgres db
   if (process.env.NODE_ENV === "development" && process.env.EXTERNAL === "django") {
     // get custom entities
     // TODO: only doge ATM
+
     if (verifierType !== "doge") {
       throw new Error("Currently only DOGE can connect to external postgres db");
     }
     const entities = indexerEntities(`${verifierType}-external`);
     const databaseCredentials = config.indexerDatabase;
+
     return {
       name: databaseCredentials.name,
       type: "postgres",

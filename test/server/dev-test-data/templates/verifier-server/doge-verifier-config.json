@@ -17,9 +17,9 @@
     "name": "db",
     "type": "postgres",
     "host": "127.0.0.1",
-    "port": 5432,
-    "username": "db",
-    "password": "secret",
+    "port": 8080,
+    "username": "user",
+    "password": "pass",
     "database": "db"
   },
   "chainConfiguration": {

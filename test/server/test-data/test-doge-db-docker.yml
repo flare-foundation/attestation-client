@@ -1,0 +1,17 @@
+version: "3"
+
+services:
+  database:
+    image: "postgres"
+    restart: always
+    container_name: test-db-doge
+
+    ports:
+      - 5432:5432
+
+    environment:
+      POSTGRES_USER: db
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: db
+    volumes:
+      - ./db/dbdump-4958001-4960500:/entrypoint/dump.sql

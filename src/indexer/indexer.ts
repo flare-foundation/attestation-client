@@ -557,6 +557,9 @@ export class Indexer {
 
     while (true) {
       const status = await this.cachedClient.client.getNodeStatus();
+      if (this.chainType == ChainType.XRP) {
+        this.logger.info(`Completed ledgers: ${status.data.result.state.complete_ledgers}`);
+      }
 
       if (status.isSynced) {
         if (waiting) {
@@ -574,6 +577,7 @@ export class Indexer {
       waiting = true;
 
       this.logger.info(`waiting for node to be synced...`);
+      await sleepMs(1000);
     }
   }
 
@@ -688,7 +692,7 @@ export class Indexer {
     this.indexedHeight = startBlockNumber;
 
     // N is last completed block - confirmed and stored in DB
-    const dbLastDBBlockNumber = await this.indexerToDB.getNfromDB();
+    const dbLastDBBlockNumber = await this.indexerToDB.getIndexedHeightFromDB();
     if (dbLastDBBlockNumber > 0) {
       this.indexedHeight = dbLastDBBlockNumber;
     }

@@ -56,7 +56,7 @@ describe(`IndexerToDB (${getTestFile(__filename)})`, function () {
   });
 
   it("Should get the number of the last processed and saved block number from empty DB", async function () {
-    let res = await indexerToDB.getNfromDB();
+    let res = await indexerToDB.getIndexedHeightFromDB();
     expect(res).to.be.eq(0);
   });
 
@@ -64,7 +64,7 @@ describe(`IndexerToDB (${getTestFile(__filename)})`, function () {
     const state = getStateEntry("N", ChainType[ChainType.BTC], 10);
     await dataService.manager.save(state);
 
-    let res = await indexerToDB.getNfromDB();
+    let res = await indexerToDB.getIndexedHeightFromDB();
     expect(res).to.be.eq(10);
   });
 

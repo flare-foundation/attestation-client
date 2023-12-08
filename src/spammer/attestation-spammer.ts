@@ -264,9 +264,6 @@ class AttestationSpammer {
         );
 
         if (attRequest) {
-          attRequest.sourceId = process.env.TESTNET 
-            ? encodeAttestationName("test" + decodeAttestationName(attRequest.sourceId))
-            : attRequest.sourceId;
           try {
             await this.sendAttestationRequest(this.stateConnector, attRequest);
           } catch (e0) {

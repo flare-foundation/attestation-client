@@ -1,5 +1,4 @@
 import fs from "fs";
-import { AbiItem } from "web3-utils";
 import * as yargs from "yargs";
 import StateConnectorAbi from "../../artifacts/contracts/StateConnectorTemp.sol/StateConnectorTemp.json";
 import StateConnectorTranAbi from "../../artifacts/contracts/StateConnectorTempTran.sol/StateConnectorTempTran.json";

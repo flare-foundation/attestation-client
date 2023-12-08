@@ -130,8 +130,31 @@ export class DogeIndexedQueryManager extends IIndexedQueryManager {
 
     const res = await query.getMany();
 
+    const result = res.map((val) => val.toTransactionResult());
+
+    let lowerQueryWindowBlock: BlockResult;
+    let upperQueryWindowBlock: BlockResult;
+
+    if (params.startBlockNumber !== undefined) {
+      const lowerQueryWindowBlockResult = await this.queryBlock({
+        blockNumber: params.startBlockNumber,
+        confirmed: true,
+      });
+      lowerQueryWindowBlock = lowerQueryWindowBlockResult.result;
+    }
+
+    if (params.endBlockNumber !== undefined) {
+      const upperQueryWindowBlockResult = await this.queryBlock({
+        blockNumber: params.endBlockNumber,
+        confirmed: true,
+      });
+      upperQueryWindowBlock = upperQueryWindowBlockResult.result;
+    }
+
     return {
-      result: res.map((val) => val.toTransactionResult()),
+      result,
+      startBlock: lowerQueryWindowBlock,
+      endBlock: upperQueryWindowBlock,
     };
   }
 
@@ -183,7 +206,9 @@ export class DogeIndexedQueryManager extends IIndexedQueryManager {
       .orderBy("block.blockNumber", "DESC")
       .limit(1);
 
-    return (await query.getOne()).toBlockResult();
+    const res = await query.getOne();
+
+    return res ? res.toBlockResult() : undefined;
   }
 
   protected async getFirstConfirmedOverflowBlock(timestamp: number, blockNumber: number): Promise<BlockResult | undefined> {
@@ -195,7 +220,9 @@ export class DogeIndexedQueryManager extends IIndexedQueryManager {
       .orderBy("block.blockNumber", "ASC")
       .limit(1);
 
-    return (await query.getOne()).toBlockResult();
+    const res = await query.getOne();
+
+    return res ? res.toBlockResult() : undefined;
   }
 
   public async fetchRandomTransactions(batchSize = 100, options: RandomTransactionOptions): Promise<TransactionResult[]> {
@@ -212,23 +239,29 @@ export class DogeIndexedQueryManager extends IIndexedQueryManager {
     ZERO_PAYMENT_REFERENCE;
 
     if (options.mustHavePaymentReference) {
-      query = query.andWhere(`transaction.paymentReference != ${ZERO_PAYMENT_REFERENCE}`);
+      query = query.andWhere(`transaction.paymentReference != '${ZERO_PAYMENT_REFERENCE}'`);
     }
     if (options.mustNotHavePaymentReference) {
-      query = query.andWhere(`transaction.paymentReference == ${ZERO_PAYMENT_REFERENCE}`);
+      query = query.andWhere(`transaction.paymentReference = '${ZERO_PAYMENT_REFERENCE}'`);
     }
     if (options.mustBeNativePayment) {
-      query = query.andWhere("transaction.isNativePayment = 1");
+      query = query.andWhere("transaction.isNativePayment = true");
     }
     if (options.mustNotBeNativePayment) {
-      query = query.andWhere("transaction.isNativePayment = 0");
+      query = query.andWhere("transaction.isNativePayment = false");
     }
     if (options.startTime) {
       query = query.andWhere("transaction.timestamp >= :startTime", { startTime: options.startTime });
     }
+
     query = query.limit(batchSize).offset(Math.min(randN, txCount - batchSize));
 
-    return (await query.getMany()).map((trans) => trans.toTransactionResult());
+    query = query.leftJoinAndSelect("transaction.transactionoutput_set", "transactionOutput");
+    query = query.leftJoinAndSelect("transaction.transactioninputcoinbase_set", "transactionInputCoinbase");
+    query = query.leftJoinAndSelect("transaction.transactioninput_set", "transactionInput");
+
+    let transactions = await query.getMany();
+    return transactions.map((trans) => trans.toTransactionResult());
   }
 
   public async fetchRandomConfirmedBlocks(batchSize = 100, startTime?: number): Promise<BlockResult[]> {
@@ -239,7 +272,7 @@ export class DogeIndexedQueryManager extends IIndexedQueryManager {
     if (process.env.NODE_ENV === "development" && this.entityManager.connection.options.type == "better-sqlite3") {
       query = query.orderBy("RANDOM()").limit(batchSize);
     } else {
-      query = query.orderBy("RAND()").limit(batchSize);
+      query = query.orderBy("RANDOM()").limit(batchSize);
     }
 
     const blocks = await query.getMany();

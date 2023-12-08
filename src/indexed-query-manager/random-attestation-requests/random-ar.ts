@@ -25,7 +25,7 @@ export async function getRandomAttestationRequest(
 ) {
   let TransactionClass: new (...args: any[]) => any;
 
-  switch(sourceId) {
+  switch (sourceId) {
     case "BTC":
       TransactionClass = BtcTransaction;
       break;
@@ -39,6 +39,8 @@ export async function getRandomAttestationRequest(
       throw new Error("Invalid sourceId");
   }
 
+  sourceId = process.env.TESTNET ? "test" + sourceId : sourceId;
+
   const { attestationType, generator } = randomGeneratorChoiceWithAttestationType(randomGenerators);
   if (generator.size <= 0) {
     console.log(`Empty generator ${generator.label}`);
@@ -48,13 +50,49 @@ export async function getRandomAttestationRequest(
 
   switch (attestationType) {
     case "Payment":
-      return prepareRandomizedRequestPayment(defStore, logger, indexedQueryManager, txOrBlock as TransactionResult, sourceId, TransactionClass, undefined, client);
+      return prepareRandomizedRequestPayment(
+        defStore,
+        logger,
+        indexedQueryManager,
+        txOrBlock as TransactionResult,
+        sourceId,
+        TransactionClass,
+        undefined,
+        client
+      );
     case "BalanceDecreasingTransaction":
-      return prepareRandomizedRequestBalanceDecreasingTransaction(defStore, logger, indexedQueryManager, txOrBlock as TransactionResult, sourceId, TransactionClass, undefined, client);
+      return prepareRandomizedRequestBalanceDecreasingTransaction(
+        defStore,
+        logger,
+        indexedQueryManager,
+        txOrBlock as TransactionResult,
+        sourceId,
+        TransactionClass,
+        undefined,
+        client
+      );
     case "ConfirmedBlockHeightExists":
-      return prepareRandomizedRequestConfirmedBlockHeightExists(defStore, logger, indexedQueryManager, txOrBlock as BlockResult, sourceId, TransactionClass, undefined, client);
+      return prepareRandomizedRequestConfirmedBlockHeightExists(
+        defStore,
+        logger,
+        indexedQueryManager,
+        txOrBlock as BlockResult,
+        sourceId,
+        TransactionClass,
+        undefined,
+        client
+      );
     case "ReferencedPaymentNonexistence":
-      return prepareRandomizedRequestReferencedPaymentNonexistence(defStore, logger, indexedQueryManager, txOrBlock as TransactionResult, sourceId, TransactionClass, undefined, client);
+      return prepareRandomizedRequestReferencedPaymentNonexistence(
+        defStore,
+        logger,
+        indexedQueryManager,
+        txOrBlock as TransactionResult,
+        sourceId,
+        TransactionClass,
+        undefined,
+        client
+      );
     default:
       throw new Error("Invalid attestation type");
   }
@@ -133,7 +171,7 @@ export function prepareGenerator(
       );
     default:
       // exhaustive switch guard: if a compile time error appears here, you have forgotten one of the cases
-      ((_: never): void => { })(type);
+      ((_: never): void => {})(type);
   }
 }
 

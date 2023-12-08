@@ -9,16 +9,15 @@
       "apiKey": "7890"
     }
   ],
-  "port": 9602,
+  "port": 8080,
   "checkAliveIntervalMs": 5000,
   "sourceId": "DOGE",
   "attestationTypes": ["Payment", "BalanceDecreasingTransaction"],
   "indexerDatabase": {
-    "port": 3337,
-    "database": "indexer",
-    "username": "indexReader",
-    "password": "password",
-    "inMemory": true
+    "port": 5432,
+    "database": "db",
+    "username": "db",
+    "password": "secret"
   },
   "chainConfiguration": {
     "name": "DOGE",

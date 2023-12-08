@@ -54,8 +54,10 @@ export function prepareIndexerTables(type: ChainType): IndexerTablesScheme {
     case ChainType.invalid:
       throw new Error("Invalid chain type");
     default:
-      // exhaustive switch guard: if a compile time error appears here, you have forgotten one of the cases
-      ((_: never): void => {})(type);
+      throw new Error("Invalid chain type");
+
+    //// exhaustive switch guard: if a compile time error appears here, you have forgotten one of the cases
+    //((_: never): void => {})(type);
   }
   return {
     transactionTable,

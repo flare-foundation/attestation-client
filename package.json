@@ -17,7 +17,7 @@
     ]
   },
   "engines": {
-    "node": ">=16.0.0"
+    "node": ">=16.20.0"
   },
   "engineStrict": true,
   "scripts": {
@@ -64,10 +64,10 @@
     "-------MONITORING---------": "",
     "admin": "env CONFIG_PATH=.secure node dist/src/admin/admin.js",
     "-------TESTS---------": "",
-    "htest": "envSQLITE=true NODE_ENV=development yarn codegen && yarn c && yarn hardhat test test/HashTest.test.ts",
+    "htest": "env SQLITE=true NODE_ENV=development yarn codegen && yarn c && yarn hardhat test test/HashTest.test.ts",
     "test": "env SQLITE=true NODE_ENV=development mocha -r ts-node/register -t 0 --exit",
     "test-all-contracts": "env NODE_ENV=development yarn hardhat test test/**/*.test-contract.ts",
-    "test-all-other": "env NODE_ENV=development mocha -r ts-node/register -t 0 --exit 'test/**/*.test.ts'",
+    "test-all-other": "env NODE_ENV=development SQLITE=true mocha -r ts-node/register -t 0 --exit 'test/**/*.test.ts'",
     "test-all-fast": "env NODE_ENV=development SQLITE=true npm-run-all test-all-contracts test-all-other",
     "test-all-slow": "env NODE_ENV=development SQLITE=true mocha -r ts-node/register -t 0 --exit 'test/**/*.test-slow.ts'",
     "test-all-cred": "env NODE_ENV=development SQLITE=true mocha -r ts-node/register -t 0 --exit 'test/**/*.test-cred.ts'",

@@ -261,25 +261,25 @@ export class ReferencedPaymentNonexistence_Request {
     }
 
     /**
-     * Id of the attestation type.
+     * ID of the attestation type.
      */
     @Validate(IsHash32)
-    @ApiProperty({ description: `Id of the attestation type.`, example: "0x5265666572656e6365645061796d656e744e6f6e6578697374656e6365000000" })
+    @ApiProperty({ description: `ID of the attestation type.`, example: "0x5265666572656e6365645061796d656e744e6f6e6578697374656e6365000000" })
     attestationType: string;
 
     /**
-     * Id of the data source.
+     * ID of the data source.
      */
     @Validate(IsHash32)
-    @ApiProperty({ description: `Id of the data source.`, example: "0x4254430000000000000000000000000000000000000000000000000000000000" })
+    @ApiProperty({ description: `ID of the data source.`, example: "0x4254430000000000000000000000000000000000000000000000000000000000" })
     sourceId: string;
 
     /**
-     * `MessageIntegrityCode` that is derived from the expected response as defined [here](/specs/attestations/hash-MIC.md#message-integrity-code).
+     * `MessageIntegrityCode` that is derived from the expected response as defined.
      */
     @Validate(IsHash32)
     @ApiProperty({
-        description: `'MessageIntegrityCode' that is derived from the expected response as defined [here](/specs/attestations/hash-MIC.md#message-integrity-code).`,
+        description: `'MessageIntegrityCode' that is derived from the expected response as defined.`,
         example: "0x0000000000000000000000000000000000000000000000000000000000000000",
     })
     messageIntegrityCode: string;
@@ -315,10 +315,10 @@ export class ReferencedPaymentNonexistence_Response {
     sourceId: string;
 
     /**
-     * The id of the state connector round in which the request was considered.
+     * The ID of the State Connector round in which the request was considered.
      */
     @Validate(IsUnsignedIntLike)
-    @ApiProperty({ description: `The id of the state connector round in which the request was considered.`, example: "123" })
+    @ApiProperty({ description: `The ID of the State Connector round in which the request was considered.`, example: "123" })
     votingRound: string;
 
     /**

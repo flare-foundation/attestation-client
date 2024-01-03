@@ -185,17 +185,24 @@ export class AddressValidity_ResponseBody {
     }
 
     /**
-     * Standard form of the validated address.
+     * Boolean indicator of the address validity.
      */
-    @ApiProperty({ description: `Standard form of the validated address.`, example: "Example string" })
+    @IsBoolean()
+    @ApiProperty({ description: `Boolean indicator of the address validity.`, example: true })
+    isValid: boolean;
+
+    /**
+     * If `isValid`, standard form of the validated address. Otherwise an empty string.
+     */
+    @ApiProperty({ description: `If 'isValid', standard form of the validated address. Otherwise an empty string.`, example: "Example string" })
     standardAddress: string;
 
     /**
-     * Standard address hash of the validated address.
+     * If `isValid`, standard address hash of the validated address. Otherwise a zero bytes32 string.
      */
     @Validate(IsHash32)
     @ApiProperty({
-        description: `Standard address hash of the validated address.`,
+        description: `If 'isValid', standard address hash of the validated address. Otherwise a zero bytes32 string.`,
         example: "0x0000000000000000000000000000000000000000000000000000000000000000",
     })
     standardAddressHash: string;
@@ -217,13 +224,10 @@ export class AddressValidity_Request {
     }
 
     /**
-     * Attestation type id as defined for each attestation type on [this repo](https://gitlab.com/flarenetwork/state-connector-protocol/)
+     * ID of the attestation type.
      */
     @Validate(IsHash32)
-    @ApiProperty({
-        description: `Attestation type id as defined for each attestation type on [this repo](https://gitlab.com/flarenetwork/state-connector-protocol/)`,
-        example: "0x4164647265737356616c69646974790000000000000000000000000000000000",
-    })
+    @ApiProperty({ description: `ID of the attestation type.`, example: "0x4164647265737356616c69646974790000000000000000000000000000000000" })
     attestationType: string;
 
     /**
@@ -234,11 +238,11 @@ export class AddressValidity_Request {
     sourceId: string;
 
     /**
-     * `MessageIntegrityCode` that is derived from the expected response as defined [here](/specs/attestations/hash-MIC.md#message-integrity-code).
+     * `MessageIntegrityCode` that is derived from the expected response.
      */
     @Validate(IsHash32)
     @ApiProperty({
-        description: `'MessageIntegrityCode' that is derived from the expected response as defined [here](/specs/attestations/hash-MIC.md#message-integrity-code).`,
+        description: `'MessageIntegrityCode' that is derived from the expected response.`,
         example: "0x0000000000000000000000000000000000000000000000000000000000000000",
     })
     messageIntegrityCode: string;
@@ -274,10 +278,10 @@ export class AddressValidity_Response {
     sourceId: string;
 
     /**
-     * The id of the state connector round in which the request was considered.
+     * The ID of the State Connector round in which the request was considered.
      */
     @Validate(IsUnsignedIntLike)
-    @ApiProperty({ description: `The id of the state connector round in which the request was considered.`, example: "123" })
+    @ApiProperty({ description: `The ID of the State Connector round in which the request was considered.`, example: "123" })
     votingRound: string;
 
     /**

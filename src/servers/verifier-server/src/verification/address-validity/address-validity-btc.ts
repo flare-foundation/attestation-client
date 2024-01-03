@@ -1,9 +1,8 @@
-import { VerificationResponse } from "../verification-utils";
 import base from "base-x";
 import { VerificationStatus } from "../../../../../verification/attestation-types/attestation-types";
 import { AddressValidity_ResponseBody } from "../../dtos/attestation-types/AddressValidity.dto";
-import { standardAddressHash } from "@flarenetwork/mcc";
-import { base58Checksum } from "./utils";
+import { VerificationResponse } from "../verification-utils";
+import { INVALID_ADDRESS_RESPONSE, base58Checksum, validAddressToResponse } from "./utils";
 
 enum BTCAddressTypes {
   P2PKH = "P2PKH",
@@ -230,11 +229,11 @@ export function verifyAddressBTC(address: string, testnet = process.env.TESTNET)
       case BTCTestAddressTypes.TEST_P2SH: {
         //invalid length
         if (25 > address.length || address.length > 34) {
-          return { status: VerificationStatus.NOT_CONFIRMED };
+          return { status: VerificationStatus.OK, response: INVALID_ADDRESS_RESPONSE };
         }
         // contains invalid characters
         else if (BTC_BASE_58_DICT_regex.test(address)) {
-          return { status: VerificationStatus.NOT_CONFIRMED };
+          return { status: VerificationStatus.OK, response: INVALID_ADDRESS_RESPONSE };
         }
 
         // Regex ensures that address can be decoded
@@ -244,14 +243,11 @@ export function verifyAddressBTC(address: string, testnet = process.env.TESTNET)
         if (decodedAddress.length != 25) return { status: VerificationStatus.NOT_CONFIRMED };
         // checksum fails
         else if (!base58Checksum(decodedAddress)) {
-          return { status: VerificationStatus.NOT_CONFIRMED };
+          return { status: VerificationStatus.OK, response: INVALID_ADDRESS_RESPONSE };
           // wrong prefix
         } else if (!(decodedAddress[0] == 111 || decodedAddress[0] == 196)) return { status: VerificationStatus.NOT_CONFIRMED };
         else {
-          const response = {
-            standardAddress: address,
-            standardAddressHash: standardAddressHash(address),
-          };
+          const response = validAddressToResponse(address, false);
           return { status: VerificationStatus.OK, response };
         }
       }
@@ -260,25 +256,20 @@ export function verifyAddressBTC(address: string, testnet = process.env.TESTNET)
         if (version == 0) {
           // P2WPKH or P2WSH
           if (address.length == 42 || address.length == 62) {
-            const response = {
-              standardAddress: address.toLowerCase(),
-              standardAddressHash: standardAddressHash(address.toLowerCase()),
-            };
+            const response = validAddressToResponse(address, true);
             return { status: VerificationStatus.OK, response };
-          } else return { status: VerificationStatus.NOT_CONFIRMED };
+          } else return { status: VerificationStatus.OK, response: INVALID_ADDRESS_RESPONSE };
+
           //P2TR
         } else if (version == 1) {
-          const response = {
-            standardAddress: address.toLowerCase(),
-            standardAddressHash: standardAddressHash(address.toLowerCase()),
-          };
+          const response = validAddressToResponse(address, true);
           return { status: VerificationStatus.OK, response };
         }
         // invalid address / unsupported version
-        else return { status: VerificationStatus.NOT_CONFIRMED };
+        else return { status: VerificationStatus.OK, response: INVALID_ADDRESS_RESPONSE };
       }
       case BTCAddressTypes.INVALID: {
-        return { status: VerificationStatus.NOT_CONFIRMED };
+        return { status: VerificationStatus.OK, response: INVALID_ADDRESS_RESPONSE };
       }
     }
   } else {
@@ -289,28 +280,25 @@ export function verifyAddressBTC(address: string, testnet = process.env.TESTNET)
       case BTCAddressTypes.P2SH: {
         //invalid length
         if (25 > address.length || address.length > 34) {
-          return { status: VerificationStatus.NOT_CONFIRMED };
+          return { status: VerificationStatus.OK, response: INVALID_ADDRESS_RESPONSE };
         }
         // contains invalid characters
         else if (BTC_BASE_58_DICT_regex.test(address)) {
-          return { status: VerificationStatus.NOT_CONFIRMED };
+          return { status: VerificationStatus.OK, response: INVALID_ADDRESS_RESPONSE };
         }
 
         // Regex ensures that address can be decoded
         const decodedAddress = btcBase58.decode(address);
 
         // invalid length
-        if (decodedAddress.length != 25) return { status: VerificationStatus.NOT_CONFIRMED };
+        if (decodedAddress.length != 25) return { status: VerificationStatus.OK, response: INVALID_ADDRESS_RESPONSE };
         // checksum fails
         else if (!base58Checksum(decodedAddress)) {
-          return { status: VerificationStatus.NOT_CONFIRMED };
+          return { status: VerificationStatus.OK, response: INVALID_ADDRESS_RESPONSE };
           // wrong prefix
-        } else if (!(decodedAddress[0] == 0 || decodedAddress[0] == 5)) return { status: VerificationStatus.NOT_CONFIRMED };
+        } else if (!(decodedAddress[0] == 0 || decodedAddress[0] == 5)) return { status: VerificationStatus.OK, response: INVALID_ADDRESS_RESPONSE };
         else {
-          const response = {
-            standardAddress: address,
-            standardAddressHash: standardAddressHash(address),
-          };
+          const response = validAddressToResponse(address, false);
           return { status: VerificationStatus.OK, response };
         }
       }
@@ -319,25 +307,20 @@ export function verifyAddressBTC(address: string, testnet = process.env.TESTNET)
         if (version == 0) {
           // P2WPKH or P2WSH
           if (address.length == 42 || address.length == 62) {
-            const response = {
-              standardAddress: address.toLowerCase(),
-              standardAddressHash: standardAddressHash(address.toLowerCase()),
-            };
+            const response = validAddressToResponse(address, true);
             return { status: VerificationStatus.OK, response };
-          } else return { status: VerificationStatus.NOT_CONFIRMED };
+          } else return { status: VerificationStatus.OK, response: INVALID_ADDRESS_RESPONSE };
+
           //P2TR
         } else if (version == 1) {
-          const response = {
-            standardAddress: address.toLowerCase(),
-            standardAddressHash: standardAddressHash(address.toLowerCase()),
-          };
+          const response = validAddressToResponse(address, true);
           return { status: VerificationStatus.OK, response };
         }
         // invalid address / unsupported version
-        else return { status: VerificationStatus.NOT_CONFIRMED };
+        else return { status: VerificationStatus.OK, response: INVALID_ADDRESS_RESPONSE };
       }
       case BTCAddressTypes.INVALID: {
-        return { status: VerificationStatus.NOT_CONFIRMED };
+        return { status: VerificationStatus.OK, response: INVALID_ADDRESS_RESPONSE };
       }
     }
   }

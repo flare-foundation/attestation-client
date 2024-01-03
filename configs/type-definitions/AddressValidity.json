@@ -1,7 +1,7 @@
 {
   "name": "AddressValidity",
-  "fullComment": " @custom:name AddressValidity\n @custom:id 0x05\n @custom:supported BTC, DOGE, XRP, testBTC, testDOGE, testXRP\n @author Flare\n @notice The purpose of this type is to assert that the string represents a valid address on an external chain.\n @custom:verification The address is checked against all validity criteria of the chain with `sourceId`.\n Validity criteria for each supported chain:\n - [BTC](/specs/attestations/external-chains/address-validity/BTC.md)\n - [DOGE](/specs/attestations/external-chains/address-validity/DOGE.md)\n - [XRPL](/specs/attestations/external-chains/address-validity/XRPL.md)\n - [Ethereum](/specs/attestations/external-chains/address-validity/ETH.md)\n @custom:lut 0xffffffffffffffff $(2^{64}-1$ in hex$",
-  "description": "The purpose of this type is to assert that the string represents a valid address on an external chain.",
+  "fullComment": " @custom:name AddressValidity\n @custom:id 0x05\n @custom:supported BTC, DOGE, XRP, testBTC, testDOGE, testXRP\n @author Flare\n @notice An assertion whether a string represents a valid address on an external chain.\n @custom:verification The address is checked against all validity criteria of the chain with `sourceId`.\n Indicator of validity is provided.\n If the address is valid, its standard form and standard hash are computed.\n Validity criteria for each supported chain:\n - [BTC](/specs/attestations/external-chains/address-validity/BTC.md)\n - [DOGE](/specs/attestations/external-chains/address-validity/DOGE.md)\n - [XRPL](/specs/attestations/external-chains/address-validity/XRPL.md)\n @custom:lut `0xffffffffffffffff` ($2^{64}-1$ in hex)",
+  "description": "An assertion whether a string represents a valid address on an external chain.",
   "supported": [
     "BTC",
     "DOGE",
@@ -10,8 +10,8 @@
     "testDOGE",
     "testXRP"
   ],
-  "verification": "The address is checked against all validity criteria of the chain with `sourceId`.\n Validity criteria for each supported chain:\n - [BTC](/specs/attestations/external-chains/address-validity/BTC.md)\n - [DOGE](/specs/attestations/external-chains/address-validity/DOGE.md)\n - [XRPL](/specs/attestations/external-chains/address-validity/XRPL.md)\n - [Ethereum](/specs/attestations/external-chains/address-validity/ETH.md)",
-  "lut": "0xffffffffffffffff $(2^{64}-1$ in hex$",
+  "verification": "The address is checked against all validity criteria of the chain with `sourceId`.\n Indicator of validity is provided.\n If the address is valid, its standard form and standard hash are computed.\n Validity criteria for each supported chain:\n - [BTC](/specs/attestations/external-chains/address-validity/BTC.md)\n - [DOGE](/specs/attestations/external-chains/address-validity/DOGE.md)\n - [XRPL](/specs/attestations/external-chains/address-validity/XRPL.md)\n ",
+  "lut": "`0xffffffffffffffff` ($2^{64}-1$ in hex)",
   "proof": {
     "name": "Proof",
     "description": "Toplevel proof",
@@ -38,13 +38,13 @@
     "description": "Toplevel request",
     "above": "",
     "below": "",
-    "fullComment": " @notice Toplevel request\n @param attestationType Attestation type id as defined for each attestation type on [this repo](https://gitlab.com/flarenetwork/state-connector-protocol/)\n @param sourceId Id of the data source.\n @param messageIntegrityCode `MessageIntegrityCode` that is derived from the expected response as defined [here](/specs/attestations/hash-MIC.md#message-integrity-code).\n @param requestBody Data defining the request. Type (struct) and interpretation is determined by the `attestationType`.",
+    "fullComment": " @notice Toplevel request\n @param attestationType ID of the attestation type.\n @param sourceId Id of the data source.\n @param messageIntegrityCode `MessageIntegrityCode` that is derived from the expected response.\n @param requestBody Data defining the request. Type (struct) and interpretation is determined by the `attestationType`.",
     "params": [
       {
         "name": "attestationType",
         "type": "bytes32",
         "typeSimple": "bytes32",
-        "comment": "Attestation type id as defined for each attestation type on [this repo](https://gitlab.com/flarenetwork/state-connector-protocol/)"
+        "comment": "ID of the attestation type."
       },
       {
         "name": "sourceId",
@@ -56,7 +56,7 @@
         "name": "messageIntegrityCode",
         "type": "bytes32",
         "typeSimple": "bytes32",
-        "comment": "`MessageIntegrityCode` that is derived from the expected response as defined [here](/specs/attestations/hash-MIC.md#message-integrity-code)."
+        "comment": "`MessageIntegrityCode` that is derived from the expected response."
       },
       {
         "name": "requestBody",
@@ -71,7 +71,7 @@
     "description": "Toplevel response",
     "above": "",
     "below": "",
-    "fullComment": " @notice Toplevel response\n @param attestationType Extracted from the request.\n @param sourceId Extracted from the request.\n @param votingRound The id of the state connector round in which the request was considered.\n @param lowestUsedTimestamp The lowest timestamp used to generate the response.\n @param requestBody Extracted from the request.\n @param responseBody Data defining the response. The verification rules for the construction of the response body and the type are defined per specific `attestationType`.",
+    "fullComment": " @notice Toplevel response\n @param attestationType Extracted from the request.\n @param sourceId Extracted from the request.\n @param votingRound The ID of the State Connector round in which the request was considered.\n @param lowestUsedTimestamp The lowest timestamp used to generate the response.\n @param requestBody Extracted from the request.\n @param responseBody Data defining the response. The verification rules for the construction of the response body and the type are defined per specific `attestationType`.",
     "params": [
       {
         "name": "attestationType",
@@ -89,7 +89,7 @@
         "name": "votingRound",
         "type": "uint64",
         "typeSimple": "uint64",
-        "comment": "The id of the state connector round in which the request was considered."
+        "comment": "The ID of the State Connector round in which the request was considered."
       },
       {
         "name": "lowestUsedTimestamp",
@@ -131,19 +131,25 @@
     "description": "Response body for AddressValidity attestation type",
     "above": "",
     "below": "",
-    "fullComment": " @notice Response body for AddressValidity attestation type\n @param standardAddress Standard form of the validated address.\n @param standardAddressHash Standard address hash of the validated address.",
+    "fullComment": " @notice Response body for AddressValidity attestation type\n @param isValid Boolean indicator of the address validity.\n @param standardAddress If `isValid`, standard form of the validated address. Otherwise an empty string.\n @param standardAddressHash If `isValid`, standard address hash of the validated address. Otherwise a zero bytes32 string.",
     "params": [
+      {
+        "name": "isValid",
+        "type": "bool",
+        "typeSimple": "bool",
+        "comment": "Boolean indicator of the address validity."
+      },
       {
         "name": "standardAddress",
         "type": "string",
         "typeSimple": "string",
-        "comment": "Standard form of the validated address."
+        "comment": "If `isValid`, standard form of the validated address. Otherwise an empty string."
       },
       {
         "name": "standardAddressHash",
         "type": "bytes32",
         "typeSimple": "bytes32",
-        "comment": "Standard address hash of the validated address."
+        "comment": "If `isValid`, standard address hash of the validated address. Otherwise a zero bytes32 string."
       }
     ]
   },
@@ -220,6 +226,11 @@
       {
         "components": [
           {
+            "internalType": "bool",
+            "name": "isValid",
+            "type": "bool"
+          },
+          {
             "internalType": "string",
             "name": "standardAddress",
             "type": "string"
@@ -282,6 +293,11 @@
           },
           {
             "components": [
+              {
+                "internalType": "bool",
+                "name": "isValid",
+                "type": "bool"
+              },
               {
                 "internalType": "string",
                 "name": "standardAddress",

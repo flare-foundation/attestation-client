@@ -240,7 +240,7 @@ export function verifyAddressBTC(address: string, testnet = process.env.TESTNET)
         const decodedAddress = btcBase58.decode(address);
 
         // invalid length
-        if (decodedAddress.length != 25) return { status: VerificationStatus.NOT_CONFIRMED };
+        if (decodedAddress.length != 25) return { status: VerificationStatus.OK, response: INVALID_ADDRESS_RESPONSE };
         // checksum fails
         else if (!base58Checksum(decodedAddress)) {
           return { status: VerificationStatus.OK, response: INVALID_ADDRESS_RESPONSE };

@@ -45,8 +45,8 @@ export class FlareDataCollector {
     if (a.blockNumber < b.blockNumber) return -1;
     if (a.blockNumber > b.blockNumber) return 1;
 
-    if (a.logIndex > a.logIndex) return -1;
-    if (a.logIndex < b.logIndex) return 1;
+    if (a.logIndex < b.logIndex) return -1;
+    if (a.logIndex > b.logIndex) return 1;
 
     return 0;
   }

@@ -144,17 +144,17 @@ export class Web3Functions {
   private async _signAndFinalize3(label: string, toAddress: string, fnToEncode: any): Promise<any> {
     try {
       const nonce = await this.getNonce();
-      const gasPrice = await this.gasPrice();
+      // We use EIP-1559, with default maxFeePerGas and zero maxPriorityFeePerGas
       const tx = {
         from: this.account.address,
         to: toAddress,
         gas: this.gasLimit,
-        gasPrice: gasPrice,
+        maxPriorityFeePerGas: 0,
+        type: "0x02",
         data: fnToEncode.encodeABI(),
         nonce,
       };
       const signedTx = await this.account.signTransaction(tx);
-      this.logger.info(`Gas price used: ${gasPrice}`);
       try {
         const receipt = await this.waitFinalize3(this.account.address, () => this.web3.eth.sendSignedTransaction(signedTx.rawTransaction!));
         return { receipt, nonce };

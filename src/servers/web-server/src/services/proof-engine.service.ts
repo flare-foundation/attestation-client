@@ -22,7 +22,7 @@ export class ProofEngineService {
   private cache = new Map<Number, VotingRoundResult[]>();
   private requestCache = new Map<Number, VotingRoundRequest[]>();
 
-  private CACHE_SIZE_LIMIT = 1000;
+  private CACHE_SIZE_LIMIT = 3000;
 
   /**
    * Returns all vote results for round, if they can be revealed.

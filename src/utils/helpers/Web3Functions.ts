@@ -149,7 +149,7 @@ export class Web3Functions {
         from: this.account.address,
         to: toAddress,
         gas: this.gasLimit,
-        maxPriorityFeePerGas: 0,
+        maxPriorityFeePerGas: process.env.MAX_PRIORITY_FEE_PER_GAS ? process.env.MAX_PRIORITY_FEE_PER_GAS : "0x04a817c800", //20 Gwei
         type: "0x02",
         data: fnToEncode.encodeABI(),
         nonce,

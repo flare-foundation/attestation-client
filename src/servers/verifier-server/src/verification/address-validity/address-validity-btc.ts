@@ -245,7 +245,7 @@ export function verifyAddressBTC(address: string, testnet = process.env.TESTNET)
         else if (!base58Checksum(decodedAddress)) {
           return { status: VerificationStatus.OK, response: INVALID_ADDRESS_RESPONSE };
           // wrong prefix
-        } else if (!(decodedAddress[0] == 111 || decodedAddress[0] == 196)) return { status: VerificationStatus.NOT_CONFIRMED };
+        } else if (!(decodedAddress[0] == 111 || decodedAddress[0] == 196)) return { status: VerificationStatus.OK, response: INVALID_ADDRESS_RESPONSE };
         else {
           const response = validAddressToResponse(address, false);
           return { status: VerificationStatus.OK, response };

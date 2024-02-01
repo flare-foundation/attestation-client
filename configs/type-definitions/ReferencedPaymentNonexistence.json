@@ -1,7 +1,7 @@
 {
   "name": "ReferencedPaymentNonexistence",
-  "fullComment": " @custom:name ReferencedPaymentNonexistence\n @custom:id 0x04\n @custom:supported BTC, DOGE, XRP, testBTC, testDOGE, testXRP\n @author Flare\n @notice The purpose of this type of attestation is to prove that an agreed payment has not been made, hence, give grounds to liquidate some funds locked by a smart contract on Flare.\n A confirmed request shows that a transaction meeting certain criteria (address, amount, reference) did not appear in the specified block range.\n @custom:verification Let `firstOverflowBlock` be the first block that has the block number higher than `deadlineBlockNumber` and the timestamp later than `deadlineTimestamp`.\n If `firstOverflowBlock` cannot be determined or does not have a sufficient [number of confirmations](/specs/attestations/configs.md#finalityconfirmation), the attestation request is rejected.\n If `firstOverflowBlockNumber` is higher or equal to `minimalBlockNumber`, the request is rejected.\n The search range are blocks between heights (including) `minimalBlockNumber` and (excluding) `firstOverflowBlockNumber`.\n If the verifier does not have a view on all blocks from `minimalBlockNumber` to `firstOverflowBlockNumber`, the attestation request should be rejected.\n The request is confirmed if no transaction meeting the specified criteria is found in the search range.\n The criteria are chain specific.\n ### UTXO (Bitcoin and Dogecoin)\n - it is not coinbase transaction,\n - the transaction has the specified [standardPaymentReference](/specs/attestations/external-chains/standardPaymentReference.md#btc-and-doge-blockchains),\n - the sum of values of all outputs with the specified address minus the sum of values of all inputs with the specified address is greater than `amount` (in practice the sum of all values of the inputs with the specified address is zero).\n ### XRP\n - the transaction is of type payment,\n - the transaction has the specified [standardPaymentReference](/specs/attestations/external-chains/standardPaymentReference.md#xrp),\n - one of the following must holds:\n   - transaction status is success and the amount received by the specified destination address is greater than the specified `value`,\n   - transaction status is failure by receiver's fault and the specified destination address would receive amount greater than the specified `value` had the transaction been successful.\n @custom:lut `minimalBlockTimestamp`",
-  "description": "The purpose of this type of attestation is to prove that an agreed payment has not been made, hence, give grounds to liquidate some funds locked by a smart contract on Flare.\n A confirmed request shows that a transaction meeting certain criteria (address, amount, reference) did not appear in the specified block range.",
+  "fullComment": " @custom:name ReferencedPaymentNonexistence\n @custom:id 0x04\n @custom:supported BTC, DOGE, XRP, testBTC, testDOGE, testXRP\n @author Flare\n @notice Assertion that an agreed-upon payment has not been made by a certain deadline.\n A confirmed request shows that a transaction meeting certain criteria (address, amount, reference) did not appear in the specified block range.\n \n \n This type of attestation can be used to e.g. provide grounds to liquidate funds locked by a smart contract on Flare when a payment is missed. \n @custom:verification If `firstOverflowBlock` cannot be determined or does not have a sufficient [number of confirmations](/specs/attestations/configs.md#finalityconfirmation), the attestation request is rejected.\n If `firstOverflowBlockNumber` is higher or equal to `minimalBlockNumber`, the request is rejected.\n The search range are blocks between heights including `minimalBlockNumber` and excluding `firstOverflowBlockNumber`.\n If the verifier does not have a view of all blocks from `minimalBlockNumber` to `firstOverflowBlockNumber`, the attestation request is rejected.\n The request is confirmed if no transaction meeting the specified criteria is found in the search range.\n The criteria and timestamp are chain specific.\n ### UTXO (Bitcoin and Dogecoin)\n Criteria for the transaction:\n - It is not coinbase transaction.\n - The transaction has the specified [standardPaymentReference](/specs/attestations/external-chains/standardPaymentReference.md#btc-and-doge-blockchains).\n - The sum of values of all outputs with the specified address minus the sum of values of all inputs with the specified address is greater than `amount` (in practice the sum of all values of the inputs with the specified address is zero).\n \n Timestamp is `mediantime`.\n ### XRPL\n Criteria for the transaction:\n - The transaction is of type payment.\n - The transaction has the specified [standardPaymentReference](/specs/attestations/external-chains/standardPaymentReference.md#xrp),\n - One of the following is true:\n   - Transaction status is `SUCCESS` and the amount received by the specified destination address is greater than the specified `value`.\n   - Transaction status is `RECEIVER_FAILURE` and the specified destination address would receive an amount greater than the specified `value` had the transaction been successful.\n \n Timestamp is `close_time` converted to UNIX time.\n @custom:lut `minimalBlockTimestamp`",
+  "description": "Assertion that an agreed-upon payment has not been made by a certain deadline.\n A confirmed request shows that a transaction meeting certain criteria (address, amount, reference) did not appear in the specified block range.\n \n \n This type of attestation can be used to e.g. provide grounds to liquidate funds locked by a smart contract on Flare when a payment is missed.",
   "supported": [
     "BTC",
     "DOGE",
@@ -10,7 +10,7 @@
     "testDOGE",
     "testXRP"
   ],
-  "verification": "Let `firstOverflowBlock` be the first block that has the block number higher than `deadlineBlockNumber` and the timestamp later than `deadlineTimestamp`.\n If `firstOverflowBlock` cannot be determined or does not have a sufficient [number of confirmations](/specs/attestations/configs.md#finalityconfirmation), the attestation request is rejected.\n If `firstOverflowBlockNumber` is higher or equal to `minimalBlockNumber`, the request is rejected.\n The search range are blocks between heights (including) `minimalBlockNumber` and (excluding) `firstOverflowBlockNumber`.\n If the verifier does not have a view on all blocks from `minimalBlockNumber` to `firstOverflowBlockNumber`, the attestation request should be rejected.\n The request is confirmed if no transaction meeting the specified criteria is found in the search range.\n The criteria are chain specific.\n ### UTXO (Bitcoin and Dogecoin)\n - it is not coinbase transaction,\n - the transaction has the specified [standardPaymentReference](/specs/attestations/external-chains/standardPaymentReference.md#btc-and-doge-blockchains),\n - the sum of values of all outputs with the specified address minus the sum of values of all inputs with the specified address is greater than `amount` (in practice the sum of all values of the inputs with the specified address is zero).\n ### XRP\n - the transaction is of type payment,\n - the transaction has the specified [standardPaymentReference](/specs/attestations/external-chains/standardPaymentReference.md#xrp),\n - one of the following must holds:\n   - transaction status is success and the amount received by the specified destination address is greater than the specified `value`,\n   - transaction status is failure by receiver's fault and the specified destination address would receive amount greater than the specified `value` had the transaction been successful.",
+  "verification": "If `firstOverflowBlock` cannot be determined or does not have a sufficient [number of confirmations](/specs/attestations/configs.md#finalityconfirmation), the attestation request is rejected.\n If `firstOverflowBlockNumber` is higher or equal to `minimalBlockNumber`, the request is rejected.\n The search range are blocks between heights including `minimalBlockNumber` and excluding `firstOverflowBlockNumber`.\n If the verifier does not have a view of all blocks from `minimalBlockNumber` to `firstOverflowBlockNumber`, the attestation request is rejected.\n The request is confirmed if no transaction meeting the specified criteria is found in the search range.\n The criteria and timestamp are chain specific.\n ### UTXO (Bitcoin and Dogecoin)\n Criteria for the transaction:\n - It is not coinbase transaction.\n - The transaction has the specified [standardPaymentReference](/specs/attestations/external-chains/standardPaymentReference.md#btc-and-doge-blockchains).\n - The sum of values of all outputs with the specified address minus the sum of values of all inputs with the specified address is greater than `amount` (in practice the sum of all values of the inputs with the specified address is zero).\n \n Timestamp is `mediantime`.\n ### XRPL\n Criteria for the transaction:\n - The transaction is of type payment.\n - The transaction has the specified [standardPaymentReference](/specs/attestations/external-chains/standardPaymentReference.md#xrp),\n - One of the following is true:\n   - Transaction status is `SUCCESS` and the amount received by the specified destination address is greater than the specified `value`.\n   - Transaction status is `RECEIVER_FAILURE` and the specified destination address would receive an amount greater than the specified `value` had the transaction been successful.\n \n Timestamp is `close_time` converted to UNIX time.\n ",
   "lut": "`minimalBlockTimestamp`",
   "proof": {
     "name": "Proof",
@@ -38,25 +38,25 @@
     "description": "Toplevel request",
     "above": "",
     "below": "",
-    "fullComment": " @notice Toplevel request\n @param attestationType Id of the attestation type.\n @param sourceId Id of the data source.\n @param messageIntegrityCode `MessageIntegrityCode` that is derived from the expected response as defined [here](/specs/attestations/hash-MIC.md#message-integrity-code).\n @param requestBody Data defining the request. Type (struct) and interpretation is determined by the `attestationType`.",
+    "fullComment": " @notice Toplevel request\n @param attestationType ID of the attestation type.\n @param sourceId ID of the data source.\n @param messageIntegrityCode `MessageIntegrityCode` that is derived from the expected response as defined.\n @param requestBody Data defining the request. Type (struct) and interpretation is determined by the `attestationType`.",
     "params": [
       {
         "name": "attestationType",
         "type": "bytes32",
         "typeSimple": "bytes32",
-        "comment": "Id of the attestation type."
+        "comment": "ID of the attestation type."
       },
       {
         "name": "sourceId",
         "type": "bytes32",
         "typeSimple": "bytes32",
-        "comment": "Id of the data source."
+        "comment": "ID of the data source."
       },
       {
         "name": "messageIntegrityCode",
         "type": "bytes32",
         "typeSimple": "bytes32",
-        "comment": "`MessageIntegrityCode` that is derived from the expected response as defined [here](/specs/attestations/hash-MIC.md#message-integrity-code)."
+        "comment": "`MessageIntegrityCode` that is derived from the expected response as defined."
       },
       {
         "name": "requestBody",
@@ -71,7 +71,7 @@
     "description": "Toplevel response",
     "above": "",
     "below": "",
-    "fullComment": " @notice Toplevel response\n @param attestationType Extracted from the request.\n @param sourceId Extracted from the request.\n @param votingRound The id of the state connector round in which the request was considered.\n @param lowestUsedTimestamp The lowest timestamp used to generate the response.\n @param requestBody Extracted from the request.\n @param responseBody Data defining the response. The verification rules for the construction of the response body and the type are defined per specific `attestationType`.",
+    "fullComment": " @notice Toplevel response\n @param attestationType Extracted from the request.\n @param sourceId Extracted from the request.\n @param votingRound The ID of the State Connector round in which the request was considered.\n @param lowestUsedTimestamp The lowest timestamp used to generate the response.\n @param requestBody Extracted from the request.\n @param responseBody Data defining the response. The verification rules for the construction of the response body and the type are defined per specific `attestationType`.",
     "params": [
       {
         "name": "attestationType",
@@ -89,7 +89,7 @@
         "name": "votingRound",
         "type": "uint64",
         "typeSimple": "uint64",
-        "comment": "The id of the state connector round in which the request was considered."
+        "comment": "The ID of the State Connector round in which the request was considered."
       },
       {
         "name": "lowestUsedTimestamp",
@@ -115,8 +115,8 @@
     "name": "RequestBody",
     "description": "Request body for ReferencePaymentNonexistence attestation type",
     "above": "",
-    "below": "The `standardPaymentReference` should not be zero (as 32-byte sequence).",
-    "fullComment": " @notice Request body for ReferencePaymentNonexistence attestation type\n @param minimalBlockNumber The start block of the search range.\n @param deadlineBlockNumber The blockNumber to be included in the search range.\n @param deadlineTimestamp The timestamp to be included in the search range.\n @param destinationAddressHash The standard address hash of the address to which the payment had to be done.\n @param amount The requested amount in minimal units that had to be payed.\n @param standardPaymentReference The requested standard payment reference.\n @custom:below The `standardPaymentReference` should not be zero (as 32-byte sequence).",
+    "below": "The `standardPaymentReference` should not be zero (as a 32-byte sequence).",
+    "fullComment": " @notice Request body for ReferencePaymentNonexistence attestation type\n @param minimalBlockNumber The start block of the search range.\n @param deadlineBlockNumber The blockNumber to be included in the search range.\n @param deadlineTimestamp The timestamp to be included in the search range.\n @param destinationAddressHash The standard address hash of the address to which the payment had to be done.\n @param amount The requested amount in minimal units that had to be payed.\n @param standardPaymentReference The requested standard payment reference.\n @custom:below The `standardPaymentReference` should not be zero (as a 32-byte sequence).",
     "params": [
       {
         "name": "minimalBlockNumber",
@@ -160,8 +160,8 @@
     "name": "ResponseBody",
     "description": "Response body for ReferencePaymentNonexistence attestation type.",
     "above": "",
-    "below": "`firstOverflowBlock` is the first block that has block number higher than `deadlineBlockNumber` and timestamp later than `deadlineTimestamp`.\n The specified search range are blocks between heights (including) `minimalBlockNumber` and (excluding) `firstOverflowBlockNumber`.",
-    "fullComment": " @notice Response body for ReferencePaymentNonexistence attestation type.\n @param minimalBlockTimestamp The timestamp of the minimalBlock.\n @param firstOverflowBlockNumber The height of the firstOverflowBlock.\n @param firstOverflowBlockTimestamp The timestamp of the firstOverflowBlock.\n @custom:below `firstOverflowBlock` is the first block that has block number higher than `deadlineBlockNumber` and timestamp later than `deadlineTimestamp`.\n The specified search range are blocks between heights (including) `minimalBlockNumber` and (excluding) `firstOverflowBlockNumber`.",
+    "below": "`firstOverflowBlock` is the first block that has block number higher than `deadlineBlockNumber` and timestamp later than `deadlineTimestamp`.\n The specified search range are blocks between heights including `minimalBlockNumber` and excluding `firstOverflowBlockNumber`.",
+    "fullComment": " @notice Response body for ReferencePaymentNonexistence attestation type.\n @param minimalBlockTimestamp The timestamp of the minimalBlock.\n @param firstOverflowBlockNumber The height of the firstOverflowBlock.\n @param firstOverflowBlockTimestamp The timestamp of the firstOverflowBlock.\n @custom:below `firstOverflowBlock` is the first block that has block number higher than `deadlineBlockNumber` and timestamp later than `deadlineTimestamp`.\n The specified search range are blocks between heights including `minimalBlockNumber` and excluding `firstOverflowBlockNumber`.",
     "params": [
       {
         "name": "minimalBlockTimestamp",

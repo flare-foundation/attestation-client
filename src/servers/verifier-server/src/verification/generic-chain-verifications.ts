@@ -2,6 +2,7 @@ import {
   BalanceDecreasingSummaryResponse,
   BalanceDecreasingSummaryStatus,
   MccClient,
+  PaymentNonexistenceSummaryStatus,
   PaymentSummaryResponse,
   PaymentSummaryStatus,
   TransactionBase,
@@ -354,9 +355,9 @@ export async function responseReferencedPaymentNonExistence<T extends Transactio
       // TODO: standard address hash
       const destinationAddressHashTmp = Web3.utils.soliditySha3(address);
       if (destinationAddressHashTmp === request.requestBody.destinationAddressHash) {
-        const paymentSummary = fullTxData.paymentSummary({ inUtxo: 0, outUtxo });
+        const paymentSummary = fullTxData.paymentNonexistenceSummary(outUtxo);
 
-        if (paymentSummary.status !== PaymentSummaryStatus.Success) {
+        if (paymentSummary.status !== PaymentNonexistenceSummaryStatus.Success) {
           // Payment summary for each output matching the destination address is equal, so the destination address has been processed.
           break;
         }

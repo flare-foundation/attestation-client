@@ -1,6 +1,6 @@
 import { getTestFile } from "../test-utils/test-utils";
 import { verifyAddressBTC } from "../../src/servers/verifier-server/src/verification/address-validity/address-validity-btc";
-import { expect } from "chai";
+import { expect, assert } from "chai";
 import { VerificationStatus } from "../../src/verification/attestation-types/attestation-types";
 
 describe(`Address validity btc, ${getTestFile(__filename)}`, function () {
@@ -10,6 +10,7 @@ describe(`Address validity btc, ${getTestFile(__filename)}`, function () {
     const resp = verifyAddressBTC(address);
 
     expect(resp.status).to.eq(VerificationStatus.OK);
+    assert(resp.response.isValid);
   });
 
   it("should confirm valid p2sh address", function () {
@@ -18,6 +19,7 @@ describe(`Address validity btc, ${getTestFile(__filename)}`, function () {
     const resp = verifyAddressBTC(address);
 
     expect(resp.status).to.eq(VerificationStatus.OK);
+    assert(resp.response.isValid);
   });
 
   it("should confirm valid p2wpkh address", function () {
@@ -26,6 +28,7 @@ describe(`Address validity btc, ${getTestFile(__filename)}`, function () {
     const resp = verifyAddressBTC(address);
 
     expect(resp.status).to.eq(VerificationStatus.OK);
+    assert(resp.response.isValid);
   });
 
   it("should confirm valid p2wpkh address all uppercase", function () {
@@ -35,6 +38,7 @@ describe(`Address validity btc, ${getTestFile(__filename)}`, function () {
 
     expect(resp.status).to.eq(VerificationStatus.OK);
     expect(resp.response.standardAddress).to.eq(address);
+    assert(resp.response.isValid);
   });
 
   it("should confirm valid p2wsh address", function () {
@@ -43,6 +47,7 @@ describe(`Address validity btc, ${getTestFile(__filename)}`, function () {
     const resp = verifyAddressBTC(address);
 
     expect(resp.status).to.eq(VerificationStatus.OK);
+    assert(resp.response.isValid);
   });
 
   it("should confirm valid p2tr address", function () {
@@ -51,6 +56,7 @@ describe(`Address validity btc, ${getTestFile(__filename)}`, function () {
     const resp = verifyAddressBTC(address);
 
     expect(resp.status).to.eq(VerificationStatus.OK);
+    assert(resp.response.isValid);
   });
 
   it("should confirm valid p2tr address 2", function () {
@@ -59,6 +65,7 @@ describe(`Address validity btc, ${getTestFile(__filename)}`, function () {
     const resp = verifyAddressBTC(address);
 
     expect(resp.status).to.eq(VerificationStatus.OK);
+    assert(resp.response.isValid);
   });
 
   it("should confirm", function () {
@@ -67,6 +74,7 @@ describe(`Address validity btc, ${getTestFile(__filename)}`, function () {
     const resp = verifyAddressBTC(address);
 
     expect(resp.status).to.eq(VerificationStatus.OK);
+    assert(resp.response.isValid);
   });
 
   it("should not confirm random string", function () {
@@ -74,7 +82,8 @@ describe(`Address validity btc, ${getTestFile(__filename)}`, function () {
 
     const resp = verifyAddressBTC(address);
 
-    expect(resp.status).to.eq(VerificationStatus.NOT_CONFIRMED);
+    expect(resp.status).to.eq(VerificationStatus.OK);
+    assert(!resp.response.isValid);
   });
 
   it("should not confirm invalid p2pkh address", function () {
@@ -82,7 +91,8 @@ describe(`Address validity btc, ${getTestFile(__filename)}`, function () {
 
     const resp = verifyAddressBTC(address);
 
-    expect(resp.status).to.eq(VerificationStatus.NOT_CONFIRMED);
+    expect(resp.status).to.eq(VerificationStatus.OK);
+    assert(!resp.response.isValid);
   });
 
   it("should not confirm invalid p2sh address", function () {
@@ -90,7 +100,8 @@ describe(`Address validity btc, ${getTestFile(__filename)}`, function () {
 
     const resp = verifyAddressBTC(address);
 
-    expect(resp.status).to.eq(VerificationStatus.NOT_CONFIRMED);
+    expect(resp.status).to.eq(VerificationStatus.OK);
+    assert(!resp.response.isValid);
   });
 
   it("should not confirm invalid p2wsh address", function () {
@@ -98,7 +109,8 @@ describe(`Address validity btc, ${getTestFile(__filename)}`, function () {
 
     const resp = verifyAddressBTC(address);
 
-    expect(resp.status).to.eq(VerificationStatus.NOT_CONFIRMED);
+    expect(resp.status).to.eq(VerificationStatus.OK);
+    assert(!resp.response.isValid);
   });
 
   it("should not confirm invalid length version 0", function () {
@@ -106,7 +118,8 @@ describe(`Address validity btc, ${getTestFile(__filename)}`, function () {
 
     const resp = verifyAddressBTC(address);
 
-    expect(resp.status).to.eq(VerificationStatus.NOT_CONFIRMED);
+    expect(resp.status).to.eq(VerificationStatus.OK);
+    assert(!resp.response.isValid);
   });
 
   it("should not confirm valid mixedcase p2wsh address", function () {
@@ -114,7 +127,8 @@ describe(`Address validity btc, ${getTestFile(__filename)}`, function () {
 
     const resp = verifyAddressBTC(address);
 
-    expect(resp.status).to.eq(VerificationStatus.NOT_CONFIRMED);
+    expect(resp.status).to.eq(VerificationStatus.OK);
+    assert(!resp.response.isValid);
   });
 
   it("should not confirm version 0 address with new checksum", function () {
@@ -122,7 +136,8 @@ describe(`Address validity btc, ${getTestFile(__filename)}`, function () {
 
     const resp = verifyAddressBTC(address);
 
-    expect(resp.status).to.eq(VerificationStatus.NOT_CONFIRMED);
+    expect(resp.status).to.eq(VerificationStatus.OK);
+    assert(!resp.response.isValid);
   });
 
   it("should not confirm address with zero padding of more than 4 bits", function () {
@@ -130,7 +145,8 @@ describe(`Address validity btc, ${getTestFile(__filename)}`, function () {
 
     const resp = verifyAddressBTC(address);
 
-    expect(resp.status).to.eq(VerificationStatus.NOT_CONFIRMED);
+    expect(resp.status).to.eq(VerificationStatus.OK);
+    assert(!resp.response.isValid);
   });
 
   it("should not confirm version 1 address with old checksum", function () {
@@ -138,7 +154,8 @@ describe(`Address validity btc, ${getTestFile(__filename)}`, function () {
 
     const resp = verifyAddressBTC(address);
 
-    expect(resp.status).to.eq(VerificationStatus.NOT_CONFIRMED);
+    expect(resp.status).to.eq(VerificationStatus.OK);
+    assert(!resp.response.isValid);
   });
 
   it("should not confirm segwit address with higher version", function () {
@@ -146,7 +163,8 @@ describe(`Address validity btc, ${getTestFile(__filename)}`, function () {
 
     const resp = verifyAddressBTC(address);
 
-    expect(resp.status).to.eq(VerificationStatus.NOT_CONFIRMED);
+    expect(resp.status).to.eq(VerificationStatus.OK);
+    assert(!resp.response.isValid);
   });
 
   it("should not confirm testnet segwit address", function () {
@@ -154,6 +172,7 @@ describe(`Address validity btc, ${getTestFile(__filename)}`, function () {
 
     const resp = verifyAddressBTC(address);
 
-    expect(resp.status).to.eq(VerificationStatus.NOT_CONFIRMED);
+    expect(resp.status).to.eq(VerificationStatus.OK);
+    assert(!resp.response.isValid);
   });
 });

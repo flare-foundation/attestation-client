@@ -1,7 +1,7 @@
 {
   "name": "EVMTransaction",
-  "fullComment": " @custom:name EVMTransaction\n @custom:id 0x06\n @custom:supported ETH, FLR, SGB, testETH, testFLR, testSGB\n @author Flare\n @notice The purpose of this type is to relay transactions from an evm chain to FLARE chain.\n This type is only relevant for the evm-compatible chains.\n @custom:verification If transaction with `transactionId` is contained a block on main branch with at least `requiredConfirmations`, the specified data is relayed.\n If an indicated event does not exist, the request is rejected.\n @custom:lut `timestamp`",
-  "description": "The purpose of this type is to relay transactions from an evm chain to FLARE chain.\n This type is only relevant for the evm-compatible chains.",
+  "fullComment": " @custom:name EVMTransaction\n @custom:id 0x06\n @custom:supported ETH, FLR, SGB, testETH, testFLR, testSGB\n @author Flare\n @notice A relay of a transaction from an EVM chain.\n This type is only relevant for EVM-compatible chains.\n @custom:verification If a transaction with the `transactionId` is in a block on the main branch with at least `requiredConfirmations`, the specified data is relayed.\n If an indicated event does not exist, the request is rejected.\n @custom:lut `timestamp`",
+  "description": "A relay of a transaction from an EVM chain.\n This type is only relevant for EVM-compatible chains.",
   "supported": [
     "ETH",
     "FLR",
@@ -10,7 +10,7 @@
     "testFLR",
     "testSGB"
   ],
-  "verification": "If transaction with `transactionId` is contained a block on main branch with at least `requiredConfirmations`, the specified data is relayed.\n If an indicated event does not exist, the request is rejected.",
+  "verification": "If a transaction with the `transactionId` is in a block on the main branch with at least `requiredConfirmations`, the specified data is relayed.\n If an indicated event does not exist, the request is rejected.\n ",
   "lut": "`timestamp`",
   "proof": {
     "name": "Proof",
@@ -38,25 +38,25 @@
     "description": "Toplevel request",
     "above": "",
     "below": "",
-    "fullComment": " @notice Toplevel request\n @param attestationType Attestation type id as defined for each attestation type on [this repo](https://gitlab.com/flarenetwork/state-connector-protocol/)\n @param sourceId  Id of the data source.\n @param messageIntegrityCode `MessageIntegrityCode` that is derived from the expected response as defined [here](/specs/attestations/hash-MIC.md#message-integrity-code).\n @param requestBody Data defining the request. Type (struct) and interpretation is determined by the `attestationType`.",
+    "fullComment": " @notice Toplevel request\n @param attestationType ID of the attestation type.\n @param sourceId  ID of the data source.\n @param messageIntegrityCode `MessageIntegrityCode` that is derived from the expected response.\n @param requestBody Data defining the request. Type (struct) and interpretation is determined by the `attestationType`.",
     "params": [
       {
         "name": "attestationType",
         "type": "bytes32",
         "typeSimple": "bytes32",
-        "comment": "Attestation type id as defined for each attestation type on [this repo](https://gitlab.com/flarenetwork/state-connector-protocol/)"
+        "comment": "ID of the attestation type."
       },
       {
         "name": "sourceId",
         "type": "bytes32",
         "typeSimple": "bytes32",
-        "comment": "Id of the data source."
+        "comment": "ID of the data source."
       },
       {
         "name": "messageIntegrityCode",
         "type": "bytes32",
         "typeSimple": "bytes32",
-        "comment": "`MessageIntegrityCode` that is derived from the expected response as defined [here](/specs/attestations/hash-MIC.md#message-integrity-code)."
+        "comment": "`MessageIntegrityCode` that is derived from the expected response."
       },
       {
         "name": "requestBody",
@@ -71,7 +71,7 @@
     "description": "Toplevel response",
     "above": "",
     "below": "",
-    "fullComment": " @notice Toplevel response\n @param attestationType Extracted from the request.\n @param sourceId Extracted from the request.\n @param votingRound The id of the state connector round in which the request was considered.\n @param lowestUsedTimestamp The lowest timestamp used to generate the response.\n @param requestBody Extracted from the request.\n @param responseBody Data defining the response. The verification rules for the construction of the response body and the type are defined per specific `attestationType`.",
+    "fullComment": " @notice Toplevel response\n @param attestationType Extracted from the request.\n @param sourceId Extracted from the request.\n @param votingRound The ID of the State Connector round in which the request was considered.\n @param lowestUsedTimestamp The lowest timestamp used to generate the response.\n @param requestBody Extracted from the request.\n @param responseBody Data defining the response. The verification rules for the construction of the response body and the type are defined per specific `attestationType`.",
     "params": [
       {
         "name": "attestationType",
@@ -89,7 +89,7 @@
         "name": "votingRound",
         "type": "uint64",
         "typeSimple": "uint64",
-        "comment": "The id of the state connector round in which the request was considered."
+        "comment": "The ID of the State Connector round in which the request was considered."
       },
       {
         "name": "lowestUsedTimestamp",
@@ -116,7 +116,7 @@
     "description": "Request body for EVM transaction attestation type",
     "above": "",
     "below": "Note that events (logs) are indexed in block not in each transaction. The contract that uses the attestation should specify the order of event logs as needed and the requestor should sort `logIndices`\n with respect to the set specifications. If possible, the contact should only require one `logIndex`.",
-    "fullComment": " @notice Request body for EVM transaction attestation type\n @custom:below Note that events (logs) are indexed in block not in each transaction. The contract that uses the attestation should specify the order of event logs as needed and the requestor should sort `logIndices`\n with respect to the set specifications. If possible, the contact should only require one `logIndex`.\n @param transactionHash Hash of the transaction(transactionHash).\n @param requiredConfirmations The height at which a block is considered confirmed by the requestor.\n @param provideInput If true, \"input\" field is included in the response.\n @param listEvents If true, events indicated by `logIndices` are included in the response. Otherwise, no events are included in the response.\n @param logIndices If listEvents is false, this should be an empty list, otherwise, the request is rejected. If listEvents is true, this is the list of indices (logIndex) of the events to be relayed (sorted by the requestor). The array should contain at most 50 indices. If empty, it indicates all events in order capped by 50.",
+    "fullComment": " @notice Request body for EVM transaction attestation type\n @custom:below Note that events (logs) are indexed in block not in each transaction. The contract that uses the attestation should specify the order of event logs as needed and the requestor should sort `logIndices`\n with respect to the set specifications. If possible, the contact should only require one `logIndex`.\n @param transactionHash Hash of the transaction(transactionHash).\n @param requiredConfirmations The height at which a block is considered confirmed by the requestor.\n @param provideInput If true, \"input\" field is included in the response.\n @param listEvents If true, events indicated by `logIndices` are included in the response. Otherwise, no events are included in the response.\n @param logIndices If `listEvents` is `false`, this should be an empty list, otherwise, the request is rejected. If `listEvents` is `true`, this is the list of indices (logIndex) of the events to be relayed (sorted by the requestor). The array should contain at most 50 indices. If empty, it indicates all events in order capped by 50.",
     "params": [
       {
         "name": "transactionHash",
@@ -146,7 +146,7 @@
         "name": "logIndices",
         "type": "uint32[]",
         "typeSimple": "uint32[]",
-        "comment": "If listEvents is false, this should be an empty list, otherwise, the request is rejected. If listEvents is true, this is the list of indices (logIndex) of the events to be relayed (sorted by the requestor). The array should contain at most 50 indices. If empty, it indicates all events in order capped by 50."
+        "comment": "If `listEvents` is `false`, this should be an empty list, otherwise, the request is rejected. If `listEvents` is `true`, this is the list of indices (logIndex) of the events to be relayed (sorted by the requestor). The array should contain at most 50 indices. If empty, it indicates all events in order capped by 50."
       }
     ]
   },
@@ -154,8 +154,8 @@
     "name": "ResponseBody",
     "description": "Response body for EVM transaction attestation type",
     "above": "",
-    "below": "Some field description are elaborated [here](https://ethereum.org/en/developers/docs/apis/json-rpc/#eth_gettransactionbyhash).",
-    "fullComment": " @notice Response body for EVM transaction attestation type\n @custom:below Some field description are elaborated [here](https://ethereum.org/en/developers/docs/apis/json-rpc/#eth_gettransactionbyhash).\n @param blockNumber Number of the block in which the transaction is included.\n @param timestamp Timestamp of the block in which the transaction is included.\n @param sourceAddress The address (from) that signed the transaction.\n @param isDeployment Indicate whether it is a contract creation transaction.\n @param receivingAddress The address (to) of the receiver of the initial transaction. Zero address if `isDeployment` is true.\n @param value The value transferred by the initial transaction in wei.\n @param input If `provideInput`, this is the data send along with the initial transaction. Otherwise it is the default value `0x00`.\n @param status Status of the transaction 1 - success, 0 - failure.\n @param events If `listEvents` is true, an array of the requested events. Sorted by the logIndex in the same order as `logIndices`. Otherwise, an empty array.",
+    "below": "The fields are in line with [transaction](https://ethereum.org/en/developers/docs/apis/json-rpc/#eth_gettransactionbyhash) provided by EVM node.",
+    "fullComment": " @notice Response body for EVM transaction attestation type\n @custom:below The fields are in line with [transaction](https://ethereum.org/en/developers/docs/apis/json-rpc/#eth_gettransactionbyhash) provided by EVM node.\n @param blockNumber Number of the block in which the transaction is included.\n @param timestamp Timestamp of the block in which the transaction is included.\n @param sourceAddress The address (from) that signed the transaction.\n @param isDeployment Indicate whether it is a contract creation transaction.\n @param receivingAddress The address (to) of the receiver of the initial transaction. Zero address if `isDeployment` is `true`.\n @param value The value transferred by the initial transaction in wei.\n @param input If `provideInput`, this is the data send along with the initial transaction. Otherwise it is the default value `0x00`.\n @param status Status of the transaction 1 - success, 0 - failure.\n @param events If `listEvents` is `true`, an array of the requested events. Sorted by the logIndex in the same order as `logIndices`. Otherwise, an empty array.",
     "params": [
       {
         "name": "blockNumber",
@@ -185,7 +185,7 @@
         "name": "receivingAddress",
         "type": "address",
         "typeSimple": "address",
-        "comment": "The address (to) of the receiver of the initial transaction. Zero address if `isDeployment` is true."
+        "comment": "The address (to) of the receiver of the initial transaction. Zero address if `isDeployment` is `true`."
       },
       {
         "name": "value",
@@ -209,7 +209,7 @@
         "name": "events",
         "type": "struct EVMTransaction.Event[]",
         "typeSimple": "Event[]",
-        "comment": "If `listEvents` is true, an array of the requested events. Sorted by the logIndex in the same order as `logIndices`. Otherwise, an empty array."
+        "comment": "If `listEvents` is `true`, an array of the requested events. Sorted by the logIndex in the same order as `logIndices`. Otherwise, an empty array."
       }
     ]
   },
@@ -219,8 +219,8 @@
       "name": "Event",
       "description": "Event log record",
       "above": "An `Event` is a struct with the following fields:",
-      "below": "For additional description of event log, see [here](https://ethereum.org/en/developers/docs/apis/json-rpc/#eth_getfilterchanges).",
-      "fullComment": " @notice Event log record\n @custom:above An `Event` is a struct with the following fields:\n @custom:below For additional description of event log, see [here](https://ethereum.org/en/developers/docs/apis/json-rpc/#eth_getfilterchanges).\n @param logIndex The consecutive number of the event in block.\n @param emitterAddress The address of the contract that emitted the event.\n @param topics An array of up to 4 32-byte strings of indexed log arguments. The first string is the signature of the event.\n @param data Concatenated 32-byte strings of non-indexed log arguments. At least 32 bytes long.\n @param removed It is true if log was removed due to a chain reorganization and false if it is a valid log.",
+      "below": "The fields are in line with [EVM event logs](https://ethereum.org/en/developers/docs/apis/json-rpc/#eth_getfilterchanges).",
+      "fullComment": " @notice Event log record\n @custom:above An `Event` is a struct with the following fields:\n @custom:below The fields are in line with [EVM event logs](https://ethereum.org/en/developers/docs/apis/json-rpc/#eth_getfilterchanges).\n @param logIndex The consecutive number of the event in block.\n @param emitterAddress The address of the contract that emitted the event.\n @param topics An array of up to four 32-byte strings of indexed log arguments.\n @param data Concatenated 32-byte strings of non-indexed log arguments. At least 32 bytes long.\n @param removed It is `true` if the log was removed due to a chain reorganization and `false` if it is a valid log.",
       "params": [
         {
           "name": "logIndex",
@@ -238,7 +238,7 @@
           "name": "topics",
           "type": "bytes32[]",
           "typeSimple": "bytes32[]",
-          "comment": "An array of up to 4 32-byte strings of indexed log arguments. The first string is the signature of the event."
+          "comment": "An array of up to four 32-byte strings of indexed log arguments."
         },
         {
           "name": "data",
@@ -250,7 +250,7 @@
           "name": "removed",
           "type": "bool",
           "typeSimple": "bool",
-          "comment": "It is true if log was removed due to a chain reorganization and false if it is a valid log."
+          "comment": "It is `true` if the log was removed due to a chain reorganization and `false` if it is a valid log."
         }
       ]
     }

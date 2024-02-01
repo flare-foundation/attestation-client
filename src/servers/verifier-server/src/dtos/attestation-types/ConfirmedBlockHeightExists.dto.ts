@@ -192,11 +192,11 @@ export class ConfirmedBlockHeightExists_ResponseBody {
     blockTimestamp: string;
 
     /**
-     * The depth at which a block is considered confirmed depending on the chain. All attestation clients must agree on this number.
+     * The depth at which a block is considered confirmed depending on the chain. All attestation providers must agree on this number.
      */
     @Validate(IsUnsignedIntLike)
     @ApiProperty({
-        description: `The depth at which a block is considered confirmed depending on the chain. All attestation clients must agree on this number.`,
+        description: `The depth at which a block is considered confirmed depending on the chain. All attestation providers must agree on this number.`,
         example: "123",
     })
     numberOfConfirmations: string;
@@ -231,13 +231,10 @@ export class ConfirmedBlockHeightExists_RequestBody {
     blockNumber: string;
 
     /**
-     * The period in seconds for sampling. The range is from `blockNumber` to the blockNumber of the first block more than queryWindow before the `blockNumber`.
+     * The length of the period in which the block production rate is to be computed.
      */
     @Validate(IsUnsignedIntLike)
-    @ApiProperty({
-        description: `The period in seconds for sampling. The range is from 'blockNumber' to the blockNumber of the first block more than queryWindow before the 'blockNumber'.`,
-        example: "123",
-    })
+    @ApiProperty({ description: `The length of the period in which the block production rate is to be computed.`, example: "123" })
     queryWindow: string;
 }
 export class ConfirmedBlockHeightExists_Request {
@@ -246,25 +243,25 @@ export class ConfirmedBlockHeightExists_Request {
     }
 
     /**
-     * Id of the attestation type.
+     * ID of the attestation type.
      */
     @Validate(IsHash32)
-    @ApiProperty({ description: `Id of the attestation type.`, example: "0x436f6e6669726d6564426c6f636b486569676874457869737473000000000000" })
+    @ApiProperty({ description: `ID of the attestation type.`, example: "0x436f6e6669726d6564426c6f636b486569676874457869737473000000000000" })
     attestationType: string;
 
     /**
-     * Id of the data source.
+     * ID of the data source.
      */
     @Validate(IsHash32)
-    @ApiProperty({ description: `Id of the data source.`, example: "0x4254430000000000000000000000000000000000000000000000000000000000" })
+    @ApiProperty({ description: `ID of the data source.`, example: "0x4254430000000000000000000000000000000000000000000000000000000000" })
     sourceId: string;
 
     /**
-     * `MessageIntegrityCode` that is derived from the expected response as defined [here](/specs/attestations/hash-MIC.md#message-integrity-code).
+     * `MessageIntegrityCode` that is derived from the expected response as defined.
      */
     @Validate(IsHash32)
     @ApiProperty({
-        description: `'MessageIntegrityCode' that is derived from the expected response as defined [here](/specs/attestations/hash-MIC.md#message-integrity-code).`,
+        description: `'MessageIntegrityCode' that is derived from the expected response as defined.`,
         example: "0x0000000000000000000000000000000000000000000000000000000000000000",
     })
     messageIntegrityCode: string;
@@ -300,10 +297,10 @@ export class ConfirmedBlockHeightExists_Response {
     sourceId: string;
 
     /**
-     * The id of the state connector round in which the request was considered.
+     * The ID of the State Connector round in which the request was considered.
      */
     @Validate(IsUnsignedIntLike)
-    @ApiProperty({ description: `The id of the state connector round in which the request was considered.`, example: "123" })
+    @ApiProperty({ description: `The ID of the State Connector round in which the request was considered.`, example: "123" })
     votingRound: string;
 
     /**

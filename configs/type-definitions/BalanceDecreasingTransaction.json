@@ -1,7 +1,7 @@
 {
   "name": "BalanceDecreasingTransaction",
-  "fullComment": " @custom:name BalanceDecreasingTransaction\n @custom:id 0x02\n @custom:supported BTC, DOGE, XRP, testBTC, testDOGE, testXRP\n @author Flare\n @notice The intention of this attestation type is to detect a transaction that either decreases the balance for some address or is signed by the source address.\n Such attestation could prove a violation of an agreement and give grounds to liquidate some funds locked by a smart contract on Flare.\n A transaction is considered “balance decreasing” for the address, if the balance after the transaction is lower than before or the address is among the signers of the transaction (even if its balance is greater than before the transaction).\n @custom:verification Based on transaction id, the transaction is fetched from the API of the source blockchain node or relevant indexer.\n If the transaction cannot be fetched or the transaction is in a block that does not have sufficient [number of confirmations](/specs/attestations/configs.md#finalityconfirmation), the attestation request is rejected.\n Once the transaction is received the response fields are extracted if the transaction is balance decreasing for the indicated address.\n Some of the request and response fields are chain specific as described below.\n The fields can be computed with a help of [balance decreasing summary](/specs/attestations/external-chains/transactions.md#balance-decreasing-summary).\n ### UTXO (Bitcoin and Dogecoin)\n - `sourceAddressIndicator` is the the index of the transaction input in hex padded to a 0x prefixed 32-byte string.\n If the indicated input does not exist or the indicated input does not have the address, the attestation request is rejected.\n The `sourceAddress` is the address of the indicated transaction input.\n - `spentAmount` is the sum of values of all inputs with sourceAddress minus the sum of all outputs with `sourceAddress`.\n Can be negative.\n ### XRPL\n - `sourceAddressIndicator` is the [standard address hash](/attestation-objects/standardAddressHash.md) of the address whose balance has been decreased.\n If the address indicated by `sourceAddressIndicator` is not among the signers of the transaction and the balance of the address was not lowered in the transaction, the attestation request is rejected.\n - `spentAmount` is the difference between the balance of the indicated address after and before the transaction.\n Can be negative.\n @custom:lut `blockTimestamp`.",
-  "description": "The intention of this attestation type is to detect a transaction that either decreases the balance for some address or is signed by the source address.\n Such attestation could prove a violation of an agreement and give grounds to liquidate some funds locked by a smart contract on Flare.\n A transaction is considered “balance decreasing” for the address, if the balance after the transaction is lower than before or the address is among the signers of the transaction (even if its balance is greater than before the transaction).",
+  "fullComment": " @custom:name BalanceDecreasingTransaction\n @custom:id 0x02\n @custom:supported BTC, DOGE, XRP, testBTC, testDOGE, testXRP\n @author Flare\n @notice A detection of a transaction that either decreases the balance for some address or is signed by the source address.\n Such an attestation could prove a violation of an agreement and therefore provides grounds to liquidate some funds locked by a smart contract on Flare.\n A transaction is considered “balance decreasing” for the address, if the balance after the transaction is lower than before or the address is among the signers of the transaction (even if its balance is greater than before the transaction).\n @custom:verification The transaction with `transactionId` is fetched from the API of the source blockchain node or relevant indexer.\n If the transaction cannot be fetched or the transaction is in a block that does not have a sufficient [number of confirmations](/specs/attestations/configs.md#finalityconfirmation), the attestation request is rejected.\n Once the transaction is received, the response fields are extracted if the transaction is balance decreasing for the indicated address.\n Some of the request and response fields are chain specific as described below.\n The fields can be computed with the help of a [balance decreasing summary](/specs/attestations/external-chains/transactions.md#balance-decreasing-summary).\n ### UTXO (Bitcoin and Dogecoin)\n - `sourceAddressIndicator` is the the index of the transaction input in hex padded to a 0x prefixed 32-byte string.\n If the indicated input does not exist or the indicated input does not have the address, the attestation request is rejected.\n The `sourceAddress` is the address of the indicated transaction input.\n - `spentAmount` is the sum of values of all inputs with sourceAddress minus the sum of all outputs with `sourceAddress`.\n Can be negative.\n - `blockTimestamp` is the mediantime of a block.\n ### XRPL\n - `sourceAddressIndicator` is the [standard address hash](/specs/attestations/external-chains/standardAddress.md#standard-address-hash) of the address whose balance has been decreased.\n If the address indicated by `sourceAddressIndicator` is not among the signers of the transaction and the balance of the address was not lowered in the transaction, the attestation request is rejected.\n - `spentAmount` is the difference between the balance of the indicated address after and before the transaction.\n Can be negative.\n - `blockTimestamp` is the close_time of a ledger converted to unix time.\n @custom:lut `blockTimestamp`",
+  "description": "A detection of a transaction that either decreases the balance for some address or is signed by the source address.\n Such an attestation could prove a violation of an agreement and therefore provides grounds to liquidate some funds locked by a smart contract on Flare.\n A transaction is considered “balance decreasing” for the address, if the balance after the transaction is lower than before or the address is among the signers of the transaction (even if its balance is greater than before the transaction).",
   "supported": [
     "BTC",
     "DOGE",
@@ -10,8 +10,8 @@
     "testDOGE",
     "testXRP"
   ],
-  "verification": "Based on transaction id, the transaction is fetched from the API of the source blockchain node or relevant indexer.\n If the transaction cannot be fetched or the transaction is in a block that does not have sufficient [number of confirmations](/specs/attestations/configs.md#finalityconfirmation), the attestation request is rejected.\n Once the transaction is received the response fields are extracted if the transaction is balance decreasing for the indicated address.\n Some of the request and response fields are chain specific as described below.\n The fields can be computed with a help of [balance decreasing summary](/specs/attestations/external-chains/transactions.md#balance-decreasing-summary).\n ### UTXO (Bitcoin and Dogecoin)\n - `sourceAddressIndicator` is the the index of the transaction input in hex padded to a 0x prefixed 32-byte string.\n If the indicated input does not exist or the indicated input does not have the address, the attestation request is rejected.\n The `sourceAddress` is the address of the indicated transaction input.\n - `spentAmount` is the sum of values of all inputs with sourceAddress minus the sum of all outputs with `sourceAddress`.\n Can be negative.\n ### XRPL\n - `sourceAddressIndicator` is the [standard address hash](/attestation-objects/standardAddressHash.md) of the address whose balance has been decreased.\n If the address indicated by `sourceAddressIndicator` is not among the signers of the transaction and the balance of the address was not lowered in the transaction, the attestation request is rejected.\n - `spentAmount` is the difference between the balance of the indicated address after and before the transaction.\n Can be negative.",
-  "lut": "`blockTimestamp`.",
+  "verification": "The transaction with `transactionId` is fetched from the API of the source blockchain node or relevant indexer.\n If the transaction cannot be fetched or the transaction is in a block that does not have a sufficient [number of confirmations](/specs/attestations/configs.md#finalityconfirmation), the attestation request is rejected.\n Once the transaction is received, the response fields are extracted if the transaction is balance decreasing for the indicated address.\n Some of the request and response fields are chain specific as described below.\n The fields can be computed with the help of a [balance decreasing summary](/specs/attestations/external-chains/transactions.md#balance-decreasing-summary).\n ### UTXO (Bitcoin and Dogecoin)\n - `sourceAddressIndicator` is the the index of the transaction input in hex padded to a 0x prefixed 32-byte string.\n If the indicated input does not exist or the indicated input does not have the address, the attestation request is rejected.\n The `sourceAddress` is the address of the indicated transaction input.\n - `spentAmount` is the sum of values of all inputs with sourceAddress minus the sum of all outputs with `sourceAddress`.\n Can be negative.\n - `blockTimestamp` is the mediantime of a block.\n ### XRPL\n - `sourceAddressIndicator` is the [standard address hash](/specs/attestations/external-chains/standardAddress.md#standard-address-hash) of the address whose balance has been decreased.\n If the address indicated by `sourceAddressIndicator` is not among the signers of the transaction and the balance of the address was not lowered in the transaction, the attestation request is rejected.\n - `spentAmount` is the difference between the balance of the indicated address after and before the transaction.\n Can be negative.\n - `blockTimestamp` is the close_time of a ledger converted to unix time.\n ",
+  "lut": "`blockTimestamp`",
   "proof": {
     "name": "Proof",
     "description": "Toplevel proof",
@@ -38,25 +38,25 @@
     "description": "Toplevel request",
     "above": "",
     "below": "",
-    "fullComment": " @notice Toplevel request\n @param attestationType Id of the attestation type.\n @param sourceId Id of the data source.\n @param messageIntegrityCode `MessageIntegrityCode` that is derived from the expected response as defined [here](/specs/attestations/hash-MIC.md#message-integrity-code).\n @param requestBody Data defining the request. Type (struct) and interpretation is determined by the `attestationType`.",
+    "fullComment": " @notice Toplevel request\n @param attestationType ID of the attestation type.\n @param sourceId ID of the data source.\n @param messageIntegrityCode `MessageIntegrityCode` that is derived from the expected response.\n @param requestBody Data defining the request. Type (struct) and interpretation is determined by the `attestationType`.",
     "params": [
       {
         "name": "attestationType",
         "type": "bytes32",
         "typeSimple": "bytes32",
-        "comment": "Id of the attestation type."
+        "comment": "ID of the attestation type."
       },
       {
         "name": "sourceId",
         "type": "bytes32",
         "typeSimple": "bytes32",
-        "comment": "Id of the data source."
+        "comment": "ID of the data source."
       },
       {
         "name": "messageIntegrityCode",
         "type": "bytes32",
         "typeSimple": "bytes32",
-        "comment": "`MessageIntegrityCode` that is derived from the expected response as defined [here](/specs/attestations/hash-MIC.md#message-integrity-code)."
+        "comment": "`MessageIntegrityCode` that is derived from the expected response."
       },
       {
         "name": "requestBody",
@@ -71,7 +71,7 @@
     "description": "Toplevel response",
     "above": "",
     "below": "",
-    "fullComment": " @notice Toplevel response\n @param attestationType Extracted from the request.\n @param sourceId Extracted from the request.\n @param votingRound The id of the state connector round in which the request was considered. This is a security measure to prevent a collision of attestation hashes.\n @param lowestUsedTimestamp The lowest timestamp used to generate the response.\n @param requestBody Extracted from the request.\n @param responseBody Data defining the response. The verification rules for the construction of the response body and the type are defined per specific `attestationType`.",
+    "fullComment": " @notice Toplevel response\n @param attestationType Extracted from the request.\n @param sourceId Extracted from the request.\n @param votingRound The ID of the State Connector round in which the request was considered. This is a security measure to prevent a collision of attestation hashes.\n @param lowestUsedTimestamp The lowest timestamp used to generate the response.\n @param requestBody Extracted from the request.\n @param responseBody Data defining the response. The verification rules for the construction of the response body and the type are defined per specific `attestationType`.",
     "params": [
       {
         "name": "attestationType",
@@ -89,7 +89,7 @@
         "name": "votingRound",
         "type": "uint64",
         "typeSimple": "uint64",
-        "comment": "The id of the state connector round in which the request was considered. This is a security measure to prevent a collision of attestation hashes."
+        "comment": "The ID of the State Connector round in which the request was considered. This is a security measure to prevent a collision of attestation hashes."
       },
       {
         "name": "lowestUsedTimestamp",
@@ -116,13 +116,13 @@
     "description": "Request body for BalanceDecreasingTransaction attestation type",
     "above": "",
     "below": "",
-    "fullComment": " @notice Request body for BalanceDecreasingTransaction attestation type\n @param transactionId Id of the payment transaction.\n @param sourceAddressIndicator The indicator of the address whose balance has been decreased.",
+    "fullComment": " @notice Request body for BalanceDecreasingTransaction attestation type\n @param transactionId ID of the payment transaction.\n @param sourceAddressIndicator The indicator of the address whose balance has been decreased.",
     "params": [
       {
         "name": "transactionId",
         "type": "bytes32",
         "typeSimple": "bytes32",
-        "comment": "Id of the payment transaction."
+        "comment": "ID of the payment transaction."
       },
       {
         "name": "sourceAddressIndicator",
@@ -137,7 +137,7 @@
     "description": "Response body for BalanceDecreasingTransaction attestation type.",
     "above": "",
     "below": "",
-    "fullComment": " @notice Response body for BalanceDecreasingTransaction attestation type.\n @param blockNumber The number of the block in which the transaction is included.\n @param blockTimestamp The timestamps of the block in which the transaction is included.\n @param sourceAddressHash Standard address hash of the address indicated by the `sourceAddressIndicator`.\n @param spentAmount Amount spent by the source address in minimal units.\n @param standardPaymentReference Standard payment reference of the transaction.",
+    "fullComment": " @notice Response body for BalanceDecreasingTransaction attestation type.\n @param blockNumber The number of the block in which the transaction is included.\n @param blockTimestamp The timestamp of the block in which the transaction is included.\n @param sourceAddressHash Standard address hash of the address indicated by the `sourceAddressIndicator`.\n @param spentAmount Amount spent by the source address in minimal units.\n @param standardPaymentReference Standard payment reference of the transaction.",
     "params": [
       {
         "name": "blockNumber",
@@ -149,7 +149,7 @@
         "name": "blockTimestamp",
         "type": "uint64",
         "typeSimple": "uint64",
-        "comment": "The timestamps of the block in which the transaction is included."
+        "comment": "The timestamp of the block in which the transaction is included."
       },
       {
         "name": "sourceAddressHash",

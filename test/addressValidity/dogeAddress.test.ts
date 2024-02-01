@@ -1,5 +1,5 @@
 import { getTestFile } from "../test-utils/test-utils";
-import { expect } from "chai";
+import { expect, assert } from "chai";
 import { VerificationStatus } from "../../src/verification/attestation-types/attestation-types";
 import { verifyAddressDOGE } from "../../src/servers/verifier-server/src/verification/address-validity/address-validity-doge";
 import { AddressValidity_Request, AddressValidity_RequestBody } from "../../src/servers/verifier-server/src/dtos/attestation-types/AddressValidity.dto";
@@ -13,6 +13,7 @@ describe(`Address validity doge, ${getTestFile(__filename)}`, function () {
     const resp = verifyAddressDOGE(address);
 
     expect(resp.status).to.eq(VerificationStatus.OK);
+    assert(resp.response.isValid);
   });
 
   it("should confirm valid p2sh address 1", function () {
@@ -21,6 +22,7 @@ describe(`Address validity doge, ${getTestFile(__filename)}`, function () {
     const resp = verifyAddressDOGE(address);
 
     expect(resp.status).to.eq(VerificationStatus.OK);
+    assert(resp.response.isValid);
   });
 
   it("should confirm valid p2sh address 1", function () {
@@ -29,6 +31,7 @@ describe(`Address validity doge, ${getTestFile(__filename)}`, function () {
     const resp = verifyAddressDOGE(address);
 
     expect(resp.status).to.eq(VerificationStatus.OK);
+    assert(resp.response.isValid);
   });
 
   it("should not confirm random string", function () {
@@ -36,7 +39,8 @@ describe(`Address validity doge, ${getTestFile(__filename)}`, function () {
 
     const resp = verifyAddressDOGE(address);
 
-    expect(resp.status).to.eq(VerificationStatus.NOT_CONFIRMED);
+    expect(resp.status).to.eq(VerificationStatus.OK);
+    assert(!resp.response.isValid);
   });
 
   it("should not confirm address with invalid character", function () {
@@ -44,7 +48,8 @@ describe(`Address validity doge, ${getTestFile(__filename)}`, function () {
 
     const resp = verifyAddressDOGE(address);
 
-    expect(resp.status).to.eq(VerificationStatus.NOT_CONFIRMED);
+    expect(resp.status).to.eq(VerificationStatus.OK);
+    assert(!resp.response.isValid);
   });
 
   it("should not confirm valid testnet address string", function () {
@@ -52,7 +57,8 @@ describe(`Address validity doge, ${getTestFile(__filename)}`, function () {
 
     const resp = verifyAddressDOGE(address);
 
-    expect(resp.status).to.eq(VerificationStatus.NOT_CONFIRMED);
+    expect(resp.status).to.eq(VerificationStatus.OK);
+    assert(!resp.response.isValid);
   });
 
   it("should not confirm invalid p2sh address 1", function () {
@@ -60,7 +66,8 @@ describe(`Address validity doge, ${getTestFile(__filename)}`, function () {
 
     const resp = verifyAddressDOGE(address);
 
-    expect(resp.status).to.eq(VerificationStatus.NOT_CONFIRMED);
+    expect(resp.status).to.eq(VerificationStatus.OK);
+    assert(!resp.response.isValid);
   });
 
   describe("server functions", function () {

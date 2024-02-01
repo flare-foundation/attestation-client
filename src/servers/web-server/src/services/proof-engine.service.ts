@@ -17,10 +17,12 @@ export class ProofEngineService {
     @InjectEntityManager("attesterDatabase") private manager: EntityManager
   ) {}
 
-  // never expiring cache. Once round data are finalized, they do not change.
-  // cache expires only on process restart.
-  private cache = {};
-  private requestCache = {};
+  // Once round data are finalized, they do not change.
+  // Caches are cleared when their size reaches limit and another round is cached.
+  private cache = new Map<Number, VotingRoundResult[]>();
+  private requestCache = new Map<Number, VotingRoundRequest[]>();
+
+  private CACHE_SIZE_LIMIT = 3000;
 
   /**
    * Returns all vote results for round, if they can be revealed.
@@ -59,6 +61,8 @@ export class ProofEngineService {
       finalResult.push({ roundId, hash, requestBytes, request, response, merkleProof } as VotingRoundResult);
     }
 
+    //check if cache needs to be cleared
+    this.checkCacheLimit(this.cache);
     // cache once finalized
     if (finalResult.length > 0) {
       this.cache[roundId] = finalResult;
@@ -125,6 +129,10 @@ export class ProofEngineService {
     });
 
     let finalResult = result as any as VotingRoundRequest[];
+
+    //check if cache needs to be cleared
+    this.checkCacheLimit(this.requestCache);
+
     // cache once finalized
     if (finalResult.length > 0) {
       this.requestCache[roundId] = finalResult;
@@ -172,5 +180,9 @@ export class ProofEngineService {
       currentBufferNumber,
       latestAvailableRoundId,
     };
+  }
+
+  private checkCacheLimit<K, V>(_cache: Map<K, V>): void {
+    if (_cache.size > this.CACHE_SIZE_LIMIT) _cache.clear();
   }
 }

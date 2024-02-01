@@ -1,9 +1,8 @@
 import base from "base-x";
 import { VerificationStatus } from "../../../../../verification/attestation-types/attestation-types";
-import { VerificationResponse } from "../verification-utils";
 import { AddressValidity_ResponseBody } from "../../dtos/attestation-types/AddressValidity.dto";
-import { standardAddressHash } from "@flarenetwork/mcc";
-import { base58Checksum } from "./utils";
+import { VerificationResponse } from "../verification-utils";
+import { INVALID_ADDRESS_RESPONSE, base58Checksum, validAddressToResponse } from "./utils";
 
 const R_B58_DICT = "rpshnaf39wBUDNEGHJKLM4PQRST7VWXYZ2bcdeCg65jkm8oFqi1tuvAxyz";
 const base58 = base(R_B58_DICT);
@@ -21,19 +20,17 @@ function validCharacters(address: string): boolean {
  */
 export function verifyAddressXRP(address: string, testnet = process.env.TESTNET): VerificationResponse<AddressValidity_ResponseBody> {
   const char = validCharacters(address);
-  if (!char) return { status: VerificationStatus.NOT_CONFIRMED };
+  if (!char) return { status: VerificationStatus.OK, response: INVALID_ADDRESS_RESPONSE };
+
   const decodedAddress = base58.decode(address);
-  if (decodedAddress.length != 25) return { status: VerificationStatus.NOT_CONFIRMED };
+  if (decodedAddress.length != 25) return { status: VerificationStatus.OK, response: INVALID_ADDRESS_RESPONSE };
 
   const checksum = base58Checksum(decodedAddress);
 
-  if (!checksum) return { status: VerificationStatus.NOT_CONFIRMED };
+  if (!checksum) return { status: VerificationStatus.OK, response: INVALID_ADDRESS_RESPONSE };
 
-  if (decodedAddress[0] != 0) return { status: VerificationStatus.NOT_CONFIRMED };
+  if (decodedAddress[0] != 0) return { status: VerificationStatus.OK, response: INVALID_ADDRESS_RESPONSE };
 
-  const response = {
-    standardAddress: address,
-    standardAddressHash: standardAddressHash(address),
-  };
+  const response = validAddressToResponse(address, false);
   return { status: VerificationStatus.OK, response };
 }

@@ -726,8 +726,9 @@ export class Indexer {
       // get chain top block
       this.tipHeight = await this.indexerToClient.getBlockHeightFromClient(`runIndexer2`);
 
-      // change getBlock to getBlockHeader
+      //get next block from what is considered to be the main branch
       let blockNext = await this.indexerToClient.getBlockFromClient(`runIndexer2`, this.indexedHeight + 1);
+      this.indexerToClient.getBlockHeaderFromClient;
 
       // has N+1 confirmation block
       const isNextBlockConfirmed = this.indexedHeight <= this.tipHeight - this.chainConfig.numberOfConfirmations;
@@ -738,6 +739,7 @@ export class Indexer {
 
       // check if N + 1 hash is the same
       if (!isNextBlockConfirmed && !isNextBlockHashChanged) {
+        //next block is not confirmed but it has not changed
         await sleepMs(this.config.blockCollectTimeMs);
         continue;
       }

@@ -192,10 +192,10 @@ export class BalanceDecreasingTransaction_ResponseBody {
     blockNumber: string;
 
     /**
-     * The timestamps of the block in which the transaction is included.
+     * The timestamp of the block in which the transaction is included.
      */
     @Validate(IsUnsignedIntLike)
-    @ApiProperty({ description: `The timestamps of the block in which the transaction is included.`, example: "123" })
+    @ApiProperty({ description: `The timestamp of the block in which the transaction is included.`, example: "123" })
     blockTimestamp: string;
 
     /**
@@ -231,10 +231,10 @@ export class BalanceDecreasingTransaction_RequestBody {
     }
 
     /**
-     * Id of the payment transaction.
+     * ID of the payment transaction.
      */
     @Validate(IsHash32)
-    @ApiProperty({ description: `Id of the payment transaction.`, example: "0x0000000000000000000000000000000000000000000000000000000000000000" })
+    @ApiProperty({ description: `ID of the payment transaction.`, example: "0x0000000000000000000000000000000000000000000000000000000000000000" })
     transactionId: string;
 
     /**
@@ -253,25 +253,25 @@ export class BalanceDecreasingTransaction_Request {
     }
 
     /**
-     * Id of the attestation type.
+     * ID of the attestation type.
      */
     @Validate(IsHash32)
-    @ApiProperty({ description: `Id of the attestation type.`, example: "0x42616c616e636544656372656173696e675472616e73616374696f6e00000000" })
+    @ApiProperty({ description: `ID of the attestation type.`, example: "0x42616c616e636544656372656173696e675472616e73616374696f6e00000000" })
     attestationType: string;
 
     /**
-     * Id of the data source.
+     * ID of the data source.
      */
     @Validate(IsHash32)
-    @ApiProperty({ description: `Id of the data source.`, example: "0x4254430000000000000000000000000000000000000000000000000000000000" })
+    @ApiProperty({ description: `ID of the data source.`, example: "0x4254430000000000000000000000000000000000000000000000000000000000" })
     sourceId: string;
 
     /**
-     * `MessageIntegrityCode` that is derived from the expected response as defined [here](/specs/attestations/hash-MIC.md#message-integrity-code).
+     * `MessageIntegrityCode` that is derived from the expected response.
      */
     @Validate(IsHash32)
     @ApiProperty({
-        description: `'MessageIntegrityCode' that is derived from the expected response as defined [here](/specs/attestations/hash-MIC.md#message-integrity-code).`,
+        description: `'MessageIntegrityCode' that is derived from the expected response.`,
         example: "0x0000000000000000000000000000000000000000000000000000000000000000",
     })
     messageIntegrityCode: string;
@@ -307,11 +307,11 @@ export class BalanceDecreasingTransaction_Response {
     sourceId: string;
 
     /**
-     * The id of the state connector round in which the request was considered. This is a security measure to prevent a collision of attestation hashes.
+     * The ID of the State Connector round in which the request was considered. This is a security measure to prevent a collision of attestation hashes.
      */
     @Validate(IsUnsignedIntLike)
     @ApiProperty({
-        description: `The id of the state connector round in which the request was considered. This is a security measure to prevent a collision of attestation hashes.`,
+        description: `The ID of the State Connector round in which the request was considered. This is a security measure to prevent a collision of attestation hashes.`,
         example: "123",
     })
     votingRound: string;

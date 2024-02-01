@@ -11,7 +11,7 @@ const ERROR_LOADING_CREDENTIALS_KEY = 504;
 const DEFAULT_CREDENTIAL_KEY_FILENAME = "../attestation-suite-config/credentials.key";
 
 /**
- * get secret from the Google Cloud Secret Manager Servis
+ * get secret from the Google Cloud Secret Manager Service
  * @param name address of the secret
  * @returns
  */
@@ -39,8 +39,8 @@ export async function getSecretGoogleCloud(name: string) {
  * get secret by provider
  * supported providers:
  * - GoogleCloudSecretManager - address is GoogleCloudSecretManager secret address
- * - direct - addres is plain secret *don't use that for anything else but testing*
- * - env - addres is eviroment variable name *don't use that for anything else but testing*
+ * - direct - address is plain secret *don't use that for anything else but testing*
+ * - env - address is environment variable name *don't use that for anything else but testing*
  * @param provider provider name
  * @param address secret address
  * @param terminateOnError
@@ -75,7 +75,7 @@ export async function getSecretByProvider(provider: string, address: string, ter
  * Address example:
  * -@param address="GoogleCloudSecretManager:projects/flare-network-staging/secrets/data-provider-2_heartbeat-daemon_accountPrivateKey/versions/latest"
  * -@param address="direct:testPassword"
- * -@param address="env:ENVIROMENT_VAR_NAME"
+ * -@param address="env:ENVIRONMENT_VAR_NAME"
  *
  * @param address
  * @param terminateOnError
@@ -107,7 +107,7 @@ function readAddressFromFile(filename: string): string {
  * get raw credentials key from
  * (1) `CREDENTIALS_KEY` env
  * (2) load from `CREDENTIALS_KEY_FILE` env variables file
- * (3) load from `../attesttation-suite-config/credential.key`
+ * (3) load from `../attestation-suite-config/credential.key`
  *
  * @returns
  */

@@ -35,6 +35,7 @@ function randomBodies(fullRandom = false) {
     } as AddressValidity_RequestBody;
 
     const responseBody = {
+        isValid: randSol("bool", "AddressValidity" + (fullRandom ? Math.random().toString() : "")),
         standardAddress: randSol("string", "AddressValidity" + (fullRandom ? Math.random().toString() : "")),
         standardAddressHash: randSol("bytes32", "AddressValidity" + (fullRandom ? Math.random().toString() : "")),
     } as AddressValidity_ResponseBody;

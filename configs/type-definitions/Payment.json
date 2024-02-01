@@ -1,7 +1,7 @@
 {
   "name": "Payment",
-  "fullComment": " @custom:name Payment\n @custom:id 0x01\n @custom:supported BTC, DOGE, XRP, testBTC, testDOGE, testXRP\n @author Flare\n @notice The attestation type is used to prove that a native currency payment was carried out on some blockchain.\n Various blockchains support different types of native payments. For each block chain, it is specified how a payment\n transaction should be formed to be provable by this attestation type.\n The provable payments emulate usual banking payment from entity A to entity B in native currency with an optional payment reference.\n @custom:verification Based on transaction id, the transaction is fetched from the API of the blockchain node or relevant indexer.\n If the transaction cannot be fetched or the transaction is in a block that does not have sufficient [number of confirmations](/specs/attestations/configs.md#finalityconfirmation), the attestation request is rejected.\n Once the transaction is received, the [payment summary](/specs/attestations/external-chains/transactions.md#payment-summary) is computed according to the rules of the source chain.\n If summary is successfully calculated, the response is assembled from the summary.\n Otherwise, the attestation request is rejected.\n @custom:lut `blockTimestamp`",
-  "description": "The attestation type is used to prove that a native currency payment was carried out on some blockchain.\n Various blockchains support different types of native payments. For each block chain, it is specified how a payment\n transaction should be formed to be provable by this attestation type.\n The provable payments emulate usual banking payment from entity A to entity B in native currency with an optional payment reference.",
+  "fullComment": " @custom:name Payment\n @custom:id 0x01\n @custom:supported BTC, DOGE, XRP, testBTC, testDOGE, testXRP\n @author Flare\n @notice A relay of a transaction on an external chain that is considered a payment in a native currency.\n Various blockchains support different types of native payments. For each blockchain, it is specified how a payment\n transaction should be formed to be provable by this attestation type.\n The provable payments emulate traditional banking payments from entity A to entity B in native currency with an optional payment reference.\n @custom:verification The transaction with `transactionId` is fetched from the API of the blockchain node or relevant indexer.\n If the transaction cannot be fetched or the transaction is in a block that does not have a sufficient [number of confirmations](/specs/attestations/configs.md#finalityconfirmation), the attestation request is rejected.\n Once the transaction is received, the [payment summary](/specs/attestations/external-chains/transactions.md#payment-summary) is computed according to the rules for the source chain.\n If the summary is successfully calculated, the response is assembled from the summary.\n `blockNumber` and `blockTimestamp` are retrieved from the block if they are not included in the transaction data.\n For Bitcoin and Dogecoin, `blockTimestamp` is mediantime of the block.\n For XRPL, `blockTimestamp` is close time of the ledger converted to UNIX time.\n If the summary is not successfully calculated, the attestation request is rejected.\n @custom:lut `blockTimestamp`",
+  "description": "A relay of a transaction on an external chain that is considered a payment in a native currency.\n Various blockchains support different types of native payments. For each blockchain, it is specified how a payment\n transaction should be formed to be provable by this attestation type.\n The provable payments emulate traditional banking payments from entity A to entity B in native currency with an optional payment reference.",
   "supported": [
     "BTC",
     "DOGE",
@@ -10,7 +10,7 @@
     "testDOGE",
     "testXRP"
   ],
-  "verification": "Based on transaction id, the transaction is fetched from the API of the blockchain node or relevant indexer.\n If the transaction cannot be fetched or the transaction is in a block that does not have sufficient [number of confirmations](/specs/attestations/configs.md#finalityconfirmation), the attestation request is rejected.\n Once the transaction is received, the [payment summary](/specs/attestations/external-chains/transactions.md#payment-summary) is computed according to the rules of the source chain.\n If summary is successfully calculated, the response is assembled from the summary.\n Otherwise, the attestation request is rejected.",
+  "verification": "The transaction with `transactionId` is fetched from the API of the blockchain node or relevant indexer.\n If the transaction cannot be fetched or the transaction is in a block that does not have a sufficient [number of confirmations](/specs/attestations/configs.md#finalityconfirmation), the attestation request is rejected.\n Once the transaction is received, the [payment summary](/specs/attestations/external-chains/transactions.md#payment-summary) is computed according to the rules for the source chain.\n If the summary is successfully calculated, the response is assembled from the summary.\n `blockNumber` and `blockTimestamp` are retrieved from the block if they are not included in the transaction data.\n For Bitcoin and Dogecoin, `blockTimestamp` is mediantime of the block.\n For XRPL, `blockTimestamp` is close time of the ledger converted to UNIX time.\n If the summary is not successfully calculated, the attestation request is rejected.\n ",
   "lut": "`blockTimestamp`",
   "proof": {
     "name": "Proof",
@@ -38,25 +38,25 @@
     "description": "Toplevel request",
     "above": "",
     "below": "",
-    "fullComment": " @notice Toplevel request\n @param attestationType Id of the attestation type.\n @param sourceId Id of the data source.\n @param messageIntegrityCode `MessageIntegrityCode` that is derived from the expected response as defined [here](/specs/attestations/hash-MIC.md#message-integrity-code).\n @param requestBody Data defining the request. Type (struct) and interpretation is determined by the `attestationType`.",
+    "fullComment": " @notice Toplevel request\n @param attestationType ID of the attestation type.\n @param sourceId ID of the data source.\n @param messageIntegrityCode `MessageIntegrityCode` that is derived from the expected response.\n @param requestBody Data defining the request. Type (struct) and interpretation is determined by the `attestationType`.",
     "params": [
       {
         "name": "attestationType",
         "type": "bytes32",
         "typeSimple": "bytes32",
-        "comment": "Id of the attestation type."
+        "comment": "ID of the attestation type."
       },
       {
         "name": "sourceId",
         "type": "bytes32",
         "typeSimple": "bytes32",
-        "comment": "Id of the data source."
+        "comment": "ID of the data source."
       },
       {
         "name": "messageIntegrityCode",
         "type": "bytes32",
         "typeSimple": "bytes32",
-        "comment": "`MessageIntegrityCode` that is derived from the expected response as defined [here](/specs/attestations/hash-MIC.md#message-integrity-code)."
+        "comment": "`MessageIntegrityCode` that is derived from the expected response."
       },
       {
         "name": "requestBody",
@@ -71,7 +71,7 @@
     "description": "Toplevel response",
     "above": "",
     "below": "",
-    "fullComment": " @notice Toplevel response\n @param attestationType Extracted from the request.\n @param sourceId Extracted from the request.\n @param votingRound The id of the state connector round in which the request was considered.\n @param lowestUsedTimestamp The lowest timestamp used to generate the response.\n @param requestBody Extracted from the request.\n @param responseBody Data defining the response. The verification rules for the construction of the response body and the type are defined per specific `attestationType`.",
+    "fullComment": " @notice Toplevel response\n @param attestationType Extracted from the request.\n @param sourceId Extracted from the request.\n @param votingRound The ID of the State Connector round in which the request was considered.\n @param lowestUsedTimestamp The lowest timestamp used to generate the response.\n @param requestBody Extracted from the request.\n @param responseBody Data defining the response. The verification rules for the construction of the response body and the type are defined per specific `attestationType`.",
     "params": [
       {
         "name": "attestationType",
@@ -89,7 +89,7 @@
         "name": "votingRound",
         "type": "uint64",
         "typeSimple": "uint64",
-        "comment": "The id of the state connector round in which the request was considered."
+        "comment": "The ID of the State Connector round in which the request was considered."
       },
       {
         "name": "lowestUsedTimestamp",
@@ -116,25 +116,25 @@
     "description": "Request body for Payment attestation type",
     "above": "",
     "below": "",
-    "fullComment": " @notice Request body for Payment attestation type\n @param transactionId Id of the payment transaction.\n @param inUtxo For UTXO, this is the index of the transaction input with source address. Always 0 for the non-utxo chains.\n @param utxo For UTXO, this is the index of the transaction output with receiving address. Always 0 for the non-utxo chains.",
+    "fullComment": " @notice Request body for Payment attestation type\n @param transactionId ID of the payment transaction.\n @param inUtxo For UTXO chains, this is the index of the transaction input with source address. Always 0 for the non-utxo chains.\n @param utxo For UTXO chains, this is the index of the transaction output with receiving address. Always 0 for the non-utxo chains.",
     "params": [
       {
         "name": "transactionId",
         "type": "bytes32",
         "typeSimple": "bytes32",
-        "comment": "Id of the payment transaction."
+        "comment": "ID of the payment transaction."
       },
       {
         "name": "inUtxo",
         "type": "uint256",
         "typeSimple": "uint256",
-        "comment": "For UTXO, this is the index of the transaction input with source address. Always 0 for the non-utxo chains."
+        "comment": "For UTXO chains, this is the index of the transaction input with source address. Always 0 for the non-utxo chains."
       },
       {
         "name": "utxo",
         "type": "uint256",
         "typeSimple": "uint256",
-        "comment": "For UTXO, this is the index of the transaction output with receiving address. Always 0 for the non-utxo chains."
+        "comment": "For UTXO chains, this is the index of the transaction output with receiving address. Always 0 for the non-utxo chains."
       }
     ]
   },
@@ -143,7 +143,7 @@
     "description": "Response body for Payment attestation type",
     "above": "",
     "below": "",
-    "fullComment": " @notice Response body for Payment attestation type\n @param blockNumber Number of the block in which the transaction is included.\n @param blockTimestamp The timestamps of the block in which the transaction is included.\n @param sourceAddressHash Standard address hash of the source address.\n @param receivingAddressHash Standard address hash of the receiving address. Zero 32-byte string if there is no receivingAddress (if `status` is not success).\n @param intendedReceivingAddressHash Standard address hash of the intended receiving address. Relevant if the transaction was unsuccessful.\n @param spentAmount Amount in minimal units spent by the source address.\n @param intendedSpentAmount Amount in minimal units to be spent by the source address. Relevant if the transaction status is not success.\n @param receivedAmount Amount in minimal units received by the receiving address.\n @param intendedReceivedAmount Amount in minimal units intended to be received by the receiving address. Relevant if the transaction was unsuccessful.\n @param standardPaymentReference Identifier of the transaction as defined [here](/specs/attestations/external-chains/standardPaymentReference.md).\n @param oneToOne Indicator whether only one source and one receiver are involved in the transaction.\n @param status Status of the transaction as described [here](/specs/attestations/external-chains/transactions.md#transaction-success-status):\n   0 - success,\n   1 - failed by sender's fault,\n   2 - failed by receiver's fault.",
+    "fullComment": " @notice Response body for Payment attestation type\n @param blockNumber Number of the block in which the transaction is included.\n @param blockTimestamp The timestamp of the block in which the transaction is included.\n @param sourceAddressHash Standard address hash of the source address.\n @param receivingAddressHash Standard address hash of the receiving address. The zero 32-byte string if there is no receivingAddress (if `status` is not success).\n @param intendedReceivingAddressHash Standard address hash of the intended receiving address. Relevant if the transaction is unsuccessful.\n @param spentAmount Amount in minimal units spent by the source address.\n @param intendedSpentAmount Amount in minimal units to be spent by the source address. Relevant if the transaction status is unsuccessful.\n @param receivedAmount Amount in minimal units received by the receiving address.\n @param intendedReceivedAmount Amount in minimal units intended to be received by the receiving address. Relevant if the transaction is unsuccessful.\n @param standardPaymentReference [Standard payment reference](/specs/attestations/external-chains/standardPaymentReference.md) of the transaction.\n @param oneToOne Indicator whether only one source and one receiver are involved in the transaction.\n @param status  [Succes status](/specs/attestations/external-chains/transactions.md#transaction-success-status) of the transaction: 0 - success, 1 - failed by sender's fault,x  2 - failed by receiver's fault.",
     "params": [
       {
         "name": "blockNumber",
@@ -155,7 +155,7 @@
         "name": "blockTimestamp",
         "type": "uint64",
         "typeSimple": "uint64",
-        "comment": "The timestamps of the block in which the transaction is included."
+        "comment": "The timestamp of the block in which the transaction is included."
       },
       {
         "name": "sourceAddressHash",
@@ -167,13 +167,13 @@
         "name": "receivingAddressHash",
         "type": "bytes32",
         "typeSimple": "bytes32",
-        "comment": "Standard address hash of the receiving address. Zero 32-byte string if there is no receivingAddress (if `status` is not success)."
+        "comment": "Standard address hash of the receiving address. The zero 32-byte string if there is no receivingAddress (if `status` is not success)."
       },
       {
         "name": "intendedReceivingAddressHash",
         "type": "bytes32",
         "typeSimple": "bytes32",
-        "comment": "Standard address hash of the intended receiving address. Relevant if the transaction was unsuccessful."
+        "comment": "Standard address hash of the intended receiving address. Relevant if the transaction is unsuccessful."
       },
       {
         "name": "spentAmount",
@@ -185,7 +185,7 @@
         "name": "intendedSpentAmount",
         "type": "int256",
         "typeSimple": "int256",
-        "comment": "Amount in minimal units to be spent by the source address. Relevant if the transaction status is not success."
+        "comment": "Amount in minimal units to be spent by the source address. Relevant if the transaction status is unsuccessful."
       },
       {
         "name": "receivedAmount",
@@ -197,13 +197,13 @@
         "name": "intendedReceivedAmount",
         "type": "int256",
         "typeSimple": "int256",
-        "comment": "Amount in minimal units intended to be received by the receiving address. Relevant if the transaction was unsuccessful."
+        "comment": "Amount in minimal units intended to be received by the receiving address. Relevant if the transaction is unsuccessful."
       },
       {
         "name": "standardPaymentReference",
         "type": "bytes32",
         "typeSimple": "bytes32",
-        "comment": "Identifier of the transaction as defined [here](/specs/attestations/external-chains/standardPaymentReference.md)."
+        "comment": "[Standard payment reference](/specs/attestations/external-chains/standardPaymentReference.md) of the transaction."
       },
       {
         "name": "oneToOne",
@@ -215,7 +215,7 @@
         "name": "status",
         "type": "uint8",
         "typeSimple": "uint8",
-        "comment": "Status of the transaction as described [here](/specs/attestations/external-chains/transactions.md#transaction-success-status):"
+        "comment": "[Succes status](/specs/attestations/external-chains/transactions.md#transaction-success-status) of the transaction: 0 - success, 1 - failed by sender's fault,x  2 - failed by receiver's fault."
       }
     ]
   },

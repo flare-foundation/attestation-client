@@ -2,6 +2,7 @@ import { DataSource, DataSourceOptions } from "typeorm";
 import { MysqlConnectionOptions } from "typeorm/driver/mysql/MysqlConnectionOptions";
 import { AttLogger } from "../logging/logger";
 import { DatabaseConnectOptions } from "./DatabaseConnectOptions";
+import { indexerEntities } from "./databaseEntities";
 
 /**
  * DatabaseService class for managing the connection to a database.  It creates TypeORM connection and provides relevant entity manager class.
@@ -24,7 +25,8 @@ export class DatabaseService {
     options: DatabaseConnectOptions,
     databaseName = "",
     connectionName = "",
-    testDBPath: boolean | string = false // if boolean, then in-memory better-sqlite3 DB is used. If string then it is considered as a path to .db file. Can be used only for testing.
+    testDBPath: boolean | string = false, // if boolean, then in-memory better-sqlite3 DB is used. If string then it is considered as a path to .db file. Can be used only for testing.
+    externalDB: boolean = false // If set to true use external indexer with postgres connection
   ) {
     this.logger = logger;
 
@@ -60,7 +62,7 @@ export class DatabaseService {
       this.dataSource = new DataSource(connectOptions);
       this.logger.debug2(`entity: ${entities}`);
     } else {
-      const connectOptions = {
+      const connectOptionsBase = {
         name: this.connectionName,
         type: "mysql",
         host: this.options.host,
@@ -68,10 +70,19 @@ export class DatabaseService {
         username: this.options.username,
         password: this.options.password,
         database: this.options.database,
-        entities: this.options.entities ?? [entities],
+        entities: this.options?.entities ?? [entities],
         synchronize: this.options.synchronize ?? false,
         logging: this.options.logging ?? false,
       } as MysqlConnectionOptions;
+      let connectOptions;
+      if (externalDB) {
+        connectOptions = {
+          ...connectOptionsBase,
+          type: "postgres",
+        };
+      } else {
+        connectOptions = connectOptionsBase;
+      }
 
       this.dataSource = new DataSource(connectOptions);
       this.logger.debug(`entity: ${entities}`);

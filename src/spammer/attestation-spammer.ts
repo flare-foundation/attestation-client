@@ -22,6 +22,7 @@ import { decodeAttestationName, encodeAttestationName } from "../external-libs/u
 
 const args = yargs
   .option("chain", { alias: "c", type: "string", description: "Chain (XRP, BTC, LTC, DOGE)", default: "BTC" })
+  .option("external", { alias: "e", type: "boolean", description: "If provided connection to external postgres indexer is used", default: false })
   .option("delay", { alias: "d", type: "number", description: "Delay between sending transactions from the same block", default: 500 })
   .option("loggerLabel", { alias: "l", type: "string", description: "Logger label", default: "" })
   .option("testCred", { alias: "t", type: "boolean", description: "Logger label" })
@@ -92,15 +93,23 @@ class AttestationSpammer {
       this.web3Functions_2 = new Web3Functions(this.logger, this.web3_2, this.spammerCredentials.web2);
     }
 
+    const external = args["external"];
+    console.log("Connection to external db: ", external);
+
+    const entities = external ? indexerEntities(`${args["chain"]}-external`) : indexerEntities(args["chain"]);
+
     let dbService = new DatabaseService(
       getGlobalLogger(),
       {
         ...this.spammerCredentials.indexerDatabase,
-        entities: indexerEntities(args["chain"]),
+        entities: entities,
         dropSchema: false,
         synchronize: false,
       },
-      "indexer"
+      "indexer",
+      "",
+      false,
+      external
     );
     await dbService.connect();
 

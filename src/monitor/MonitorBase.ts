@@ -164,10 +164,8 @@ export class MonitorBase<T extends MonitorConfigBase> {
         return;
       }
       if (stderr) {
-        //console.log(`stderr: ${stderr}`);
         return;
       }
-      //console.log(`stdout: ${stdout}`);
     });
 
     return true;

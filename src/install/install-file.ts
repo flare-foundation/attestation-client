@@ -94,7 +94,6 @@ async function run() {
           continue;
         }
 
-        //logger.info(`   ${file}`);
         readConfig(`${process.env.JSON_CONFIG_PATH}/${file}`);
       }
     }
@@ -122,10 +121,6 @@ async function run() {
 
   await processFile(args["inputFilename"], args["outputFilename"], args["chainName"]);
 }
-
-//DotEnvExt();
-
-//console.log(process.argv);
 
 run()
   .then(() => process.exit(errorResult))

@@ -68,7 +68,6 @@ export class RandomDBIterator<T> {
     for (const item of items) {
       this.insert(item);
     }
-    // console.log(`${this.label} refreshed: ${this.size}`)
     this.refreshing = false;
   }
 }

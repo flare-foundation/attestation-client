@@ -32,7 +32,6 @@ export class UrlMonitor extends MonitorBase<MonitorUrlConfig> {
       try {
         http
           .get(url, function (res) {
-            //console.log(url, res.statusCode);
             resolve(res.statusCode === 200);
           })
           .on("error", function (e) {

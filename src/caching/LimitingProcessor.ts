@@ -142,7 +142,6 @@ export class LimitingProcessor<B extends FullBlockBase<any>> {
     this.isActive = true;
     while (this.isActive) {
       if (this.queue.size === 0 || !this.client.canAccept) {
-        // console.log("Sleep:", this.client.inProcessing, this.client.inQueue)
         await sleepMs(100);
         continue;
       }

@@ -1,5 +1,15 @@
 # Attestation suite change log
 
+# Version 4.0.0
+
+- Newer version of Multi-chain-client library is used (4.0.1) with many updates.
+- Updated Attestation protocol adoption (see: https://github.com/flare-foundation/songbird-state-connector-protocol).
+  - New encoding
+  - Updated attestation types
+- Updated indexers.
+- External Doge indexer adoption.
+- Eip-1559 compliance for submissions.
+
 # Version 3.0.0
 
 - Attestation type definitions were changed (see: https://github.com/flare-foundation/state-connector-attestation-types)
@@ -15,4 +25,3 @@
 - Logging messages updated.
 - Improved monitoring code.
 - Test coverage improved.
-

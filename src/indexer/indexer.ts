@@ -100,7 +100,7 @@ export class Indexer {
       transactionCacheSize: 100000,
       blockCacheSize: 100000,
       cleanupChunkSize: 100,
-      activeLimit: 20, //TODO: set this up
+      activeLimit: 20,
       clientConfig: {
         ...this.chainConfig.mccCreate,
         rateLimitOptions: this.chainConfig.rateLimitOptions,
@@ -148,7 +148,6 @@ export class Indexer {
   /////////////////////////////////////////////////////////////
 
   private mccLogging(message: string) {
-    // todo: add MCC logging verbose option
     //this.logger.info(`MCC ${message}`);
   }
 
@@ -215,7 +214,6 @@ export class Indexer {
     }
     processors.push(new PreparedBlock(block, transactions));
 
-    // todo: this causes async growing - this should be queued and run from main async
     // if N+1 is ready (already processed) then begin processing N+2 (we need to be very aggressive with read ahead)
     if (!this.indexerSync.isSyncing) {
       if (isBlockNext) {
@@ -237,7 +235,6 @@ export class Indexer {
   async blockAlreadyCompleted(block: BlockBase) {
     this.logger.info(`^Galready completed ${block.number}:N+${block.number - this.indexedHeight}`);
 
-    // todo: this causes asycn growing - this should be queued and run from main async
     // if N+1 is ready (already processed) then begin processing N+2 (we need to be very aggressive with read ahead)
     const isBlockNext = block.number == this.indexedHeight + 1 && block.stdBlockHash == this.nextBlockHash;
 

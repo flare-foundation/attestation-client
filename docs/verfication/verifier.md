@@ -8,8 +8,6 @@ Verification system is based on pre-defined attestation types. In order to use o
 
 Based on definitions on [State Connector attestation type repo](https://github.com/flare-foundation/state-connector-attestation-types) the [definition files](../../src/verification/attestation-types/) are configured. To support easier implementation of the new attestation types the Attestation Client Suite includes [code generation utilities](./code-generation.md) which help in including new and updating existing attestation types in a standardized manner. Code generation features provide encoding/decoding/hashing/testing utilities for attestation types.
 
-TODO:
-
 Next: [Code generation](./code-generation.md)
 
 [Back to home](../README.md)

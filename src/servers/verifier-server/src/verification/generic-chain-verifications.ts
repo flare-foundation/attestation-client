@@ -352,7 +352,6 @@ export async function responseReferencedPaymentNonExistence<T extends Transactio
         // no-address utxo, we skip it
         continue;
       }
-      // TODO: standard address hash
       const destinationAddressHashTmp = Web3.utils.soliditySha3(address);
       if (destinationAddressHashTmp === request.requestBody.destinationAddressHash) {
         const paymentSummary = fullTxData.paymentNonexistenceSummary(outUtxo);

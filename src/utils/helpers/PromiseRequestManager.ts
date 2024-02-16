@@ -11,7 +11,7 @@ import { IIdentifiable, IIdentifiableResponse } from "./promiseRequestTypes";
  */
 export class PromiseRequestManager<R extends IIdentifiable, S extends IIdentifiable> {
   openRequests: Map<string, PromiseRequestsHandler<R, S>>;
-  _nextId = 0; // TODO: if you restart and promises are late, what to do. Maybe random ID is better.
+  _nextId = 0;
   _timeout = 5000;
   _test = false;
   _testCounter = 0;

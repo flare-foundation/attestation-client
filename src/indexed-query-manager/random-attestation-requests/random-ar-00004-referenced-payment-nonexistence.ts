@@ -72,7 +72,6 @@ export async function prepareRandomizedRequestReferencedPaymentNonexistence(
   const deadlineBlockNumber = prevBlockQueryResult.result.blockNumber;
   const deadlineTimestamp = prevBlockQueryResult.result.timestamp;
   const paymentReference = choice === "CORRECT" ? Web3.utils.randomHex(32) : prefix0x(randomTransaction.paymentReference);
-  // TODO
   // let destinationAmounts = randomTransaction.
   const request = {
     attestationType: encodeAttestationName("ReferencedPaymentNonexistence"),
@@ -82,7 +81,7 @@ export async function prepareRandomizedRequestReferencedPaymentNonexistence(
       minimalBlockNumber: (deadlineBlockNumber - queryWindow).toString(),
       deadlineBlockNumber: deadlineBlockNumber.toString(),
       deadlineTimestamp: deadlineTimestamp.toString(),
-      destinationAddressHash: Web3.utils.randomHex(32), // TODO: "CORRECT" does not work here
+      destinationAddressHash: Web3.utils.randomHex(32),
       amount: Web3.utils.randomHex(16),
       standardPaymentReference: paymentReference,
     },

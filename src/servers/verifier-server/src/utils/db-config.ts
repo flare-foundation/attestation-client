@@ -11,7 +11,6 @@ export async function createTypeOrmOptions(loggerLabel: string): Promise<TypeOrm
   // connecting to external postgres db
   if (process.env.NODE_ENV === "development" && process.env.EXTERNAL === "django") {
     // get custom entities
-    // TODO: only doge ATM
 
     if (verifierType !== "doge") {
       throw new Error("Currently only DOGE can connect to external postgres db");

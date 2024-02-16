@@ -123,7 +123,6 @@ export class Terminal {
   }
 
   // write content to output stream
-  // @TODO use string-width to strip length
   write(s) {
     // line wrapping enabled ? trim output
     if (this.linewrap === true) {

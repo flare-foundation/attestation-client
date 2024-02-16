@@ -46,12 +46,12 @@ export async function prepareRandomizedRequestPayment(
   const request = {
     attestationType: encodeAttestationName("Payment"),
     sourceId: encodeAttestationName(sourceId),
-    messageIntegrityCode: ZERO_BYTES_32, // TODO change,
+    messageIntegrityCode: ZERO_BYTES_32,
     requestBody: {
       transactionId: id,
       blockNumber: blockNumber,
-      utxo: "0", // TODO: randomize for UTXO chains
-      inUtxo: "0", // TODO: randomize for UTXO chains
+      utxo: "0",
+      inUtxo: "0",
     },
   } as Payment_Request;
   if (choice === "WRONG_MIC") {

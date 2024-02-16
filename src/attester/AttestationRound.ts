@@ -43,7 +43,6 @@ export class AttestationRound {
   activeGlobalConfig: GlobalAttestationConfig;
   attestationClientConfig: AttestationClientConfig;
 
-
   // adjacent rounds
   nextRound: AttestationRound;
   prevRound: AttestationRound;
@@ -436,7 +435,8 @@ export class AttestationRound {
    */
   private canCommit(): boolean {
     this.logger.debug(
-      `${this.label} canCommit(^Y#${this.roundId}^^) processed: ${this.attestationsProcessed}, all: ${this.attestations.length}, epoch phase: '${AttestationRoundPhase[this.phase]
+      `${this.label} canCommit(^Y#${this.roundId}^^) processed: ${this.attestationsProcessed}, all: ${this.attestations.length}, epoch phase: '${
+        AttestationRoundPhase[this.phase]
       }', attest status '${AttestationRoundStatus[this.attestStatus]}'`
     );
     return this.phase === AttestationRoundPhase.commit && this.attestStatus === AttestationRoundStatus.commitDataPrepared;
@@ -455,8 +455,8 @@ export class AttestationRound {
     db.logIndex = att.data.logIndex;
     db.verificationStatus = prepareString(att.verificationData?.status.toString(), 128);
     db.attestationStatus = AttestationStatus[att.status];
-    db.request = prepareString(att.data.request, 65535); // TODO: check if 65535 is ok
-    db.response = prepareString(stringify(att.verificationData?.response ? att.verificationData.response : ""), 65535); // TODO: check if 65535 is ok
+    db.request = prepareString(att.data.request, 65535);
+    db.response = prepareString(stringify(att.verificationData?.response ? att.verificationData.response : ""), 65535);
     db.exceptionError = prepareString(att.exception?.toString(), 128);
     db.hashData = prepareString(att.hash, 256);
     db.requestBytes = prepareString(att.data.request, 65535);
@@ -578,7 +578,8 @@ export class AttestationRound {
     const commitTimeLeft = epochCommitEndTime - BigInt(now);
 
     this.logger.info(
-      `${this.label} ^w^Gcommit^^ round #${this.roundId} attestations: ${validatedHashes.length} time left ${commitTimeLeft}ms (prepare time H:${time1 - time0
+      `${this.label} ^w^Gcommit^^ round #${this.roundId} attestations: ${validatedHashes.length} time left ${commitTimeLeft}ms (prepare time H:${
+        time1 - time0
       }ms M:${time2 - time1}ms)`
     );
   }
@@ -636,7 +637,8 @@ export class AttestationRound {
    */
   public async onChoosePhaseStart() {
     this.logger.group(
-      `${this.label} choose phase started [1] ${this.attestationsProcessed}/${this.attestations.length} (${this.attestations.length / Number(this.flareConnection.epochSettings.getEpochLengthMs() / 1000n)
+      `${this.label} choose phase started [1] ${this.attestationsProcessed}/${this.attestations.length} (${
+        this.attestations.length / Number(this.flareConnection.epochSettings.getEpochLengthMs() / 1000n)
       } req/sec)`
     );
     this.phase = AttestationRoundPhase.choose;
@@ -647,7 +649,8 @@ export class AttestationRound {
    */
   public async onCommitPhaseStart() {
     this.logger.group(
-      `${this.label} commit epoch started [1] ${this.attestationsProcessed}/${this.attestations.length} (${this.attestations.length / Number(this.flareConnection.epochSettings.getEpochLengthMs() / 1000n)
+      `${this.label} commit epoch started [1] ${this.attestationsProcessed}/${this.attestations.length} (${
+        this.attestations.length / Number(this.flareConnection.epochSettings.getEpochLengthMs() / 1000n)
       } req/sec)`
     );
     this.phase = AttestationRoundPhase.commit;
@@ -771,7 +774,8 @@ export class AttestationRound {
     if (!commitPreparedOrCommitted) {
       // Log unexpected attestation round statuses, but proceed with submitAttestation
       this.logger.error(
-        `${this.label} round #${this.roundId} not committed. Status: '${AttestationRoundStatus[this.attestStatus]}'. Processed attestations: ${this.attestationsProcessed
+        `${this.label} round #${this.roundId} not committed. Status: '${AttestationRoundStatus[this.attestStatus]}'. Processed attestations: ${
+          this.attestationsProcessed
         }/${this.attestations.length}`
       );
     }

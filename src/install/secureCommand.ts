@@ -30,7 +30,6 @@ async function run() {
   const passwordTestnet = getSecureValue(`BTCPassword`);
   const passwordMainnet = getSecureValue(`BTCPassword`);
 
-  // todo: fix node installation so that password can be provided in more secure way (not via command line)
   switch (action) {
     case "installNodesTestNet":
       command = `sudo ./install.sh testnet ${passwordTestnet}`;

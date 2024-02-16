@@ -128,8 +128,6 @@ export class DBDogeTransaction {
       txid: this.transactionId,
       time: this.timestamp,
       vout: vout_arr,
-      // non necessary stuff
-      // TODO: Do we need them / update mcc with minimal required data
       blocktime: this.timestamp,
       hash: this.transactionId,
       version: 1,
@@ -156,7 +154,7 @@ export class DBDogeTransaction {
   }
 
   toTransactionResult(): TransactionResult {
-    const response = JSON.stringify(this.response)
+    const response = JSON.stringify(this.response);
     return {
       getResponse() {
         return response;
@@ -208,7 +206,6 @@ export abstract class AbstractTransactionOutput {
   @Column()
   scriptKeyHex: string;
 
-  // TODO: probably needs to be updated to number or removed
   @Column()
   scriptKeyReqSigs: string;
 

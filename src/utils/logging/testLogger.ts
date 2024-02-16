@@ -37,7 +37,6 @@ export class TestLogger extends Transport {
         case 1:
           console.log(text);
           break;
-        // todo: color output
         case 2:
           console.log(text);
           break;

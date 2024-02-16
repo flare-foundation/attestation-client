@@ -26,7 +26,6 @@ export class IndexerToClient {
    * @category BaseMethod
    */
   public async getBlockFromClient(label: string, blockNumber: number): Promise<FullBlockBase<any>> {
-    // todo: implement MCC lite version of getBlock
     let thisreference = this;
     const result = await retry(
       `indexerToClient.getBlockFromClient.${label}`,
@@ -51,7 +50,6 @@ export class IndexerToClient {
    * @category BaseMethod
    */
   public async getBlockHeaderFromClient(label: string, blockNumber: number): Promise<BlockHeaderBase> {
-    // todo: implement MCC lite version of getBlock
     let thisreference = this;
     const result = await retry(
       `indexerToClient.getBlockHeaderFromClient.${label}`,
@@ -76,7 +74,6 @@ export class IndexerToClient {
    * @category BaseMethod
    */
   public async getBlockFromClientByHash(label: string, blockHash: string): Promise<BlockBase> {
-    // todo: implement MCC lite version of getBlock
     let thisreference = this;
     const result = await retry(
       `indexerToClient.getBlockFromClientByHash.${label}`,
@@ -101,7 +98,6 @@ export class IndexerToClient {
    * @category BaseMethod
    */
   public async getBlockHeaderFromClientByHash(label: string, blockHash: string): Promise<BlockHeaderBase> {
-    // todo: implement MCC lite version of getBlock
     let thisreference = this;
     const result = await retry(
       `indexerToClient.getBlockHeaderFromClientByHash.${label}`,

@@ -132,7 +132,6 @@ function isEqualTypeUni(parent: string, A: any, B: any, notFound: string, option
         // unify
         B[keyA] = A[keyA];
       } else {
-        // todo: this should be warning
         getGlobalLogger().warning(`   ${notFound} "${parent}${keyA}:${realTypeA}"`);
       }
     }

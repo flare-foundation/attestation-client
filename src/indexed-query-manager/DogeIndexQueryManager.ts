@@ -74,18 +74,15 @@ export class DogeIndexedQueryManager extends IIndexedQueryManager {
   //   return `${MCC.getChainTypeName(this.settings.chainType)}_T`;
   // }
 
-  // TODO: Ready
   public async getLastConfirmedBlockNumber(): Promise<number> {
     try {
       const tipState = await this._getTipStateObject();
       return tipState.latestIndexedHeight;
     } catch {
-      // TODO: Print or at least log this
       return 0;
     }
   }
 
-  // TODO: Ready
   public async getLatestBlockTimestamp(): Promise<BlockHeightSample | null> {
     try {
       const tipState = await this._getTipStateObject();
@@ -94,7 +91,6 @@ export class DogeIndexedQueryManager extends IIndexedQueryManager {
         timestamp: tipState.timestamp,
       };
     } catch {
-      // TODO: Print or at least log this
       return null;
     }
   }
@@ -103,7 +99,6 @@ export class DogeIndexedQueryManager extends IIndexedQueryManager {
   // General confirm transaction and block queries
   ////////////////////////////////////////////////////////////
 
-  // TODO: WIP
   public async queryTransactions(params: TransactionQueryParams): Promise<TransactionQueryResult> {
     let query = this.entityManager.createQueryBuilder(this.transactionTable, "transaction");
 
@@ -158,7 +153,6 @@ export class DogeIndexedQueryManager extends IIndexedQueryManager {
     };
   }
 
-  // TODO: Ready
   public async queryBlock(params: BlockQueryParams): Promise<BlockQueryResult> {
     if (!params.blockNumber && !params.hash) {
       throw new Error("One of 'blockNumber' or 'hash' is a mandatory parameter");
@@ -184,7 +178,6 @@ export class DogeIndexedQueryManager extends IIndexedQueryManager {
     };
   }
 
-  // TODO: Ready
   public async getBlockByHash(hash: string): Promise<BlockResult | undefined> {
     const query = this.entityManager.createQueryBuilder(this.blockTable, "block").where("block.blockHash = :hash", { hash: hash });
     const result = await query.getOne();

@@ -2,7 +2,6 @@ import { exec } from "child_process";
 import { logException } from "../logging/logger";
 import { EServiceStatus } from "./EServiceStatus";
 
-// todo: add up/down time
 export class ServiceStatus {
   name: string;
 

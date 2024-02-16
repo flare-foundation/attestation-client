@@ -33,7 +33,6 @@ export class NodeMonitor extends MonitorBase<MonitorNodeConfig> {
   async initialize() {
     this.chainType = MCC.getChainType(this.name);
 
-    // todo: setup options from config
     const cachedMccClientOptions: CachedMccClientOptions = {
       transactionCacheSize: 100000,
       blockCacheSize: 100000,

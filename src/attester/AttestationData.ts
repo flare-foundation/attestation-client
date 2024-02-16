@@ -1,7 +1,7 @@
 import { AttestationRequest } from "../../typechain-web3-v1/StateConnector";
 
 import { AttestationDefinitionStore } from "../external-libs/AttestationDefinitionStore";
-import { ZERO_BYTES_32, decodeAttestationName } from "../external-libs/utils";
+import { decodeAttestationName } from "../external-libs/utils";
 
 /**
  * Class in which augmented attestation request is read from an emitted attestation request.

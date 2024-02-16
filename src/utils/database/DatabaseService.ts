@@ -2,7 +2,6 @@ import { DataSource, DataSourceOptions } from "typeorm";
 import { MysqlConnectionOptions } from "typeorm/driver/mysql/MysqlConnectionOptions";
 import { AttLogger } from "../logging/logger";
 import { DatabaseConnectOptions } from "./DatabaseConnectOptions";
-import { indexerEntities } from "./databaseEntities";
 
 /**
  * DatabaseService class for managing the connection to a database.  It creates TypeORM connection and provides relevant entity manager class.

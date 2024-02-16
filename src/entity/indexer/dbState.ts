@@ -1,5 +1,4 @@
-import { Column, Entity, Index, PrimaryColumn, PrimaryGeneratedColumn } from "typeorm";
-import { BaseEntity } from "../base/BaseEntity";
+import { Column, Entity, PrimaryColumn } from "typeorm";
 
 @Entity({ name: "state" })
 export class DBState {

@@ -1,4 +1,4 @@
-import { BtcFullBlock, DogeFullBlock, FullBlockBase, Managed, XrpFullBlock } from "@flarenetwork/mcc";
+import { FullBlockBase, Managed } from "@flarenetwork/mcc";
 import { onSaveSig } from "../indexer/chain-collector-helpers/types";
 import { criticalAsync } from "../indexer/indexer-utils";
 import { Queue } from "../utils/data-structures/Queue";

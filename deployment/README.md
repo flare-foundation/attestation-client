@@ -28,8 +28,8 @@ The Attestation Suite was tested on Ubuntu 20.02 and Ubuntu 22.02.
 
 Additional required software:
 
-- *Docker* version 20.10.
-- *Docker Compose* version 1.29.2
+- _Docker_ version 20.10.
+- _Docker Compose_ version 1.29.2
 
 ## Prerequisites
 
@@ -44,16 +44,16 @@ The deployment includes:
 - Cloning the Attestation Suite deployment repository from GitHub.
 - Preparing credentials.
 - Deploying Docker containers for:
-    - Blockchain nodes:
-        - Bitcoin
-        - Dogecoin
-        - Ripple
-    - Indexers and verification servers for:
-        - BTC
-        - DOGE
-        - XRP
-    - Attestation client
-    - Nginx
+  - Blockchain nodes:
+    - Bitcoin
+    - Dogecoin
+    - Ripple
+  - Indexers and verification servers for:
+    - BTC
+    - DOGE
+    - XRP
+  - Attestation client
+  - Nginx
 
 Estimated time: `15min`.
 
@@ -63,7 +63,7 @@ Note that the secure installation should have Step 1 carried out on a separate s
 
 ### 1.1 Download Attestation Suite Repository
 
-``` bash
+```bash
 cd ~
 mkdir -p attestation-suite
 cd attestation-suite
@@ -80,7 +80,7 @@ git checkout 2.0.10
 
 Run:
 
-``` bash
+```bash
 docker build -t attestation-suite . --no-cache
 ```
 
@@ -125,7 +125,7 @@ cd deployment
 
 Initialize credentials first:
 
-``` bash
+```bash
 ./initialize-credentials.sh
 ```
 
@@ -151,29 +151,30 @@ Some of the more important settings and credentials include:
 
 - In `networks-credentials.json`:
 
-    - `Network` - Set to desired network (e.g., `songbird`, `flare`).
-    - `NetworkPrivateKey` - Set `0x`-prefixed private key from which an attestation client submits attestations to the Flare network. A private key can also be specified as a Google Cloud Secret Manager variable. To do that use this syntax:
-
-        ```bash
-        "NetworkPrivateKey":"$(GoogleCloudSecretManager:projects/<project>/secrets/<name>/versions/<version>)"
-        ```
-
-    - `StateConnectorContractAddress` - The `StateConnector` contract address on the specific network.
-    - `RPC` - Update the network RPC to desired network.
-- In `verifier-client-credentials.json` - Instead of `localhost`, use the IP address of the host machine. On Linux Ubuntu, get it by running:
+  - `Network` - Set to desired network (e.g., `songbird`, `flare`).
+  - `NetworkPrivateKey` - Set `0x`-prefixed private key from which an attestation client submits attestations to the Flare network. A private key can also be specified as a Google Cloud Secret Manager variable. To do that use this syntax:
 
     ```bash
-    ip addr show docker0 | grep -Po 'inet \K[\d.]+'
+    "NetworkPrivateKey":"$(GoogleCloudSecretManager:projects/<project>/secrets/<name>/versions/<version>)"
     ```
 
+  - `StateConnectorContractAddress` - The `StateConnector` contract address on the specific network.
+  - `RPC` - Update the network RPC to desired network.
+
+- In `verifier-client-credentials.json` - Instead of `localhost`, use the IP address of the host machine. On Linux Ubuntu, get it by running:
+
+  ```bash
+  ip addr show docker0 | grep -Po 'inet \K[\d.]+'
+  ```
+
 - In `verifier-server-credentials.json` - Set API keys for supported external blockchains (currently BTC, DOGE and XRP). Default templates are configured
-for two API keys.
+  for two API keys.
 
 ### 2.3 Prepare Credentials
 
 After credentials have been set up they must be prepared for deployment:
 
-``` bash
+```bash
 ./prepare-credentials.sh
 ```
 
@@ -183,7 +184,7 @@ Each subfolder (Docker credentials mount) contains the following:
 
 - `credentials.json.secure` - encrypted credentials (using encryption key as defined in `credentials/configuration.json`).
 - `credentials.key` - decryption instructions.
-- `templates` - subfolder with configurations as templates where credentials are indicated by stubs of the form `${credential_name}`. Parts of configs that don't concern credentials can be edited directly.
+- `templates` - subfolder with configurations as templates where credentials are indicated by stubs of the form `${credential_name}`. Parts of configs that do not concern credentials can be edited directly.
 
 Secure credential configs work as follows: A process in a Docker container first identifies how the credentials in `filecredentials.json.secure` can be decrypted from the file `credentials.key`. Then the credential stubs in templates are filled in. The process reads configs and credentials from the rendered template structure in memory.
 
@@ -197,7 +198,7 @@ If the installation is done on a different deployment machine than the credentia
 
 Run the installation from the `deployment` folder:
 
-``` bash
+```bash
 ./install-dockers.sh mainnet
 ```
 
@@ -209,7 +210,7 @@ Once Attestation Suite is installed, you can change credentials as follows:
 
 - Stop the containers:
 
-``` bash
+```bash
 ./stop-all.sh mainnet
 ```
 
@@ -217,7 +218,7 @@ Once Attestation Suite is installed, you can change credentials as follows:
 
 - Start all services:
 
-``` bash
+```bash
 ./start-all.sh mainnet
 ```
 
@@ -230,13 +231,10 @@ See [Attestation Suite monitoring](./../docs/monitor/monitor.md).
 ## Indexer Syncing Times
 
 To be ready for use, each network must sync its blocks and transactions with the Flare database indexer.
-The Algorand network doesn't have an indexer, so it runs for the actual time the data is needed for.
 For two days worth of data, these are the times that each network requires:
 
-- ALGO running sync (2 days)
 - BTC ~20 min
 - DOGE ~45 min
-- LTC ~10 min
 - XRP ~2 h
 
 ## Maintenance
@@ -250,7 +248,6 @@ Whether you need to update the system, or perform routine maintenance tasks, our
 - [Update](./../docs/installation/MaintenanceScripts.md#update)
 - [Restart](./../docs/installation/MaintenanceScripts.md#restart)
 - [Drop database](./../docs/installation/MaintenanceScripts.md#drop-database)
-
 
 Full maintenance documentation is [here](./../docs/installation/MaintenanceScripts.md).
 

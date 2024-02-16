@@ -41,12 +41,7 @@ export class GlobalConfigManager {
   constructor(attestationClientConfig: AttestationClientConfig, logger: AttLogger) {
     this.logger = logger;
     this.attestationClientConfig = attestationClientConfig;
-    // Require matching of each ChainType to some SourceId.
-    // if (!checkChainTypesMatchSourceIds(this.logger)) {
-    //   this.logger.error("Discrepancy between ChainType and SourceId enums. Critical error.");
-    //   process.exit(1);
-    //   return; // Don't delete needed for testing
-    // }
+
     this.definitionStore = new AttestationDefinitionStore("configs/type-definitions");
   }
 
@@ -96,13 +91,13 @@ export class GlobalConfigManager {
         } catch (error) {
           logException(error, `Critical error while refreshing verifier configs`);
           process.exit(1);
-          return; // Don't delete needed for testing
+          return; // needed for testing
         }
       }, verifierConfigRefreshIntervalMs);
     } catch (error) {
       logException(error, `GlobalConfigManager::initialize: Critical error`);
       process.exit(1);
-      return; // Don't delete needed for testing
+      return; // needed for testing
     }
   }
 
@@ -114,7 +109,7 @@ export class GlobalConfigManager {
     if (this.globalAttestationConfigs.length === 0) {
       this.logger.error(`${this.label} No global configurations.`);
       process.exit(1);
-      return; // Don't delete needed for testing
+      return; // needed for testing
     }
     let i = this.globalAttestationConfigs.length - 1;
     // Skip the future configs in regard to roundId
@@ -125,7 +120,7 @@ export class GlobalConfigManager {
       if (this.globalAttestationConfigs[0].startRoundId > roundId) {
         this.logger.error(`${this.label} Round id (${roundId}) too low for the first global config (round: ${this.globalAttestationConfigs[0].startRoundId})`);
         process.exit(1);
-        return; // Don't delete needed for testing
+        return; //  needed for testing
       }
       return this.globalAttestationConfigs[0];
     }

@@ -24,7 +24,6 @@ function augmentTransactionBase(dbTransaction: IDBTransactionBase, chainType: Ch
   txEntity.transactionType = txData.type;
   txEntity.paymentReference = prepareString(unPrefix0x(txData.stdPaymentReference), 64);
   txEntity.isNativePayment = txData.isNativePayment;
-  //txEntity.response = prepareString(stringify({ data: txData.data, additionalDsata: txData.additionalData }), 16 * 1024);
 
   // use full response size
   const data = stringify(txData._data);
@@ -37,20 +36,6 @@ function augmentTransactionBase(dbTransaction: IDBTransactionBase, chainType: Ch
 
   return txEntity;
 }
-
-// /**
-//  * Creates the database entity for a confirmed transaction obtained from the MCC output to be put into the indexer database.
-//  * Specialization of the function for ALGO.
-//  * @param dbTransaction
-//  * @param block
-//  * @param txData
-//  * @returns
-//  */
-// export function augmentTransactionAlgo(block: AlgoBlock, txData: AlgoTransaction): DBTransactionBase {
-//   const res = augmentTransactionBase(DBTransactionALGO0, ChainType.ALGO, block, txData);
-
-//   return res as DBTransactionBase;
-// }
 
 /**
  * Creates the database entity for a confirmed transaction obtained from the MCC output to be put into the indexer database.

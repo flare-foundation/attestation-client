@@ -1,15 +1,11 @@
 import { ChainType } from "@flarenetwork/mcc";
-import { DBBlockALGO, DBBlockBTC, DBBlockDOGE, DBBlockLTC, DBBlockXRP, IDBBlockBase } from "../entity/indexer/dbBlock";
+import { DBBlockBTC, DBBlockDOGE, DBBlockXRP, IDBBlockBase } from "../entity/indexer/dbBlock";
 import { DBState } from "../entity/indexer/dbState";
 import {
-  DBTransactionALGO0,
-  DBTransactionALGO1,
   DBTransactionBTC0,
   DBTransactionBTC1,
   DBTransactionDOGE0,
   DBTransactionDOGE1,
-  DBTransactionLTC0,
-  DBTransactionLTC1,
   DBTransactionXRP0,
   DBTransactionXRP1,
   IDBTransactionBase,
@@ -19,7 +15,7 @@ import { getUnixEpochTimestamp } from "../utils/helpers/utils";
 import { getGlobalLogger, logException } from "../utils/logging/logger";
 
 export const SECONDS_PER_DAY = 60 * 60 * 24;
-export const SUPPORTED_CHAINS = [`xrp`, `btc`, `ltc`, "doge", "algo"];
+export const SUPPORTED_CHAINS = [`xrp`, `btc`, "doge"];
 
 export interface IndexerTablesScheme {
   transactionTable: IDBTransactionBase[];

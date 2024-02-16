@@ -149,7 +149,7 @@ export class IndexerToDB {
 
   /**
    * Drops all block and transactions tables for the specified chain
-   * @param chain chain name (XRP, LTC, BTC, DOGE, ALGO)
+   * @param chain chain name (XRP, BTC, DOGE)
    */
   public async dropAllChainTables(chain: string) {
     chain = chain.toLocaleLowerCase();

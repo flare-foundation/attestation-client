@@ -6,7 +6,7 @@ Chains configuration file contains all external chain configuration.
 
 | Name                          | Description                                                             | Default |
 | ----------------------------- | ----------------------------------------------------------------------- | ------- |
-| `name`                        | Chain name (XRP, BTC, LTC, ALGO, DOGE)                                  |         |
+| `name`                        | Chain name (XRP, BTC, DOGE)                                             |         |
 | `mccCreate`                   | [MCC Create Configuration](./json/json-MCCCreateConfiguration.md)       |         |
 | `rateLimitOptions`            | [Rate Limiting Options](./json/json-RateLimitingOptions.md)             |         |
 | `numberOfConfirmations`       | Number of required block confirmations before block is considered final | 1       |

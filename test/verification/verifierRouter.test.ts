@@ -57,15 +57,6 @@ describe(`VerifierRouter tests (${getTestFile(__filename)})`, () => {
     await setup.Doge.app.close();
   });
 
-  it("Should check if the type is supported", async function () {
-    const verifierRouter = new VerifierRouter();
-    let verifierConfig = await readSecureConfig(new VerifierRouteConfig(), `verifier-client/verifier-routes-${150}`);
-    await verifierRouter.initialize(verifierConfig, defStore);
-
-    const res = verifierRouter.isSupported("ALGO", "BalanceDecreasingTransaction");
-    assert(!res);
-  });
-
   it("Should not initialize twice", async function () {
     const verifierRouter = new VerifierRouter();
     let verifierConfig = await readSecureConfig(new VerifierRouteConfig(), `verifier-client/verifier-routes-${150}`);

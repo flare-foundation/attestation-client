@@ -1,7 +1,7 @@
 # Scope of indexing
 
 The most important feature of indexers is that they index blocks and transactions by certain properties allowing for fast queries on those properties.
-For that purpose, the indexer consists of essentially two tables, one for blocks and one for transactions.
+For this purpose, the indexer consists of essentially two tables, one for blocks and one for transactions.
 The entries into the tables are parsed from API responses for blocks and transactions, respectively.
 
 ## Blocks

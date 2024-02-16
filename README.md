@@ -11,7 +11,8 @@ The Attestation Client Suite is a set of software modules for handling tasks rel
 
 The project depends heavily on the [Multi Chain Client library (MCC)](https://github.com/flare-foundation/multi-chain-client) that provides a unified interface to multiple blockchain APIs.
 
-For further details see [Installation and technical reference.](./docs/README.md)
+For further details see [Installation and technical reference.](./docs/README.md) or
+consult [Songbird State Connector protocol](https://github.com/flare-foundation/songbird-state-connector-protocol).
 
 # Testing
 

@@ -15,10 +15,6 @@ In our implementation in Node.js, we use our _Multi Chain Client_ library `flare
 - Get block by block number or hash
 - Get block height
 
-Caching of API responses is important mainly for transactions. An important use case is in case of Bitcoin and other Bitcoin code based UTXO blockchains. Namely, in UTXO blockchains a source address is obtained by querying the blockchain API for each transaction on each input. There can be up to 1000 inputs (usually much less) from different transactions. Usually we can get a block info and info of all transactions in the block in one request. But then we have to make for each of those transactions many requests for input transactions. Those could repeat and caching responses helps here a bit. Note that some blocks can have even over 2000 transactions and some experimental calculations showed that we would do 4 additional API calls per transaction on average for input transactions. With Bitcoin blocks of over 2000 transactions, this may take even 5 minutes. Compared to 10 minute average block production of Bitcoin the indexing would take quite some time. Also, the most critical requirement for an indexer is that confirmed transactions are stored into the database immediately after the confirmation block arrives. Hence, we have to process transactions from unconfirmed blocks in advance. Since unconfirmed blocks may be in different forks, we might be processing the wrong fork. But even if we are in the wrong fork, a lot of transactions in that wrong block will appear in the right block as well, so caching can still help greatly.
-
-We also note that we used another optimization: we only read all inputs of transactions that have a defined payment reference. For other transactions, whether we do additional reads during verification phase or not depends on the attestation type.
-
 Next: [Attestation types](../attestation-types/attestation-types.md)
 
 [Back to Home](../README.md)

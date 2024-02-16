@@ -21,7 +21,7 @@ import { SpammerCredentials } from "./SpammerConfiguration";
 import { decodeAttestationName, encodeAttestationName } from "../external-libs/utils";
 
 const args = yargs
-  .option("chain", { alias: "c", type: "string", description: "Chain (XRP, BTC, LTC, DOGE)", default: "BTC" })
+  .option("chain", { alias: "c", type: "string", description: "Chain (XRP, BTC, DOGE)", default: "BTC" })
   .option("external", { alias: "e", type: "boolean", description: "If provided connection to external postgres indexer is used", default: false })
   .option("delay", { alias: "d", type: "number", description: "Delay between sending transactions from the same block", default: 500 })
   .option("loggerLabel", { alias: "l", type: "string", description: "Logger label", default: "" })

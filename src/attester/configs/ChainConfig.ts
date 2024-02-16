@@ -6,7 +6,7 @@ import { AdditionalTypeInfo, IReflection } from "../../utils/reflection/reflecti
  */
 export class ChainConfig implements IReflection<ChainConfig> {
   /**
-   * Chain name (XRP, BTC, LTC, ALGO, DOGE)
+   * Chain name (XRP, BTC, DOGE)
    */
   public name = "";
 

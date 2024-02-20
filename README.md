@@ -33,6 +33,8 @@ All of the scripts associated with testing are collected in `-------TESTS-------
 - Some tests are run in hardhat environment to test smart contracts and their interaction with network (`.test-contract.ts`)
 - Others are run with mocha. They are split into three groups: regular tests (`.test.ts`), slower tests (`.test-slow.ts`) and tests that need some additional credentials(`.test-cred.ts`).
 
+The missing database dump files are available here: https://githubstatic.flare.center/ac-tests-dumps.tar.gz 
+
 ## Tooling
 
 - [mocha](https://github.com/mochajs/mocha)

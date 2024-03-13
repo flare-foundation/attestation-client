@@ -27,7 +27,7 @@ export class DOGEPaymentVerifierService {
     async verifyRequestInternal(request: Payment_Request | Payment_RequestNoMic): Promise<AttestationResponseDTO_Payment_Response> {
         if (
             request.attestationType !== encodeAttestationName("Payment") ||
-            request.sourceId !== encodeAttestationName((process.env.TESTNET ? "test" : "") + "DOGE")
+            request.sourceId !== encodeAttestationName((process.env.TESTNET == "true" ? "test" : "") + "DOGE")
         ) {
             throw new HttpException(
                 {
@@ -35,8 +35,8 @@ export class DOGEPaymentVerifierService {
                     error: `Attestation type and source id combination not supported: (${request.attestationType}, ${
                         request.sourceId
                     }). This source supports attestation type 'Payment' (${encodeAttestationName("Payment")}) and source id '${
-                        (process.env.TESTNET ? "test" : "") + "DOGE"
-                    }' (${encodeAttestationName((process.env.TESTNET ? "test" : "") + "DOGE")}).`,
+                        (process.env.TESTNET == "true" ? "test" : "") + "DOGE"
+                    }' (${encodeAttestationName((process.env.TESTNET == "true" ? "test" : "") + "DOGE")}).`,
                 },
                 HttpStatus.BAD_REQUEST,
             );

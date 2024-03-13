@@ -33,7 +33,7 @@ export class XRPConfirmedBlockHeightExistsVerifierService {
     ): Promise<AttestationResponseDTO_ConfirmedBlockHeightExists_Response> {
         if (
             request.attestationType !== encodeAttestationName("ConfirmedBlockHeightExists") ||
-            request.sourceId !== encodeAttestationName((process.env.TESTNET ? "test" : "") + "XRP")
+            request.sourceId !== encodeAttestationName((process.env.TESTNET == "true" ? "test" : "") + "XRP")
         ) {
             throw new HttpException(
                 {
@@ -42,8 +42,8 @@ export class XRPConfirmedBlockHeightExistsVerifierService {
                         request.sourceId
                     }). This source supports attestation type 'ConfirmedBlockHeightExists' (${encodeAttestationName(
                         "ConfirmedBlockHeightExists",
-                    )}) and source id '${(process.env.TESTNET ? "test" : "") + "XRP"}' (${encodeAttestationName(
-                        (process.env.TESTNET ? "test" : "") + "XRP",
+                    )}) and source id '${(process.env.TESTNET == "true" ? "test" : "") + "XRP"}' (${encodeAttestationName(
+                        (process.env.TESTNET == "true" ? "test" : "") + "XRP",
                     )}).`,
                 },
                 HttpStatus.BAD_REQUEST,

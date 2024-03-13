@@ -31,7 +31,7 @@ export class XRPAddressValidityVerifierService {
     async verifyRequestInternal(request: AddressValidity_Request | AddressValidity_RequestNoMic): Promise<AttestationResponseDTO_AddressValidity_Response> {
         if (
             request.attestationType !== encodeAttestationName("AddressValidity") ||
-            request.sourceId !== encodeAttestationName((process.env.TESTNET ? "test" : "") + "XRP")
+            request.sourceId !== encodeAttestationName((process.env.TESTNET == "true" ? "test" : "") + "XRP")
         ) {
             throw new HttpException(
                 {
@@ -39,8 +39,8 @@ export class XRPAddressValidityVerifierService {
                     error: `Attestation type and source id combination not supported: (${request.attestationType}, ${
                         request.sourceId
                     }). This source supports attestation type 'AddressValidity' (${encodeAttestationName("AddressValidity")}) and source id '${
-                        (process.env.TESTNET ? "test" : "") + "XRP"
-                    }' (${encodeAttestationName((process.env.TESTNET ? "test" : "") + "XRP")}).`,
+                        (process.env.TESTNET == "true" ? "test" : "") + "XRP"
+                    }' (${encodeAttestationName((process.env.TESTNET == "true" ? "test" : "") + "XRP")}).`,
                 },
                 HttpStatus.BAD_REQUEST,
             );

@@ -27,7 +27,7 @@ export class XRPPaymentVerifierService {
     async verifyRequestInternal(request: Payment_Request | Payment_RequestNoMic): Promise<AttestationResponseDTO_Payment_Response> {
         if (
             request.attestationType !== encodeAttestationName("Payment") ||
-            request.sourceId !== encodeAttestationName((process.env.TESTNET ? "test" : "") + "XRP")
+            request.sourceId !== encodeAttestationName((process.env.TESTNET == "true" ? "test" : "") + "XRP")
         ) {
             throw new HttpException(
                 {
@@ -35,8 +35,8 @@ export class XRPPaymentVerifierService {
                     error: `Attestation type and source id combination not supported: (${request.attestationType}, ${
                         request.sourceId
                     }). This source supports attestation type 'Payment' (${encodeAttestationName("Payment")}) and source id '${
-                        (process.env.TESTNET ? "test" : "") + "XRP"
-                    }' (${encodeAttestationName((process.env.TESTNET ? "test" : "") + "XRP")}).`,
+                        (process.env.TESTNET == "true" ? "test" : "") + "XRP"
+                    }' (${encodeAttestationName((process.env.TESTNET == "true" ? "test" : "") + "XRP")}).`,
                 },
                 HttpStatus.BAD_REQUEST,
             );

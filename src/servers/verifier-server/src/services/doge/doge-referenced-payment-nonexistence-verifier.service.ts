@@ -34,7 +34,7 @@ export class DOGEReferencedPaymentNonexistenceVerifierService {
     ): Promise<AttestationResponseDTO_ReferencedPaymentNonexistence_Response> {
         if (
             request.attestationType !== encodeAttestationName("ReferencedPaymentNonexistence") ||
-            request.sourceId !== encodeAttestationName((process.env.TESTNET ? "test" : "") + "DOGE")
+            request.sourceId !== encodeAttestationName((process.env.TESTNET == "true" ? "test" : "") + "DOGE")
         ) {
             throw new HttpException(
                 {
@@ -43,8 +43,8 @@ export class DOGEReferencedPaymentNonexistenceVerifierService {
                         request.sourceId
                     }). This source supports attestation type 'ReferencedPaymentNonexistence' (${encodeAttestationName(
                         "ReferencedPaymentNonexistence",
-                    )}) and source id '${(process.env.TESTNET ? "test" : "") + "DOGE"}' (${encodeAttestationName(
-                        (process.env.TESTNET ? "test" : "") + "DOGE",
+                    )}) and source id '${(process.env.TESTNET == "true" ? "test" : "") + "DOGE"}' (${encodeAttestationName(
+                        (process.env.TESTNET == "true" ? "test" : "") + "DOGE",
                     )}).`,
                 },
                 HttpStatus.BAD_REQUEST,

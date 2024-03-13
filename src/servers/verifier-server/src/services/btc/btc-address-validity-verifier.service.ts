@@ -31,7 +31,7 @@ export class BTCAddressValidityVerifierService {
     async verifyRequestInternal(request: AddressValidity_Request | AddressValidity_RequestNoMic): Promise<AttestationResponseDTO_AddressValidity_Response> {
         if (
             request.attestationType !== encodeAttestationName("AddressValidity") ||
-            request.sourceId !== encodeAttestationName((process.env.TESTNET ? "test" : "") + "BTC")
+            request.sourceId !== encodeAttestationName((process.env.TESTNET == "true" ? "test" : "") + "BTC")
         ) {
             throw new HttpException(
                 {
@@ -39,8 +39,8 @@ export class BTCAddressValidityVerifierService {
                     error: `Attestation type and source id combination not supported: (${request.attestationType}, ${
                         request.sourceId
                     }). This source supports attestation type 'AddressValidity' (${encodeAttestationName("AddressValidity")}) and source id '${
-                        (process.env.TESTNET ? "test" : "") + "BTC"
-                    }' (${encodeAttestationName((process.env.TESTNET ? "test" : "") + "BTC")}).`,
+                        (process.env.TESTNET == "true" ? "test" : "") + "BTC"
+                    }' (${encodeAttestationName((process.env.TESTNET == "true" ? "test" : "") + "BTC")}).`,
                 },
                 HttpStatus.BAD_REQUEST,
             );

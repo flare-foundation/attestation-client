@@ -39,7 +39,7 @@ export async function getRandomAttestationRequest(
       throw new Error("Invalid sourceId");
   }
 
-  sourceId = process.env.TESTNET ? "test" + sourceId : sourceId;
+  sourceId = process.env.TESTNET == "true" ? "test" + sourceId : sourceId;
 
   const { attestationType, generator } = randomGeneratorChoiceWithAttestationType(randomGenerators);
   if (generator.size <= 0) {

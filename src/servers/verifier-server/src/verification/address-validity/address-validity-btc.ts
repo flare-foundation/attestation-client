@@ -220,7 +220,7 @@ export function bech32Decode(addr: string) {
  * If @param testnet is truthy, checks whether address is valid on testnet.
  * @returns
  */
-export function verifyAddressBTC(address: string, testnet = process.env.TESTNET): VerificationResponse<AddressValidity_ResponseBody> {
+export function verifyAddressBTC(address: string, testnet = (process.env.TESTNET == "true")): VerificationResponse<AddressValidity_ResponseBody> {
   if (testnet) {
     const type = typeBTCtestnet(address);
 

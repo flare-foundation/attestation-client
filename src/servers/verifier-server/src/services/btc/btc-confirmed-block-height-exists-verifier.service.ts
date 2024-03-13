@@ -33,7 +33,7 @@ export class BTCConfirmedBlockHeightExistsVerifierService {
     ): Promise<AttestationResponseDTO_ConfirmedBlockHeightExists_Response> {
         if (
             request.attestationType !== encodeAttestationName("ConfirmedBlockHeightExists") ||
-            request.sourceId !== encodeAttestationName((process.env.TESTNET ? "test" : "") + "BTC")
+            request.sourceId !== encodeAttestationName((process.env.TESTNET == "true" ? "test" : "") + "BTC")
         ) {
             throw new HttpException(
                 {
@@ -42,8 +42,8 @@ export class BTCConfirmedBlockHeightExistsVerifierService {
                         request.sourceId
                     }). This source supports attestation type 'ConfirmedBlockHeightExists' (${encodeAttestationName(
                         "ConfirmedBlockHeightExists",
-                    )}) and source id '${(process.env.TESTNET ? "test" : "") + "BTC"}' (${encodeAttestationName(
-                        (process.env.TESTNET ? "test" : "") + "BTC",
+                    )}) and source id '${(process.env.TESTNET == "true" ? "test" : "") + "BTC"}' (${encodeAttestationName(
+                        (process.env.TESTNET == "true" ? "test" : "") + "BTC",
                     )}).`,
                 },
                 HttpStatus.BAD_REQUEST,

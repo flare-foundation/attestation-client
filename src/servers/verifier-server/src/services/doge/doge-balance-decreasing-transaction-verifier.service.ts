@@ -34,7 +34,7 @@ export class DOGEBalanceDecreasingTransactionVerifierService {
     ): Promise<AttestationResponseDTO_BalanceDecreasingTransaction_Response> {
         if (
             request.attestationType !== encodeAttestationName("BalanceDecreasingTransaction") ||
-            request.sourceId !== encodeAttestationName((process.env.TESTNET ? "test" : "") + "DOGE")
+            request.sourceId !== encodeAttestationName((process.env.TESTNET == "true" ? "test" : "") + "DOGE")
         ) {
             throw new HttpException(
                 {
@@ -43,8 +43,8 @@ export class DOGEBalanceDecreasingTransactionVerifierService {
                         request.sourceId
                     }). This source supports attestation type 'BalanceDecreasingTransaction' (${encodeAttestationName(
                         "BalanceDecreasingTransaction",
-                    )}) and source id '${(process.env.TESTNET ? "test" : "") + "DOGE"}' (${encodeAttestationName(
-                        (process.env.TESTNET ? "test" : "") + "DOGE",
+                    )}) and source id '${(process.env.TESTNET == "true" ? "test" : "") + "DOGE"}' (${encodeAttestationName(
+                        (process.env.TESTNET == "true" ? "test" : "") + "DOGE",
                     )}).`,
                 },
                 HttpStatus.BAD_REQUEST,

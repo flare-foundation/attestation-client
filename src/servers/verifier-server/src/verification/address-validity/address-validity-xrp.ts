@@ -18,7 +18,7 @@ function validCharacters(address: string): boolean {
  * If @param testnet is truthy, checks whether address is valid on testnet.
  * @returns
  */
-export function verifyAddressXRP(address: string, testnet = process.env.TESTNET): VerificationResponse<AddressValidity_ResponseBody> {
+export function verifyAddressXRP(address: string, testnet = (process.env.TESTNET == "true")): VerificationResponse<AddressValidity_ResponseBody> {
   const char = validCharacters(address);
   if (!char) return { status: VerificationStatus.OK, response: INVALID_ADDRESS_RESPONSE };
 

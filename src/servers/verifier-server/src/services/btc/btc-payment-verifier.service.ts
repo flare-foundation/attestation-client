@@ -27,7 +27,7 @@ export class BTCPaymentVerifierService {
     async verifyRequestInternal(request: Payment_Request | Payment_RequestNoMic): Promise<AttestationResponseDTO_Payment_Response> {
         if (
             request.attestationType !== encodeAttestationName("Payment") ||
-            request.sourceId !== encodeAttestationName((process.env.TESTNET ? "test" : "") + "BTC")
+            request.sourceId !== encodeAttestationName((process.env.TESTNET == "true" ? "test" : "") + "BTC")
         ) {
             throw new HttpException(
                 {
@@ -35,8 +35,8 @@ export class BTCPaymentVerifierService {
                     error: `Attestation type and source id combination not supported: (${request.attestationType}, ${
                         request.sourceId
                     }). This source supports attestation type 'Payment' (${encodeAttestationName("Payment")}) and source id '${
-                        (process.env.TESTNET ? "test" : "") + "BTC"
-                    }' (${encodeAttestationName((process.env.TESTNET ? "test" : "") + "BTC")}).`,
+                        (process.env.TESTNET == "true" ? "test" : "") + "BTC"
+                    }' (${encodeAttestationName((process.env.TESTNET == "true" ? "test" : "") + "BTC")}).`,
                 },
                 HttpStatus.BAD_REQUEST,
             );

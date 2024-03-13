@@ -34,7 +34,7 @@ export class BTCBalanceDecreasingTransactionVerifierService {
     ): Promise<AttestationResponseDTO_BalanceDecreasingTransaction_Response> {
         if (
             request.attestationType !== encodeAttestationName("BalanceDecreasingTransaction") ||
-            request.sourceId !== encodeAttestationName((process.env.TESTNET ? "test" : "") + "BTC")
+            request.sourceId !== encodeAttestationName((process.env.TESTNET == "true" ? "test" : "") + "BTC")
         ) {
             throw new HttpException(
                 {
@@ -43,8 +43,8 @@ export class BTCBalanceDecreasingTransactionVerifierService {
                         request.sourceId
                     }). This source supports attestation type 'BalanceDecreasingTransaction' (${encodeAttestationName(
                         "BalanceDecreasingTransaction",
-                    )}) and source id '${(process.env.TESTNET ? "test" : "") + "BTC"}' (${encodeAttestationName(
-                        (process.env.TESTNET ? "test" : "") + "BTC",
+                    )}) and source id '${(process.env.TESTNET == "true" ? "test" : "") + "BTC"}' (${encodeAttestationName(
+                        (process.env.TESTNET == "true" ? "test" : "") + "BTC",
                     )}).`,
                 },
                 HttpStatus.BAD_REQUEST,

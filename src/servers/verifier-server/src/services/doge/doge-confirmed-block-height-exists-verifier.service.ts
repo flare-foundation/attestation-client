@@ -33,7 +33,7 @@ export class DOGEConfirmedBlockHeightExistsVerifierService {
     ): Promise<AttestationResponseDTO_ConfirmedBlockHeightExists_Response> {
         if (
             request.attestationType !== encodeAttestationName("ConfirmedBlockHeightExists") ||
-            request.sourceId !== encodeAttestationName((process.env.TESTNET ? "test" : "") + "DOGE")
+            request.sourceId !== encodeAttestationName((process.env.TESTNET == "true" ? "test" : "") + "DOGE")
         ) {
             throw new HttpException(
                 {
@@ -42,8 +42,8 @@ export class DOGEConfirmedBlockHeightExistsVerifierService {
                         request.sourceId
                     }). This source supports attestation type 'ConfirmedBlockHeightExists' (${encodeAttestationName(
                         "ConfirmedBlockHeightExists",
-                    )}) and source id '${(process.env.TESTNET ? "test" : "") + "DOGE"}' (${encodeAttestationName(
-                        (process.env.TESTNET ? "test" : "") + "DOGE",
+                    )}) and source id '${(process.env.TESTNET == "true" ? "test" : "") + "DOGE"}' (${encodeAttestationName(
+                        (process.env.TESTNET == "true" ? "test" : "") + "DOGE",
                     )}).`,
                 },
                 HttpStatus.BAD_REQUEST,

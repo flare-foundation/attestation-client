@@ -14,7 +14,7 @@ const dogeBase58 = base(DOGE_BASE_58_DICT);
  * If @param testnet is truthy, checks whether address is valid on testnet.
  * @returns
  */
-export function verifyAddressDOGE(address: string, testnet = process.env.TESTNET): VerificationResponse<AddressValidity_ResponseBody> {
+export function verifyAddressDOGE(address: string, testnet = (process.env.TESTNET == "true")): VerificationResponse<AddressValidity_ResponseBody> {
   let validPrefix: string[];
   let validPrefixDecodedDec: number[];
 

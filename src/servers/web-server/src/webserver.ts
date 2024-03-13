@@ -11,6 +11,7 @@ export async function runWebserver() {
 
   app.use(helmet());
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
+  app.enableCors();
 
   app.setGlobalPrefix(process.env.APP_BASE_PATH ?? "");
   const config = new DocumentBuilder()

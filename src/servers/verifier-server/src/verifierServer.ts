@@ -27,6 +27,7 @@ export async function runVerifierServer() {
 
   app.use(helmet());
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
+  app.enableCors();
 
   const verifierType = process.env.VERIFIER_TYPE?.toUpperCase()
   const basePath = process.env.APP_BASE_PATH ? `${process.env.APP_BASE_PATH}` : ""

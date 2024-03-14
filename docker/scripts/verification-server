@@ -1,3 +1,3 @@
 #!/bin/bash
 
-exec node dist/src/runVerifierServer.js -a "$1"
+exec node dist/src/servers/verifier-server/main.js

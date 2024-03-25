@@ -86,7 +86,7 @@ export async function createTypeOrmOptions(loggerLabel: string): Promise<TypeOrm
 
   return {
     name: "indexerDatabase",
-    type: "mysql",
+    type: "postgres",
     host: databaseCredentials.host,
     port: databaseCredentials.port,
     username: databaseCredentials.username,

@@ -33,7 +33,7 @@ export async function createTypeOrmOptions(loggerLabel: string, entities: any[])
 
   return {
     //name: databaseName,
-    type: "mysql",
+    type: "postgres",
     host: databaseOptions.host,
     port: databaseOptions.port,
     username: databaseOptions.username,

@@ -8,7 +8,7 @@ export class DBState {
   @Column()
   valueString: string = "";
 
-  @Column()
+  @Column({ type: "bigint" })
   valueNumber: number = 0;
 
   @Column()

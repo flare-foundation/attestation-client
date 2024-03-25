@@ -154,7 +154,7 @@ export class IndexerSync {
       if (statsBlocksPerSec > 0) {
         const timeLeft = (this.indexer.tipHeight - this.indexer.indexedHeight) / statsBlocksPerSec;
 
-        dbStatus.valueNumber = timeLeft;
+        dbStatus.valueNumber = Math.floor(timeLeft);
 
         this.logger.debug(
           `sync ${this.indexer.indexedHeight} to ${this.indexer.tipHeight}, ${blocksLeft} blocks (ETA: ${secToHHMMSS(timeLeft)} bps: ${round(

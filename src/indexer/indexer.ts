@@ -600,32 +600,27 @@ export class Indexer {
 
       // get DB N_bottom
       const queryNbottom = this.dbService.manager
-        .createQueryBuilder()
-        .select("valueNumber")
-        .addSelect("name")
-        .from(DBState, "s")
-        .where("s.name = :name", { name: `${name.toUpperCase()}_Nbottom` });
+        .createQueryBuilder(DBState, "s")
+        .where("s.name = :name", { name: `${name.toLowerCase()}_Nbottom` });
 
       //this.queryPrint(queryNbottom);
 
-      const Nbottom = await queryNbottom.getRawOne();
+      const Nbottom = await queryNbottom.getOne();
 
       if (!Nbottom || !Nbottom.valueNumber) {
-        this.logger.error(`${name} discontinuity test canceled (unable to get state:${name.toUpperCase()}_Nbottom)`);
+        this.logger.error(`${name} discontinuity test canceled (unable to get state:${name.toLowerCase()}_Nbottom)`);
         return;
       }
 
       const queryTable0 = this.dbService.manager
-        .createQueryBuilder()
-        .select("max(blockNumber) - min(blockNumber) + 1 - count( distinct blockNumber )", "missing")
-        .from(this.dbTransactionClasses[0] as any as EntityTarget<unknown>, "tx")
-        .where("blockNumber >= :Nbottom", { Nbottom: Nbottom.valueNumber });
+        .createQueryBuilder(this.dbTransactionClasses[0] as any as EntityTarget<unknown>, "tx")
+        .select('max("blockNumber") - min("blockNumber") + 1 - count( distinct "blockNumber" )', "missing")
+        .where('"blockNumber" >= :Nbottom', { Nbottom: Nbottom.valueNumber });
 
       const queryTable1 = this.dbService.manager
-        .createQueryBuilder()
-        .select("max(blockNumber) - min(blockNumber) + 1 - count( distinct blockNumber )", "missing")
-        .from(this.dbTransactionClasses[1] as any as EntityTarget<unknown>, "tx")
-        .where("blockNumber >= :Nbottom", { Nbottom: Nbottom.valueNumber });
+        .createQueryBuilder(this.dbTransactionClasses[1] as any as EntityTarget<unknown>, "tx")
+        .select('max("blockNumber") - min("blockNumber") + 1 - count( distinct "blockNumber" )', "missing")
+        .where('"blockNumber" >= :Nbottom', { Nbottom: Nbottom.valueNumber });
 
       const table0missing = await queryTable0.getRawOne();
       const table1missing = await queryTable1.getRawOne();

@@ -6,9 +6,9 @@ import { optional } from "@flarenetwork/mcc";
 
 export class DatabaseConnectOptions {
   /**
-   * Database type. Can be `mysql` (production and development) or `better-sqlite3` (for development and tests only)
+   * Database type. Can be `postgres` (production and development) or `better-sqlite3` (for development and tests only)
    */
-  @optional() type = "mysql";
+  @optional() type = "postgres";
 
   /**
    * Database server address (host)

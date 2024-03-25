@@ -1,5 +1,5 @@
 import { DataSource, DataSourceOptions } from "typeorm";
-import { MysqlConnectionOptions } from "typeorm/driver/mysql/MysqlConnectionOptions";
+import { PostgresConnectionOptions } from "typeorm/driver/postgres/PostgresConnectionOptions";
 import { AttLogger } from "../logging/logger";
 import { DatabaseConnectOptions } from "./DatabaseConnectOptions";
 
@@ -63,7 +63,7 @@ export class DatabaseService {
     } else {
       const connectOptionsBase = {
         name: this.connectionName,
-        type: "mysql",
+        type: "postgres",
         host: this.options.host,
         port: this.options.port,
         username: this.options.username,
@@ -72,7 +72,7 @@ export class DatabaseService {
         entities: this.options?.entities ?? [entities],
         synchronize: this.options.synchronize ?? false,
         logging: this.options.logging ?? false,
-      } as MysqlConnectionOptions;
+      } as PostgresConnectionOptions;
       let connectOptions;
       if (externalDB) {
         connectOptions = {

@@ -24,7 +24,7 @@ export function arrayRemoveElement<T>(array: T[], element: T) {
  */
 export function prepareString(text: string, maxLength: number, reportOverflow: string = null): string {
   if (!text) return "";
-  if (text.length < maxLength) return text;
+  if (text.length < maxLength) return text.toLowerCase();
 
   if (typeof text != "string") {
     getGlobalLogger().warning(`prepareString warning: expected type is string`);

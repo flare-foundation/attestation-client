@@ -75,17 +75,17 @@ export class IndexerEngineService extends IIndexerEngineService {
       const splitName = stateObj.name.split("_");
       if (splitName.length > 1) {
         if (splitName[1] == "T") {
-          stateRes.tipHeight = stateObj.valueNumber;
-          stateRes.lastTipUpdateTimestamp = stateObj.timestamp;
+          stateRes.tipHeight = Number(stateObj.valueNumber);
+          stateRes.lastTipUpdateTimestamp = Number(stateObj.timestamp);
         }
         if (splitName[1] == "N") {
-          stateRes.indexedBlockRange.last = stateObj.valueNumber;
+          stateRes.indexedBlockRange.last = Number(stateObj.valueNumber);
         }
         if (splitName[1] == "Nbottom") {
-          stateRes.indexedBlockRange.first = stateObj.valueNumber;
+          stateRes.indexedBlockRange.first = Number(stateObj.valueNumber);
         }
         if (splitName[1] == "NbottomTime") {
-          stateRes.lastTailUpdateTimestamp = stateObj.valueNumber;
+          stateRes.lastTailUpdateTimestamp = Number(stateObj.valueNumber);
         }
         if (splitName[1] == "state") {
           stateRes.state = stateObj.valueString;

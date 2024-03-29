@@ -127,6 +127,8 @@ export class IndexerEngineService extends IIndexerEngineService {
    */
   public async getTransaction(txHash: string): Promise<ApiDBTransaction | null> {
     let results: any[] = [];
+    txHash = txHash.toLowerCase();
+
     for (let table of this.configService.transactionTable) {
       let query = this.manager.createQueryBuilder(table as any, "transaction").andWhere("transaction.transactionId = :txHash", { txHash });
       results = results.concat(await query.getOne());
@@ -148,6 +150,7 @@ export class IndexerEngineService extends IIndexerEngineService {
    * @returns
    */
   public async getBlock(blockHash: string): Promise<ApiDBBlock | null> {
+    blockHash = blockHash.toLowerCase();
     let query = this.manager.createQueryBuilder(this.configService.blockTable as any, "block").andWhere("block.blockHash = :blockHash", { blockHash });
     let result = (await query.getOne()) as DBBlockBase;
     return result;
@@ -233,7 +236,7 @@ export class IndexerEngineService extends IIndexerEngineService {
         countQuery = countQuery.andWhere("transaction.blockNumber <= :to", { to });
       }
       if (paymentReference) {
-        countQuery = countQuery.andWhere("transaction.paymentReference = :reference", { reference: unPrefix0x(paymentReference) });
+        countQuery = countQuery.andWhere("transaction.paymentReference = :reference", { reference: unPrefix0x(paymentReference).toLowerCase() });
       }
 
       countQuery = countQuery.select("COUNT(id)", "cnt").addSelect("MIN(transaction.blockNumber)", "min");
@@ -259,7 +262,7 @@ export class IndexerEngineService extends IIndexerEngineService {
         query = query.andWhere("transaction.blockNumber <= :to", { to });
       }
       if (paymentReference) {
-        query = query.andWhere("transaction.paymentReference = :reference", { reference: unPrefix0x(paymentReference) });
+        query = query.andWhere("transaction.paymentReference = :reference", { reference: unPrefix0x(paymentReference).toLowerCase() });
       }
       query = query.orderBy("transaction.blockNumber", "ASC").addOrderBy("transaction.transactionId", "ASC").limit(theLimit).offset(theOffset);
       results = results.concat(await query.getMany());
@@ -276,7 +279,7 @@ export class IndexerEngineService extends IIndexerEngineService {
         query = query.andWhere("transaction.blockNumber <= :to", { to });
       }
       if (paymentReference) {
-        query = query.andWhere("transaction.paymentReference = :reference", { reference: unPrefix0x(paymentReference) });
+        query = query.andWhere("transaction.paymentReference = :reference", { reference: unPrefix0x(paymentReference).toLowerCase() });
       }
       query = query.orderBy("transaction.blockNumber", "ASC").addOrderBy("transaction.transactionId", "ASC").limit(theLimit).offset(theOffset);
       results = results.concat(await query.getMany());

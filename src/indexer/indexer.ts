@@ -381,7 +381,7 @@ export class Indexer {
     const preparedBlocks = this.preparedBlocks.get(nextBlockHeight);
     if (preparedBlocks) {
       for (const preparedBlock of preparedBlocks) {
-        if (preparedBlock.block.blockHash === this.nextBlockHash) {
+        if (preparedBlock.block.blockHash.toLowerCase() === this.nextBlockHash.toLowerCase()) {
           // save prepared N+1 block with active hash and increment this.N
           await this.blockSave(preparedBlock.block, preparedBlock.transactions);
 
@@ -396,7 +396,7 @@ export class Indexer {
     // check if the block with number N + 1, `Np1`, with hash `Np1Hash` is in preparation
     let exists = false;
     for (const processor of this.blockProcessorManager.blockProcessors) {
-      if (processor.block.number == nextBlockHeight && processor.block.stdBlockHash == this.nextBlockHash) {
+      if (processor.block.number == nextBlockHeight && processor.block.stdBlockHash.toLowerCase() == this.nextBlockHash.toLowerCase()) {
         exists = true;
         break;
       }
@@ -722,7 +722,7 @@ export class Indexer {
 
       // has N+1 confirmation block
       const isNextBlockConfirmed = this.indexedHeight <= this.tipHeight - this.chainConfig.numberOfConfirmations;
-      const isNextBlockHashChanged = this.nextBlockHash !== blockNext.stdBlockHash;
+      const isNextBlockHashChanged = this.nextBlockHash.toLowerCase() !== blockNext.stdBlockHash.toLowerCase();
 
       // update status for logging
       await this.updateStatus(blockNext);
@@ -737,7 +737,7 @@ export class Indexer {
       this.logger.info(`^Wnew block T=${this.tipHeight} N=${this.indexedHeight} ${isNextBlockHashChanged ? "(N+1 hash changed)" : ""}`);
 
       // set the hash of N + 1 block to the latest known value
-      this.nextBlockHash = blockNext.stdBlockHash;
+      this.nextBlockHash = blockNext.stdBlockHash.toLowerCase();
 
       // save completed N+1 block or wait for it
       if (isNextBlockConfirmed) {
@@ -749,7 +749,7 @@ export class Indexer {
         // whether N + 1 was saved or not it is always better to refresh the block N + 1
         blockNext = await this.indexerToClient.getBlockFromClient(`runIndexer3`, this.indexedHeight + 1);
         // process new or changed N+1
-        this.nextBlockHash = blockNext.stdBlockHash;
+        this.nextBlockHash = blockNext.stdBlockHash.toLowerCase();
       }
 
       // start async processing of block N + 1 (if not already started)

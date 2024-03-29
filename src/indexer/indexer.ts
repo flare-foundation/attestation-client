@@ -199,7 +199,7 @@ export class Indexer {
     this.logger.info(`^Gcompleted ${block.blockNumber}:N+${block.blockNumber - this.indexedHeight} (${transactions.length} transaction(s))`);
 
     // if we are waiting for block N+1 to be completed - then it is no need to put it into queue but just save it
-    const isBlockNext = block.blockNumber == this.indexedHeight + 1 && block.blockHash == this.nextBlockHash;
+    const isBlockNext = block.blockNumber == this.indexedHeight + 1 && block.blockHash.toLowerCase() == this.nextBlockHash.toLowerCase();
     if (isBlockNext && this.waitNextBlock) {
       await this.blockSave(block, transactions);
       this.waitNextBlock = false;
@@ -236,7 +236,7 @@ export class Indexer {
     this.logger.info(`^Galready completed ${block.number}:N+${block.number - this.indexedHeight}`);
 
     // if N+1 is ready (already processed) then begin processing N+2 (we need to be very aggressive with read ahead)
-    const isBlockNext = block.number == this.indexedHeight + 1 && block.stdBlockHash == this.nextBlockHash;
+    const isBlockNext = block.number == this.indexedHeight + 1 && block.stdBlockHash.toLowerCase() == this.nextBlockHash.toLowerCase();
 
     if (!this.indexerSync.isSyncing) {
       if (isBlockNext) {
@@ -599,9 +599,7 @@ export class Indexer {
       //const sqlQuery = `SELECT max(blockNumber) - min(blockNumber) + 1 - count( distinct blockNumber ) as missed FROM indexer.${name}_transactions0 where blockNumber >= (select valueNumber from indexer.state where \`name\` = "${name.toUpperCase()}_Nbottom");`;
 
       // get DB N_bottom
-      const queryNbottom = this.dbService.manager
-        .createQueryBuilder(DBState, "s")
-        .where("s.name = :name", { name: `${name.toLowerCase()}_Nbottom` });
+      const queryNbottom = this.dbService.manager.createQueryBuilder(DBState, "s").where("s.name = :name", { name: `${name.toLowerCase()}_Nbottom` });
 
       //this.queryPrint(queryNbottom);
 

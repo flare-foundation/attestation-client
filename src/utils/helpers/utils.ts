@@ -35,7 +35,7 @@ export function prepareString(text: string, maxLength: number, reportOverflow: s
     getGlobalLogger().warning(`prepareString warning: ${reportOverflow} overflow ${maxLength} (length=${text.length})`);
   }
 
-  return text.substring(0, maxLength);
+  return text.substring(0, maxLength).toLowerCase();
 }
 
 /**

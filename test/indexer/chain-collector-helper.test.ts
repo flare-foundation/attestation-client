@@ -46,7 +46,7 @@ describe(`Chain collector helpers, (${getTestFile(__filename)})`, () => {
     });
 
     it("Should create entity from a transaction for XRP", async () => {
-      const txHash = "A8B4D5C887D0881881A0A45ECEB8D250BF53E6CAE9EB72B9D251C590BD9087AB";
+      const txHash = "A8B4D5C887D0881881A0A45ECEB8D250BF53E6CAE9EB72B9D251C590BD9087AB".toLowerCase();
       const blockId = 75660711;
 
       const augTx = augmentTransactionXrp(TestBlockXRP, TestTxXRP);

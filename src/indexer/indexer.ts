@@ -297,7 +297,7 @@ export class Indexer {
 
     // create transaction and save everything with retry (terminate app on failure)
     await retry(`blockSave N=${Np1}`, async () => {
-      await this.dbService.manager.transaction(async (tx) => {
+      await this.dbService.manager.transaction(async (entityManager) => {
         // save state N, T and T_CHECK_TIME
         const stateEntries = [getStateEntry("N", this.chainConfig.name, Np1), getStateEntry("T", this.chainConfig.name, this.tipHeight)];
 
@@ -305,11 +305,11 @@ export class Indexer {
         if (transactions.length > 0) {
           // fix transactions class to active interlace transaction class
           const dummy = new transactionClass();
-          for (let tx of transactions) {
-            Object.setPrototypeOf(tx, Object.getPrototypeOf(dummy));
+          for (let transaction of transactions) {
+            Object.setPrototypeOf(transaction, Object.getPrototypeOf(dummy));
           }
 
-          await tx.save(transactions);
+          await entityManager.save(transactions);
         } else {
           // save dummy transaction to keep transaction table block continuity
           this.logger.debug(`block ${block.blockNumber} no transactions (dummy tx added)`);
@@ -320,11 +320,11 @@ export class Indexer {
           dummyTx.blockNumber = block.blockNumber;
           dummyTx.transactionType = "EMPTY_BLOCK_INDICATOR";
 
-          await tx.save(dummyTx);
+          await entityManager.save(dummyTx);
         }
 
-        await tx.save(block);
-        await tx.save(stateEntries);
+        await entityManager.save(block);
+        await entityManager.save(stateEntries);
       });
       return true;
     });

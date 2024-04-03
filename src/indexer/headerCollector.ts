@@ -178,7 +178,7 @@ export class HeaderCollector {
       const dbBlock = new this.indexerToDB.dbBlockClass();
 
       dbBlock.blockNumber = blockNumber;
-      dbBlock.blockHash = blockTip.stdBlockHash.toLowerCase();
+      dbBlock.blockHash = blockTip.stdBlockHash ? blockTip.stdBlockHash.toLowerCase() : "";
       dbBlock.numberOfConfirmations = 1;
       dbBlock.timestamp = 0;
 
@@ -187,7 +187,7 @@ export class HeaderCollector {
         const header = blockTip as BlockHeaderBase;
 
         dbBlock.timestamp = header.unixTimestamp;
-        dbBlock.previousBlockHash = header.previousBlockHash.toLowerCase();
+        dbBlock.previousBlockHash = header.previousBlockHash ? header.previousBlockHash.toLowerCase() : "";
       } else {
         // On UTXO chains this means block is on main branch (some blocks may only have headers and not be in node's database)
         const activeBlock = blockTip.chainTipStatus === "active";
@@ -197,7 +197,7 @@ export class HeaderCollector {
           const actualBlock = await this.indexerToClient.getBlockHeaderFromClientByHash("saveHeadersOnNewTips", blockTip.blockHash.toLowerCase());
 
           dbBlock.timestamp = actualBlock.unixTimestamp;
-          dbBlock.previousBlockHash = actualBlock.previousBlockHash.toLowerCase();
+          dbBlock.previousBlockHash = actualBlock.previousBlockHash ? actualBlock.previousBlockHash.toLowerCase() : "";
         }
       }
 

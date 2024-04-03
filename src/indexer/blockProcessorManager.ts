@@ -91,6 +91,7 @@ export class BlockProcessorManager {
    */
   async process(block: FullBlockBase<any>) {
     // check if processor for this block is already completed
+
     if (this.blockProcessors.find((processor) => processor.block.stdBlockHash.toLowerCase() === block.stdBlockHash.toLowerCase() && processor.isCompleted)) {
       this.logger.info(`^w^Kprocess block ${block.number}^^^W (completed)`);
       // eslint-disable-next-line

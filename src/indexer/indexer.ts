@@ -543,6 +543,7 @@ export class Indexer {
     }
     this.processedBlocks++;
     await retry(`runIndexer::saveStatus`, async () => await this.dbService.manager.save(dbStatus));
+    this.logger.info(`Updated status, tipHeight: ${this.tipHeight}`);
   }
 
   /**
@@ -718,7 +719,11 @@ export class Indexer {
 
       //get next block from what is considered to be the main branch
       let blockNext = await this.indexerToClient.getBlockFromClient(`runIndexer2`, this.indexedHeight + 1);
-      this.indexerToClient.getBlockHeaderFromClient;
+
+      if (!blockNext) {
+        await sleepMs(this.config.blockCollectTimeMs);
+        continue;
+      }
 
       // has N+1 confirmation block
       const isNextBlockConfirmed = this.indexedHeight <= this.tipHeight - this.chainConfig.numberOfConfirmations;
@@ -729,6 +734,7 @@ export class Indexer {
 
       // check if N + 1 hash is the same
       if (!isNextBlockConfirmed && !isNextBlockHashChanged) {
+        this.logger.info(`Next block is not confirmed but it has not changed, blockNumber:${this.indexedHeight + 1}`);
         //next block is not confirmed but it has not changed
         await sleepMs(this.config.blockCollectTimeMs);
         continue;
@@ -737,7 +743,7 @@ export class Indexer {
       this.logger.info(`^Wnew block T=${this.tipHeight} N=${this.indexedHeight} ${isNextBlockHashChanged ? "(N+1 hash changed)" : ""}`);
 
       // set the hash of N + 1 block to the latest known value
-      this.nextBlockHash = blockNext.stdBlockHash.toLowerCase();
+      this.nextBlockHash = blockNext.stdBlockHash ? blockNext.stdBlockHash.toLowerCase() : "";
 
       // save completed N+1 block or wait for it
       if (isNextBlockConfirmed) {
@@ -748,8 +754,11 @@ export class Indexer {
 
         // whether N + 1 was saved or not it is always better to refresh the block N + 1
         blockNext = await this.indexerToClient.getBlockFromClient(`runIndexer3`, this.indexedHeight + 1);
+        if (!blockNext) {
+          continue;
+        }
         // process new or changed N+1
-        this.nextBlockHash = blockNext.stdBlockHash.toLowerCase();
+        this.nextBlockHash = blockNext.stdBlockHash ? blockNext.stdBlockHash.toLowerCase() : "";
       }
 
       // start async processing of block N + 1 (if not already started)

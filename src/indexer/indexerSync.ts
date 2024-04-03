@@ -192,7 +192,7 @@ export class IndexerSync {
 
       // Get the latest hash of the next block
       const blockNext = await this.indexer.cachedClient.getBlock(this.indexer.indexedHeight + 1);
-      this.indexer.nextBlockHash = blockNext.stdBlockHash;
+      this.indexer.nextBlockHash = blockNext.stdBlockHash.toLowerCase();
 
       // We wait until block N+1 is either saved or indicated that there is no such block
       // This is the only point in the loop that increments N

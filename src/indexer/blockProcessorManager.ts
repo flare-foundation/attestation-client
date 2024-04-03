@@ -91,7 +91,7 @@ export class BlockProcessorManager {
    */
   async process(block: FullBlockBase<any>) {
     // check if processor for this block is already completed
-    if (this.blockProcessors.find((processor) => processor.block.stdBlockHash === block.stdBlockHash && processor.isCompleted)) {
+    if (this.blockProcessors.find((processor) => processor.block.stdBlockHash.toLowerCase() === block.stdBlockHash.toLowerCase() && processor.isCompleted)) {
       this.logger.info(`^w^Kprocess block ${block.number}^^^W (completed)`);
       // eslint-disable-next-line
       criticalAsync(`process -> BlockProcessorManager(${block.number})::alreadyCompleteCallback exception:`, () => this.alreadyCompleteCallback(block));
@@ -102,7 +102,7 @@ export class BlockProcessorManager {
     let processorExists = false;
 
     for (let i = 0; i < this.blockProcessors.length; i++) {
-      if (this.blockProcessors[i].block.stdBlockHash === block.stdBlockHash) {
+      if (this.blockProcessors[i].block.stdBlockHash.toLowerCase() === block.stdBlockHash.toLowerCase()) {
         processorExists = true;
         this.logger.info(`^w^Kprocess block ${block.number}^^^W (continue)`);
         // eslint-disable-next-line
@@ -140,7 +140,7 @@ export class BlockProcessorManager {
    * @returns
    */
   async processSync(block: FullBlockBase<any>) {
-    if (this.blockProcessors.find((processor) => processor.block.stdBlockHash === block.stdBlockHash)) {
+    if (this.blockProcessors.find((processor) => processor.block.stdBlockHash.toLowerCase() === block.stdBlockHash.toLowerCase())) {
       return;
     }
 

@@ -29,7 +29,7 @@ export class UnconfirmedBlockManager {
     const query = this.dbService.manager.createQueryBuilder(this.blockTable, "block").where("block.blockNumber > :N", { N: this.indexerN });
     const result = (await query.getMany()) as DBBlockBase[];
     for (const entity of result) {
-      this.blockHashToEntity.set(entity.blockHash, entity);
+      this.blockHashToEntity.set(entity.blockHash.toLowerCase(), entity);
     }
   }
 
@@ -40,15 +40,15 @@ export class UnconfirmedBlockManager {
    * @returns
    */
   addNewBlock(block: DBBlockBase) {
-    if (this.blockHashToEntity.get(block.blockHash)) {
+    if (this.blockHashToEntity.get(block.blockHash.toLowerCase())) {
       return;
     }
-    this.blockHashToEntity.set(block.blockHash, block);
-    this.changed.add(block.blockHash);
+    this.blockHashToEntity.set(block.blockHash.toLowerCase(), block);
+    this.changed.add(block.blockHash.toLowerCase());
     // update parents
     let current = block;
     while (true) {
-      current = this.blockHashToEntity.get(current.previousBlockHash);
+      current = this.blockHashToEntity.get(current.previousBlockHash.toLowerCase());
       if (!current) {
         break;
       }
@@ -57,14 +57,14 @@ export class UnconfirmedBlockManager {
       } else {
         current.numberOfConfirmations = 1;
       }
-      this.changed.add(current.blockHash);
+      this.changed.add(current.blockHash.toLowerCase());
     }
   }
 
   /**
    * Returns unconfirmed blocks above confirmation height that were updated and
    * need to be saved into the database.
-   * @returns changed bloks
+   * @returns changed blocks
    */
   getChangedBlocks(): DBBlockBase[] {
     return [...this.changed].map((hash) => this.blockHashToEntity.get(hash));

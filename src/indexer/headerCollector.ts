@@ -66,7 +66,7 @@ export class HeaderCollector {
    * @returns
    */
   private isBlockCached(block: BlockTipBase) {
-    return this.blockHeaderHash.has(block.stdBlockHash) && this.blockHeaderNumber.has(block.number);
+    return this.blockHeaderHash.has(block.stdBlockHash.toLowerCase()) && this.blockHeaderNumber.has(block.number);
   }
 
   /**
@@ -74,10 +74,10 @@ export class HeaderCollector {
    * @param block
    */
   private cacheBlock(block: BlockTipBase) {
-    this.blockHeaderHash.add(block.stdBlockHash);
+    this.blockHeaderHash.add(block.stdBlockHash.toLowerCase());
     this.blockHeaderNumber.add(block.number);
     let hashes = this.blockNumberHash.get(block.number) || [];
-    hashes.push(block.stdBlockHash);
+    hashes.push(block.stdBlockHash.toLowerCase());
     this.blockNumberHash.set(block.number, hashes);
   }
 
@@ -178,7 +178,7 @@ export class HeaderCollector {
       const dbBlock = new this.indexerToDB.dbBlockClass();
 
       dbBlock.blockNumber = blockNumber;
-      dbBlock.blockHash = blockTip.stdBlockHash;
+      dbBlock.blockHash = blockTip.stdBlockHash.toLowerCase();
       dbBlock.numberOfConfirmations = 1;
       dbBlock.timestamp = 0;
 
@@ -187,17 +187,17 @@ export class HeaderCollector {
         const header = blockTip as BlockHeaderBase;
 
         dbBlock.timestamp = header.unixTimestamp;
-        dbBlock.previousBlockHash = header.previousBlockHash;
+        dbBlock.previousBlockHash = header.previousBlockHash.toLowerCase();
       } else {
         // On UTXO chains this means block is on main branch (some blocks may only have headers and not be in node's database)
         const activeBlock = blockTip.chainTipStatus === "active";
 
         // if block is not on disk (headers-only) we have to skip reading it
         if (activeBlock) {
-          const actualBlock = await this.indexerToClient.getBlockHeaderFromClientByHash("saveHeadersOnNewTips", blockTip.blockHash);
+          const actualBlock = await this.indexerToClient.getBlockHeaderFromClientByHash("saveHeadersOnNewTips", blockTip.blockHash.toLowerCase());
 
           dbBlock.timestamp = actualBlock.unixTimestamp;
-          dbBlock.previousBlockHash = actualBlock.previousBlockHash;
+          dbBlock.previousBlockHash = actualBlock.previousBlockHash.toLowerCase();
         }
       }
 

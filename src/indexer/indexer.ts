@@ -754,8 +754,8 @@ export class Indexer {
 
         // whether N + 1 was saved or not it is always better to refresh the block N + 1
         blockNext = await this.indexerToClient.getBlockFromClient(`runIndexer3`, this.indexedHeight + 1);
-        if (!blockNext) {
-          continue;
+        if (!blockNext.stdBlockHash) {
+          blockNext = await this.indexerToClient.getBlockFromClient(`runIndexer3`, this.indexedHeight + 1);
         }
         // process new or changed N+1
         this.nextBlockHash = blockNext.stdBlockHash ? blockNext.stdBlockHash.toLowerCase() : "";

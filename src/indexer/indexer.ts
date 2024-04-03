@@ -217,7 +217,12 @@ export class Indexer {
     // if N+1 is ready (already processed) then begin processing N+2 (we need to be very aggressive with read ahead)
     if (!this.indexerSync.isSyncing) {
       if (isBlockNext) {
-        const blockNextNext = await this.indexerToClient.getBlockFromClient(`blockCompleted`, this.indexedHeight + 2);
+        let blockNextNext = await this.indexerToClient.getBlockFromClient(`blockCompleted`, this.indexedHeight + 2);
+        while (!blockNextNext.stdBlockHash) {
+          await sleepMs(10);
+          blockNextNext = await this.indexerToClient.getBlockFromClient(`blockCompleted`, this.indexedHeight + 2);
+        }
+
         // eslint-disable-next-line
         criticalAsync(`blockCompleted(${block.blockNumber}) -> BlockProcessorManager::process exception: `, () =>
           this.blockProcessorManager.process(blockNextNext)
@@ -240,7 +245,11 @@ export class Indexer {
 
     if (!this.indexerSync.isSyncing) {
       if (isBlockNext) {
-        const blockNextNext = await this.indexerToClient.getBlockFromClient(`blockAlreadyCompleted`, this.indexedHeight + 2);
+        let blockNextNext = await this.indexerToClient.getBlockFromClient(`blockCompleted`, this.indexedHeight + 2);
+        while (!blockNextNext.stdBlockHash) {
+          await sleepMs(10);
+          blockNextNext = await this.indexerToClient.getBlockFromClient(`blockCompleted`, this.indexedHeight + 2);
+        }
         // eslint-disable-next-line
         criticalAsync(`blockAlreadyCompleted(${block.number}) -> BlockProcessorManager::process exception: `, () =>
           this.blockProcessorManager.process(blockNextNext)
@@ -720,7 +729,7 @@ export class Indexer {
       //get next block from what is considered to be the main branch
       let blockNext = await this.indexerToClient.getBlockFromClient(`runIndexer2`, this.indexedHeight + 1);
 
-      if (!blockNext) {
+      if (!blockNext || !blockNext.stdBlockHash) {
         await sleepMs(this.config.blockCollectTimeMs);
         continue;
       }

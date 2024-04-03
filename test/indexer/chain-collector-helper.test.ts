@@ -51,7 +51,7 @@ describe(`Chain collector helpers, (${getTestFile(__filename)})`, () => {
 
       const augTx = augmentTransactionXrp(TestBlockXRP, TestTxXRP);
       expect(augTx.blockNumber).to.be.eq(blockId);
-      expect(augTx.transactionId).to.be.eq(txHash);
+      expect(augTx.transactionId).to.be.eq(txHash.toLowerCase());
     });
   });
 

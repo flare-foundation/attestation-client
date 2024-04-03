@@ -82,7 +82,7 @@ describe(`Indexer sync XRP ${getTestFile(__filename)})`, () => {
       await indexer.indexerSync.runSync(0);
 
       const res = await indexer.dbService.manager.findOne(DBBlockXRP, { where: { blockNumber: 28014613 } });
-      expect(res.blockHash).to.eq("2919A310215E94E882ADF3FDFDAFCA33D67D82753F96F42BA35AE80799770A59");
+      expect(res.blockHash).to.eq("2919A310215E94E882ADF3FDFDAFCA33D67D82753F96F42BA35AE80799770A59".toLowerCase());
     });
   });
 });

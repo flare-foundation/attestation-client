@@ -89,7 +89,7 @@ describe(`Header Collector (${getTestFile(__filename)})`, () => {
 
       await headerCollector.readAndSaveBlocksHeaders(76_468_242, 76_468_244);
       let res = await dataService.manager.findOne(DBBlockXRP, { where: { blockNumber: 76_468_243 } });
-      expect(res.blockHash).eq("D97DBEB5E42F95AB5CF4215A35A8C3E93677730254F0966F3B4F3FDB087584C5");
+      expect(res.blockHash).eq("D97DBEB5E42F95AB5CF4215A35A8C3E93677730254F0966F3B4F3FDB087584C5".toLowerCase());
     });
 
     // Should be fixed (too long trace)

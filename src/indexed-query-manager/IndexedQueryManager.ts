@@ -103,10 +103,10 @@ export class IndexedQueryManager extends IIndexedQueryManager {
       }
 
       if (params.paymentReference) {
-        query = query.andWhere("transaction.paymentReference=:ref", { ref: params.paymentReference.toLowerCase() });
+        query = query.andWhere("transaction.paymentReference=:ref", { ref: params.paymentReference });
       }
       if (params.transactionId) {
-        query = query.andWhere("transaction.transactionId = :txId", { txId: params.transactionId.toLowerCase() });
+        query = query.andWhere("transaction.transactionId = :txId", { txId: params.transactionId });
       }
 
       results = results.concat(await query.getMany());
@@ -145,7 +145,7 @@ export class IndexedQueryManager extends IIndexedQueryManager {
       query = query.andWhere("block.confirmed = :confirmed", { confirmed: !!params.confirmed });
     }
     if (params.hash) {
-      query.andWhere("block.blockHash = :hash", { hash: params.hash.toLowerCase() });
+      query.andWhere("block.blockHash = :hash", { hash: params.hash });
     } else if (params.blockNumber) {
       query.andWhere("block.blockNumber = :blockNumber", { blockNumber: params.blockNumber });
     }
@@ -157,7 +157,7 @@ export class IndexedQueryManager extends IIndexedQueryManager {
   }
 
   public async getBlockByHash(hash: string): Promise<DBBlockBase | undefined> {
-    const query = this.entityManager.createQueryBuilder(this.blockTable, "block").where("block.blockHash = :hash", { hash: hash.toLowerCase() });
+    const query = this.entityManager.createQueryBuilder(this.blockTable, "block").where("block.blockHash = :hash", { hash: hash });
     const result = await query.getOne();
     if (result) {
       return result as DBBlockBase;

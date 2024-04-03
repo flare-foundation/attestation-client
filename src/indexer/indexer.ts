@@ -199,7 +199,7 @@ export class Indexer {
     this.logger.info(`^Gcompleted ${block.blockNumber}:N+${block.blockNumber - this.indexedHeight} (${transactions.length} transaction(s))`);
 
     // if we are waiting for block N+1 to be completed - then it is no need to put it into queue but just save it
-    const isBlockNext = block.blockNumber == this.indexedHeight + 1 && block.blockHash.toLowerCase() == this.nextBlockHash.toLowerCase();
+    const isBlockNext = block.blockNumber == this.indexedHeight + 1 && block.blockHash == this.nextBlockHash;
     if (isBlockNext && this.waitNextBlock) {
       await this.blockSave(block, transactions);
       this.waitNextBlock = false;
@@ -236,7 +236,7 @@ export class Indexer {
     this.logger.info(`^Galready completed ${block.number}:N+${block.number - this.indexedHeight}`);
 
     // if N+1 is ready (already processed) then begin processing N+2 (we need to be very aggressive with read ahead)
-    const isBlockNext = block.number == this.indexedHeight + 1 && block.stdBlockHash.toLowerCase() == this.nextBlockHash.toLowerCase();
+    const isBlockNext = block.number == this.indexedHeight + 1 && block.stdBlockHash == this.nextBlockHash;
 
     if (!this.indexerSync.isSyncing) {
       if (isBlockNext) {
@@ -297,7 +297,7 @@ export class Indexer {
 
     // create transaction and save everything with retry (terminate app on failure)
     await retry(`blockSave N=${Np1}`, async () => {
-      await this.dbService.manager.transaction(async (entityManager) => {
+      await this.dbService.manager.transaction(async (tx) => {
         // save state N, T and T_CHECK_TIME
         const stateEntries = [getStateEntry("N", this.chainConfig.name, Np1), getStateEntry("T", this.chainConfig.name, this.tipHeight)];
 
@@ -305,11 +305,11 @@ export class Indexer {
         if (transactions.length > 0) {
           // fix transactions class to active interlace transaction class
           const dummy = new transactionClass();
-          for (let transaction of transactions) {
-            Object.setPrototypeOf(transaction, Object.getPrototypeOf(dummy));
+          for (let tx of transactions) {
+            Object.setPrototypeOf(tx, Object.getPrototypeOf(dummy));
           }
 
-          await entityManager.save(transactions);
+          await tx.save(transactions);
         } else {
           // save dummy transaction to keep transaction table block continuity
           this.logger.debug(`block ${block.blockNumber} no transactions (dummy tx added)`);
@@ -320,11 +320,11 @@ export class Indexer {
           dummyTx.blockNumber = block.blockNumber;
           dummyTx.transactionType = "EMPTY_BLOCK_INDICATOR";
 
-          await entityManager.save(dummyTx);
+          await tx.save(dummyTx);
         }
 
-        await entityManager.save(block);
-        await entityManager.save(stateEntries);
+        await tx.save(block);
+        await tx.save(stateEntries);
       });
       return true;
     });
@@ -381,7 +381,7 @@ export class Indexer {
     const preparedBlocks = this.preparedBlocks.get(nextBlockHeight);
     if (preparedBlocks) {
       for (const preparedBlock of preparedBlocks) {
-        if (preparedBlock.block.blockHash.toLowerCase() === this.nextBlockHash.toLowerCase()) {
+        if (preparedBlock.block.blockHash === this.nextBlockHash) {
           // save prepared N+1 block with active hash and increment this.N
           await this.blockSave(preparedBlock.block, preparedBlock.transactions);
 
@@ -396,7 +396,7 @@ export class Indexer {
     // check if the block with number N + 1, `Np1`, with hash `Np1Hash` is in preparation
     let exists = false;
     for (const processor of this.blockProcessorManager.blockProcessors) {
-      if (processor.block.number == nextBlockHeight && processor.block.stdBlockHash.toLowerCase() == this.nextBlockHash.toLowerCase()) {
+      if (processor.block.number == nextBlockHeight && processor.block.stdBlockHash == this.nextBlockHash) {
         exists = true;
         break;
       }
@@ -599,7 +599,9 @@ export class Indexer {
       //const sqlQuery = `SELECT max(blockNumber) - min(blockNumber) + 1 - count( distinct blockNumber ) as missed FROM indexer.${name}_transactions0 where blockNumber >= (select valueNumber from indexer.state where \`name\` = "${name.toUpperCase()}_Nbottom");`;
 
       // get DB N_bottom
-      const queryNbottom = this.dbService.manager.createQueryBuilder(DBState, "s").where("s.name = :name", { name: `${name.toLowerCase()}_Nbottom` });
+      const queryNbottom = this.dbService.manager
+        .createQueryBuilder(DBState, "s")
+        .where("s.name = :name", { name: `${name.toLowerCase()}_Nbottom` });
 
       //this.queryPrint(queryNbottom);
 
@@ -722,7 +724,7 @@ export class Indexer {
 
       // has N+1 confirmation block
       const isNextBlockConfirmed = this.indexedHeight <= this.tipHeight - this.chainConfig.numberOfConfirmations;
-      const isNextBlockHashChanged = this.nextBlockHash.toLowerCase() !== blockNext.stdBlockHash.toLowerCase();
+      const isNextBlockHashChanged = this.nextBlockHash !== blockNext.stdBlockHash;
 
       // update status for logging
       await this.updateStatus(blockNext);
@@ -737,7 +739,7 @@ export class Indexer {
       this.logger.info(`^Wnew block T=${this.tipHeight} N=${this.indexedHeight} ${isNextBlockHashChanged ? "(N+1 hash changed)" : ""}`);
 
       // set the hash of N + 1 block to the latest known value
-      this.nextBlockHash = blockNext.stdBlockHash.toLowerCase();
+      this.nextBlockHash = blockNext.stdBlockHash;
 
       // save completed N+1 block or wait for it
       if (isNextBlockConfirmed) {
@@ -749,7 +751,7 @@ export class Indexer {
         // whether N + 1 was saved or not it is always better to refresh the block N + 1
         blockNext = await this.indexerToClient.getBlockFromClient(`runIndexer3`, this.indexedHeight + 1);
         // process new or changed N+1
-        this.nextBlockHash = blockNext.stdBlockHash.toLowerCase();
+        this.nextBlockHash = blockNext.stdBlockHash;
       }
 
       // start async processing of block N + 1 (if not already started)

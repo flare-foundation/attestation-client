@@ -140,7 +140,7 @@ function prefixChainNameTo(name: string, chainName: string) {
 }
 
 /**
- * Returns entry key for N in the database.
+ * Returns entry key for N in the database. N stands for indexedHeight.
  * @param chainName
  * @returns
  */

@@ -218,15 +218,13 @@ export class Indexer {
     if (!this.indexerSync.isSyncing) {
       if (isBlockNext) {
         let blockNextNext = await this.indexerToClient.getBlockFromClient(`blockCompleted`, this.indexedHeight + 2);
-        while (!blockNextNext.stdBlockHash) {
-          await sleepMs(10);
-          blockNextNext = await this.indexerToClient.getBlockFromClient(`blockCompleted`, this.indexedHeight + 2);
-        }
 
-        // eslint-disable-next-line
-        criticalAsync(`blockCompleted(${block.blockNumber}) -> BlockProcessorManager::process exception: `, () =>
-          this.blockProcessorManager.process(blockNextNext)
-        );
+        if (blockNextNext) {
+          // eslint-disable-next-line
+          criticalAsync(`blockCompleted(${block.blockNumber}) -> BlockProcessorManager::process exception: `, () =>
+            this.blockProcessorManager.process(blockNextNext)
+          );
+        }
       }
     }
 
@@ -246,14 +244,13 @@ export class Indexer {
     if (!this.indexerSync.isSyncing) {
       if (isBlockNext) {
         let blockNextNext = await this.indexerToClient.getBlockFromClient(`blockCompleted`, this.indexedHeight + 2);
-        while (!blockNextNext.stdBlockHash) {
-          await sleepMs(10);
-          blockNextNext = await this.indexerToClient.getBlockFromClient(`blockCompleted`, this.indexedHeight + 2);
+
+        if (blockNextNext) {
+          // eslint-disable-next-line
+          criticalAsync(`blockAlreadyCompleted(${block.number}) -> BlockProcessorManager::process exception: `, () =>
+            this.blockProcessorManager.process(blockNextNext)
+          );
         }
-        // eslint-disable-next-line
-        criticalAsync(`blockAlreadyCompleted(${block.number}) -> BlockProcessorManager::process exception: `, () =>
-          this.blockProcessorManager.process(blockNextNext)
-        );
       }
     }
   }
@@ -752,7 +749,7 @@ export class Indexer {
       this.logger.info(`^Wnew block T=${this.tipHeight} N=${this.indexedHeight} ${isNextBlockHashChanged ? "(N+1 hash changed)" : ""}`);
 
       // set the hash of N + 1 block to the latest known value
-      this.nextBlockHash = blockNext.stdBlockHash ? blockNext.stdBlockHash.toLowerCase() : "";
+      this.nextBlockHash = blockNext.stdBlockHash.toLowerCase();
 
       // save completed N+1 block or wait for it
       if (isNextBlockConfirmed) {
@@ -763,11 +760,11 @@ export class Indexer {
 
         // whether N + 1 was saved or not it is always better to refresh the block N + 1
         blockNext = await this.indexerToClient.getBlockFromClient(`runIndexer3`, this.indexedHeight + 1);
-        if (!blockNext) {
-          continue;
+        if (!blockNext || !blockNext.stdBlockHash) {
+          continue; //This should never happen if numberOfConfirmations is more than 1.
         }
         // process new or changed N+1
-        this.nextBlockHash = blockNext.stdBlockHash ? blockNext.stdBlockHash.toLowerCase() : "";
+        this.nextBlockHash = blockNext.stdBlockHash.toLowerCase();
       }
 
       // start async processing of block N + 1 (if not already started)

@@ -21,7 +21,7 @@ export class HeaderCollector {
   private indexerToClient: IndexerToClient;
   public indexerToDB: IndexerToDB;
   private logger: AttLogger;
-  private IndexedHeight: number;
+  private indexedHeight: number;
   private blockHeaderHash = new Set<string>();
   private blockHeaderNumber = new Set<number>();
   // Use this only on non-forkable chains
@@ -29,7 +29,7 @@ export class HeaderCollector {
 
   constructor(logger: AttLogger, N: number, indexerToClient: IndexerToClient, indexerToDB: IndexerToDB, settings: IHeaderCollectorSettings) {
     this.logger = logger;
-    this.IndexedHeight = N;
+    this.indexedHeight = N;
     this.indexerToClient = indexerToClient;
     this.indexerToDB = indexerToDB;
     this.settings = settings;
@@ -40,11 +40,11 @@ export class HeaderCollector {
   /////////////////////////////////////////////////////////////
 
   /**
-   * Updates N.
+   * Updates indexedHeight.
    * @param newN
    */
   public updateIndexedHeight(newN: number) {
-    this.IndexedHeight = newN;
+    this.indexedHeight = newN;
   }
 
   /**
@@ -114,7 +114,7 @@ export class HeaderCollector {
    */
   public async readAndSaveBlocksHeaders(fromBlockNumber: number, toBlockNumberInc: number) {
     // assert - this should never happen
-    if (fromBlockNumber <= this.IndexedHeight) {
+    if (fromBlockNumber <= this.indexedHeight) {
       const onFailure = failureCallback;
       onFailure("saveBlocksHeaders: fromBlock too low");
       return;
@@ -138,8 +138,8 @@ export class HeaderCollector {
   }
 
   /**
-   * Saves blocks or headers in the array, if block.number > N.
-   * Block numbers <= N are ignored.
+   * Saves blocks or headers in the array, if block.number > indexedHeight.
+   * Block numbers <= indexedHeight are ignored.
    * Note that for case of non-forkable chains it caches mapping
    * from block number to block (header). This mapping (`blockNumberHash`)
    * should not be used with forkable chains.
@@ -153,12 +153,12 @@ export class HeaderCollector {
   public async saveHeadersOnNewTips(blockTips: BlockTipBase[] | BlockHeaderBase[]) {
     let blocksText = "[";
 
-    const unconfirmedBlockManager = new UnconfirmedBlockManager(this.indexerToDB.dbService, this.indexerToDB.dbBlockClass, this.IndexedHeight);
+    const unconfirmedBlockManager = new UnconfirmedBlockManager(this.indexerToDB.dbService, this.indexerToDB.dbBlockClass, this.indexedHeight);
     await unconfirmedBlockManager.initialize();
 
     for (const blockTip of blockTips) {
-      // due to the above async call N could increase
-      if (!blockTip || !blockTip.stdBlockHash || blockTip.number <= this.IndexedHeight) {
+      // due to the above async call indexedHeight could increase
+      if (!blockTip || !blockTip.stdBlockHash || blockTip.number <= this.indexedHeight) {
         continue;
       }
       const blockNumber = blockTip.number;
@@ -207,9 +207,9 @@ export class HeaderCollector {
 
     let dbBlocks = unconfirmedBlockManager.getChangedBlocks();
 
-    // remove all blockNumbers <= N. Note that N might have changed after the above
+    // remove all blockNumbers <=  indexerHeight. Note that indexerHeight might have changed after the above
     // async query
-    dbBlocks = dbBlocks.filter((dbBlock) => dbBlock.blockNumber > this.IndexedHeight);
+    dbBlocks = dbBlocks.filter((dbBlock) => dbBlock.blockNumber > this.indexedHeight);
 
     if (dbBlocks.length === 0) {
       //this.logger.debug(`write block headers (no new blocks)`);

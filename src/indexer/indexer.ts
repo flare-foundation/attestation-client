@@ -216,7 +216,8 @@ export class Indexer {
 
     // if N+1 is ready (already processed) then begin processing N+2 (we need to be very aggressive with read ahead)
     if (!this.indexerSync.isSyncing) {
-      if (isBlockNext) {
+      const nextNextExists = this.tipHeight >= this.indexedHeight + 2;
+      if (isBlockNext && nextNextExists) {
         let blockNextNext = await this.indexerToClient.getBlockFromClient(`blockCompleted`, this.indexedHeight + 2);
 
         if (blockNextNext) {
@@ -242,15 +243,15 @@ export class Indexer {
     const isBlockNext = block.number == this.indexedHeight + 1 && block.stdBlockHash.toLowerCase() == this.nextBlockHash.toLowerCase();
 
     if (!this.indexerSync.isSyncing) {
-      if (isBlockNext) {
+      const nextNextExists = this.tipHeight >= this.indexedHeight + 2;
+
+      if (isBlockNext && nextNextExists) {
         let blockNextNext = await this.indexerToClient.getBlockFromClient(`blockCompleted`, this.indexedHeight + 2);
 
-        if (blockNextNext) {
-          // eslint-disable-next-line
-          criticalAsync(`blockAlreadyCompleted(${block.number}) -> BlockProcessorManager::process exception: `, () =>
-            this.blockProcessorManager.process(blockNextNext)
-          );
-        }
+        // eslint-disable-next-line
+        criticalAsync(`blockAlreadyCompleted(${block.number}) -> BlockProcessorManager::process exception: `, () =>
+          this.blockProcessorManager.process(blockNextNext)
+        );
       }
     }
   }
@@ -723,6 +724,13 @@ export class Indexer {
       // get chain top block
       this.tipHeight = await this.indexerToClient.getBlockHeightFromClient(`runIndexer2`);
 
+      const nextBlockExists = this.tipHeight >= this.indexedHeight + 1;
+
+      if (!nextBlockExists) {
+        await sleepMs(this.config.blockCollectTimeMs);
+        continue;
+      }
+
       //get next block from what is considered to be the main branch
       let blockNext = await this.indexerToClient.getBlockFromClient(`runIndexer2`, this.indexedHeight + 1);
 
@@ -761,7 +769,7 @@ export class Indexer {
         // whether N + 1 was saved or not it is always better to refresh the block N + 1
         blockNext = await this.indexerToClient.getBlockFromClient(`runIndexer3`, this.indexedHeight + 1);
         if (!blockNext || !blockNext.stdBlockHash) {
-          continue; //This should never happen if numberOfConfirmations is more than 1.
+          continue; //This should never happen
         }
         // process new or changed N+1
         this.nextBlockHash = blockNext.stdBlockHash.toLowerCase();

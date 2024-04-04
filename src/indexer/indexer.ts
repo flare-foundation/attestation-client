@@ -766,13 +766,19 @@ export class Indexer {
         // be put in processing (see below)
         await this.trySaveNextBlock();
 
-        // whether N + 1 was saved or not it is always better to refresh the block N + 1
-        blockNext = await this.indexerToClient.getBlockFromClient(`runIndexer3`, this.indexedHeight + 1);
-        if (!blockNext || !blockNext.stdBlockHash) {
-          continue; //This should never happen
+        this.tipHeight = await this.indexerToClient.getBlockHeightFromClient(`runIndexer2`);
+
+        const nextBlockExists = this.tipHeight >= this.indexedHeight + 1;
+
+        if (nextBlockExists) {
+          // whether N + 1 was saved or not it is always better to refresh the block N + 1
+          blockNext = await this.indexerToClient.getBlockFromClient(`runIndexer3`, this.indexedHeight + 1);
+          if (!blockNext || !blockNext.stdBlockHash) {
+            continue; //This should never happen
+          }
+          // process new or changed N+1
+          this.nextBlockHash = blockNext.stdBlockHash.toLowerCase();
         }
-        // process new or changed N+1
-        this.nextBlockHash = blockNext.stdBlockHash.toLowerCase();
       }
 
       // start async processing of block N + 1 (if not already started)

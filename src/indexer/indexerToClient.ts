@@ -31,12 +31,6 @@ export class IndexerToClient {
       `indexerToClient.getBlockFromClient.${label}`,
       async () => {
         return await this.client.getFullBlock(blockNumber);
-
-        // if (!block || !block.stdBlockHash) {
-        //   console.log("aaaaaaaa");
-        //   throw Error(`No block hash blockNumber ${blockNumber}`);
-        // }
-        // return block;
       },
       thisreference.timeoutTime,
       thisreference.numRetry,
@@ -60,12 +54,7 @@ export class IndexerToClient {
     const result = await retry(
       `indexerToClient.getBlockHeaderFromClient.${label}`,
       async () => {
-        const header = await this.client.getBlockHeader(blockNumber);
-        if (!header || !header.stdBlockHash) {
-          throw Error(`No block hash in header blockNumber ${blockNumber}`);
-        }
-
-        return header;
+        return await this.client.getBlockHeader(blockNumber);
       },
       thisreference.timeoutTime,
       thisreference.numRetry,

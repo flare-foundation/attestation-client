@@ -156,34 +156,6 @@
       "type": "node",
       "console": "integratedTerminal",
       "request": "launch",
-      "env": {
-        "FLARE_NETWORK": "songbird",
-        "NODE_ENV": "development"
-      },
-      "name": "Launch Install dockerSecureUpdateSql",
-      "runtimeExecutable": "yarn",
-      "runtimeArgs": [
-        "ts-node",
-        "src/install/dockerSecureUpdateSql.ts",
-        "-i",
-        "prepareIndexer",
-        "-n",
-        "XRP",
-        "-p",
-        "./deployment/credentials",
-        "-h",
-        "127.0.0.1",
-        "-P",
-        "23308",
-        "-f",
-        "1"
-      ]
-    },
-
-    {
-      "type": "node",
-      "console": "integratedTerminal",
-      "request": "launch",
       "name": "Launch Config Verify",
       "runtimeExecutable": "yarn",
       "runtimeArgs": ["devconfig"]

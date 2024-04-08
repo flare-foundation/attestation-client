@@ -3,10 +3,6 @@
         {
             "name": "btc-indexer-verifier",
             "credentials": "direct:t3stPassw0rd!1",
-            "keys": [
-                "DatabaseRootPassword",
-                "DatabaseWriteAccessSource"
-            ],
             "files": [
                 "indexer/btc-indexer-config.json",
                 "verifier-server/btc-verifier-config.json",
@@ -16,10 +12,6 @@
         {
             "name": "doge-indexer-verifier",
             "credentials": "direct:t3stPassw0rd!2",
-            "keys": [
-                "DatabaseRootPassword",
-                "DatabaseWriteAccessSource"
-            ],
             "files": [
                 "indexer/doge-indexer-config.json",
                 "verifier-server/doge-verifier-config.json",
@@ -29,10 +21,6 @@
         {
             "name": "xrp-indexer-verifier",
             "credentials": "direct:t3stPassw0rd!3",
-            "keys": [
-                "DatabaseRootPassword",
-                "DatabaseWriteAccessSource"
-            ],
             "files": [
                 "indexer/xrp-indexer-config.json",
                 "verifier-server/xrp-verifier-config.json",
@@ -52,10 +40,6 @@
         {
             "name": "webserver",
             "credentials": "direct:t3stPassw0rd!8",
-            "keys": [
-                "DatabaseRootPassword",
-                "DatabaseWriteAccessSource"
-            ],
             "files": [
                 "webserver-config.json"
             ],
@@ -63,10 +47,6 @@
         {
             "name": "monitor",
             "credentials": "direct:t3stPassw0rd!9",
-            "keys": [
-                "DatabaseRootPassword",
-                "DatabaseWriteAccessSource"
-            ],
             "files": [
                 "monitor-config.json"
             ],

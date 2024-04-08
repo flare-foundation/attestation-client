@@ -10,7 +10,7 @@
         "stateConnectorContractAddress": "$(StateConnectorContractAddress)"
     },
     "indexerDatabase": {
-        "name": "$(DOGEIndexerDatabaseName)",
+        "name": "",
         "host": "$(DOGEIndexerDatabaseHost)",
         "port": $(DOGEIndexerDatabasePort),
         "database": "$(DOGEIndexerDatabase)",
@@ -35,5 +35,5 @@
         "blockCollecting": "tips",
         "minimalStorageHistoryDays": 2,
         "minimalStorageHistoryBlocks": 100,
-    }    
+    }
 }

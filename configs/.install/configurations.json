@@ -32,7 +32,6 @@
             "credentials": "direct:t3stPassw0rd!7",
             "files": [
                 "attester-config.json",
-                "sql/prepareAttestationClient.sql",
                 "verifier-client/verifier-routes-0-config.json",
                 "verifier-client/verifier-routes-150-config.json"
             ],

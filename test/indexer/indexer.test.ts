@@ -251,6 +251,9 @@ describe(`Indexer XRP ${getTestFile(__filename)})`, () => {
 
       it("Should execute blockCompleted for next block in line while not waiting", async function () {
         indexer.nextBlockHash = "RIGHTHASH";
+
+        indexer.tipHeight = 7;
+
         const testBlock = new DBBlockXRP();
         testBlock.blockHash = "RIGHTHASH";
         testBlock.blockNumber = 4;
@@ -274,6 +277,8 @@ describe(`Indexer XRP ${getTestFile(__filename)})`, () => {
 
       it("Should execute blockCompleted for next block in line while waiting", async function () {
         indexer.nextBlockHash = "RIGHTHASH";
+        indexer.tipHeight = 7;
+
         const testBlock = new DBBlockXRP();
         testBlock.blockHash = "RIGHTHASH";
         testBlock.blockNumber = 4;
@@ -306,6 +311,9 @@ describe(`Indexer XRP ${getTestFile(__filename)})`, () => {
       it("Should execute blockAlreadyCompleted", async function () {
         const stub = sinon.stub(indexer.indexerToClient.client, "getFullBlock").resolves(TestBlockXRPFake);
         const block = TestBlockXRPAlt;
+
+        indexer.tipHeight = 28014619;
+
         indexer.indexedHeight = 28014611;
         indexer.nextBlockHash = "08E71799B2DDEE48F12A62626508D8F879E67FB2AB90FECECE4BC82650DA7D04";
         let res = await indexer.blockAlreadyCompleted(block);

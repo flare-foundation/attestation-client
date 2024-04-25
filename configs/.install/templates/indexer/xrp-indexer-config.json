@@ -20,7 +20,7 @@
     "chainConfiguration": {
         "name": "XRP",
         "mccCreate": {
-            "url": "$(XRLURL)",
+            "url": "$(XRPURL)",
             "username": "$(XRPUsername)",
             "password": "$(XRPPassword)",
         },

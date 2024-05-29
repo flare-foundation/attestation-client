@@ -3,7 +3,7 @@
    "startRoundId": 150,
    "verifierRoutes": [
       {
-         "sourceId": "testBTC",
+         "sourceId": "BTC",
          "routes": [
             {
                "attestationTypes": [
@@ -43,7 +43,7 @@
          ]
       },
       {
-         "sourceId": "testDOGE",
+         "sourceId": "DOGE",
          "routes": [
             {
                "attestationTypes": [
@@ -83,7 +83,7 @@
          ]
       },
       {
-         "sourceId": "testXRP",
+         "sourceId": "XRP",
          "routes": [
             {
                "attestationTypes": [
@@ -123,7 +123,7 @@
          ]
       },
       {
-         "sourceId": "testETH",
+         "sourceId": "ETH",
          "routes": [
             {
                "attestationTypes": [
@@ -135,7 +135,7 @@
          ]
       },
       {
-         "sourceId": "testFLR",
+         "sourceId": "FLR",
          "routes": [
             {
                "attestationTypes": [

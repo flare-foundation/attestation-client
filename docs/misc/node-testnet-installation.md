@@ -39,7 +39,7 @@ sudo docker-compose logs -f --tail 1000 rippled
 Used for `chains.credentials.json`
 
 ``` json
-"XRLURL":"http://localhost:11234",
+"XRPURL":"http://localhost:11234",
 
 "BTCURL":"http://localhost:18332",
 

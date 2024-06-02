@@ -155,7 +155,7 @@
         {
             //"disabled": true,
             "name" : "XRP",
-            "url": "$(Monitor.XRLURL)",
+            "url": "$(Monitor.XRPURL)",
             "username":"$(XRPUsername)",
             "password":"$(XRPPassword)",
         },

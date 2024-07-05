@@ -56,8 +56,8 @@ export class ExternalIndexerEngineService extends IIndexerEngineService {
     const resPrune = await queryPrune.getOne();
     const state = {
       indexedBlockRange: {
-        first: res.latestIndexedHeight,
-        last: resPrune.latestIndexedTailHeight,
+        first: resPrune.latestIndexedTailHeight,
+        last: res.latestIndexedHeight,
       },
       tipHeight: res.latestTipHeight,
       lastTipUpdateTimestamp: res.timestamp,

@@ -25,8 +25,7 @@ export class DOGEIndexerController {
    */
   @Get("state")
   public async indexerState(): Promise<ApiResponseWrapper<IIndexerState>> {
-    throw new Error("Not implemented")
-    // return handleApiResponse(this.indexerEngine.getStateSetting(), this.logger);
+    return handleApiResponse(this.indexerEngine.getStateSetting(), this.logger);
   }
 
   /**
@@ -45,7 +44,7 @@ export class DOGEIndexerController {
    */
   @Get("transaction/:txHash")
   public async transaction(@Param("txHash") txHash: string): Promise<ApiResponseWrapper<ApiDBTransaction>> {
-    return handleApiResponse(this.indexerEngine.getTransaction(txHash), this.logger);
+    return handleApiResponse(this.indexerEngine.getTransaction(txHash.toLowerCase()), this.logger);
   }
 
   /**
@@ -55,7 +54,7 @@ export class DOGEIndexerController {
    */
   @Get("block/:blockHash")
   public async block(@Param("blockHash") blockHash: string): Promise<ApiResponseWrapper<ApiDBBlock>> {
-    return handleApiResponse(this.indexerEngine.getBlock(blockHash), this.logger);
+    return handleApiResponse(this.indexerEngine.getBlock(blockHash.toLowerCase()), this.logger);
   }
 
   /**
@@ -85,7 +84,7 @@ export class DOGEIndexerController {
    */
   @Get("transaction-block/:txHash")
   public async transactionBlock(@Param("txHash") txHash: string): Promise<ApiResponseWrapper<ApiDBBlock>> {
-    return handleApiResponse(this.indexerEngine.getTransactionBlock(txHash), this.logger);
+    return handleApiResponse(this.indexerEngine.getTransactionBlock(txHash.toLowerCase()), this.logger);
   }
 
   /**

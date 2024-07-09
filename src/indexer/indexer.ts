@@ -498,6 +498,11 @@ export class Indexer {
     return false;
   }
 
+  private async resetDatabase() {
+    await this.interlace.resetAll();
+    await this.indexerToDB.dropAllStateInfo();
+  }
+
   /**
    * Reset indexer database and stop running.
    * @param reason Reason for stopping.
@@ -505,12 +510,16 @@ export class Indexer {
   public async resetDatabaseAndStop(reason: string) {
     this.logger.error(reason);
 
-    await this.interlace.resetAll();
-    await this.indexerToDB.dropAllStateInfo();
+    await this.resetDatabase();
 
     this.logger.debug(`manual restart required`);
     await this.waitForever();
     exit(3);
+  }
+
+  public async resetDatabaseAndContinue(reason: string){
+    this.logger.info(reason);
+    await this.resetDatabase();
   }
 
   /**

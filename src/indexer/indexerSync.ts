@@ -32,6 +32,13 @@ export class IndexerSync {
   /////////////////////////////////////////////////////////////
 
   /**
+   * @returns Current syncing start time in seconds
+   */
+  public _getSyncStartTime(): number {
+    return getUnixEpochTimestamp() - this.indexer.syncTimeDays() * SECONDS_PER_DAY; //in seconds
+  }
+
+  /**
    * Calculates the starting block number for sync
    * @returns block number from where to start the sync
    */
@@ -46,7 +53,7 @@ export class IndexerSync {
       return latestBlockNumber;
     }
 
-    const syncStartTime = getUnixEpochTimestamp() - this.indexer.syncTimeDays() * SECONDS_PER_DAY; //in seconds
+    const syncStartTime = this._getSyncStartTime();
     const latestBlockTime = await this.indexerToClient.getBlockNumberTimestampFromClient(latestBlockNumber); //in seconds
 
     if (latestBlockTime <= syncStartTime) {
@@ -250,20 +257,34 @@ export class IndexerSync {
       return;
     }
 
-    const syncStartBlockNumber = await this.getSyncStartBlockNumber(); // N ... start reading N+1
-
-    // check if syncN is bigger than DB_N.
-    if (dbLastSavedBlockNumber > 0 && dbLastSavedBlockNumber < syncStartBlockNumber) {
-      // this can happen if indexer is not run for some time and last save block number is below sync start block number.
-
-      await this.indexer.resetDatabaseAndStop(
-        `last database block number DB_N=${dbLastSavedBlockNumber} is below indexer start block number Sync_N=${syncStartBlockNumber} - resetting ${this.indexer.chainConfig.name} indexer DB and state`
-      );
-
-      return; //for testing
+    let waitingForSyncCount = 0;
+    while (true) {
+      const syncStartBlockNumber = await this.getSyncStartBlockNumber(); // N ... start reading N+1
+      const requiredIndexingStartTime = this._getSyncStartTime();
+      const syncStartBlockTime = await this.indexerToClient.getBlockNumberTimestampFromClient(syncStartBlockNumber);
+      // The sync Start Block number is old enough
+      if (requiredIndexingStartTime <= syncStartBlockTime) {
+        this.indexer.indexedHeight = syncStartBlockNumber;
+        if (dbLastSavedBlockNumber > 0 && dbLastSavedBlockNumber < syncStartBlockNumber) {
+          // The latest block saved in db is older than sync time
+          await this.indexer.resetDatabaseAndContinue(
+            `last database block number DB_N=${dbLastSavedBlockNumber} is older than desired block history: older than ${this.indexer.syncTimeDays()} - dropping old database for ${
+              this.indexer.chainConfig.name
+            } and continuing`
+          );
+        }
+        this.indexer.indexedHeight = Math.max(dbLastSavedBlockNumber, syncStartBlockNumber);
+        waitingForSyncCount = 0;
+        break;
+      }
+      // Sync start block number is not old enough, we may need to wait for node to be synced
+      else {
+        const sleepingDelayForGapsSync = 5 * 1000;
+        this.logger.warning(`Waiting for node to be synced on ${this.indexer.chainConfig.name}: sleeping for ${sleepingDelayForGapsSync} ms (repeated for the ${waitingForSyncCount} time)`);
+        waitingForSyncCount += 1;
+        await sleepMs(sleepingDelayForGapsSync);
+      }
     }
-
-    this.indexer.indexedHeight = Math.max(dbLastSavedBlockNumber, syncStartBlockNumber);
 
     this.logger.group(`Sync started (${this.indexer.syncTimeDays()} days)`);
 

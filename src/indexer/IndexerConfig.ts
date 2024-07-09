@@ -14,7 +14,7 @@ export class IndexerConfig implements IReflection<IndexerConfig> {
   /**
    * How many days back to sync (decimals are supported)
    */
-  @optional() public syncTimeDays = 2;
+  @optional() public syncTimeDays = 2.5;
   /**
    * How much time in ms to wait before checking for new block
    */

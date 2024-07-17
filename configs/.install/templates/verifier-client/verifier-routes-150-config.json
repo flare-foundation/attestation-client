@@ -1,150 +1,126 @@
 {
-   // See documentation of class `VerifierRouteConfig` in `src/verification/routing/configs/VerifierRouteConfig.ts`
-   "startRoundId": 150,
-   "verifierRoutes": [
-      {
-         "sourceId": "BTC",
-         "routes": [
-            {
-               "attestationTypes": [
-                  "Payment"
-               ],
-               "url": "$(BTCVerifierRouterClientUrl)/Payment",
-               "apiKey": "$(BTCVerifierRouterClientApiKey)"
-            },
-            {
-               "attestationTypes": [
-                  "BalanceDecreasingTransaction"
-               ],
-               "url": "$(BTCVerifierRouterClientUrl)/BalanceDecreasingTransaction",
-               "apiKey": "$(BTCVerifierRouterClientApiKey)"
-            },
-            {
-               "attestationTypes": [
-                  "ConfirmedBlockHeightExists"
-               ],
-               "url": "$(BTCVerifierRouterClientUrl)/ConfirmedBlockHeightExists",
-               "apiKey": "$(BTCVerifierRouterClientApiKey)"
-            },
-            {
-               "attestationTypes": [
-                  "ReferencedPaymentNonexistence"
-               ],
-               "url": "$(BTCVerifierRouterClientUrl)/ReferencedPaymentNonexistence",
-               "apiKey": "$(BTCVerifierRouterClientApiKey)"
-            },
-            {
-               "attestationTypes": [
-                  "AddressValidity"
-               ],
-               "url": "$(BTCVerifierRouterClientUrl)/AddressValidity",
-               "apiKey": "$(BTCVerifierRouterClientApiKey)"
-            }
-         ]
-      },
-      {
-         "sourceId": "DOGE",
-         "routes": [
-            {
-               "attestationTypes": [
-                  "Payment"
-               ],
-               "url": "$(DOGEVerifierRouterClientUrl)/Payment",
-               "apiKey": "$(DOGEVerifierRouterClientApiKey)"
-            },
-            {
-               "attestationTypes": [
-                  "BalanceDecreasingTransaction"
-               ],
-               "url": "$(DOGEVerifierRouterClientUrl)/BalanceDecreasingTransaction",
-               "apiKey": "$(DOGEVerifierRouterClientApiKey)"
-            },
-            {
-               "attestationTypes": [
-                  "ConfirmedBlockHeightExists"
-               ],
-               "url": "$(DOGEVerifierRouterClientUrl)/ConfirmedBlockHeightExists",
-               "apiKey": "$(DOGEVerifierRouterClientApiKey)"
-            },
-            {
-               "attestationTypes": [
-                  "ReferencedPaymentNonexistence"
-               ],
-               "url": "$(DOGEVerifierRouterClientUrl)/ReferencedPaymentNonexistence",
-               "apiKey": "$(DOGEVerifierRouterClientApiKey)"
-            },
-            {
-               "attestationTypes": [
-                  "AddressValidity"
-               ],
-               "url": "$(DOGEVerifierRouterClientUrl)/AddressValidity",
-               "apiKey": "$(DOGEVerifierRouterClientApiKey)"
-            }
-         ]
-      },
-      {
-         "sourceId": "XRP",
-         "routes": [
-            {
-               "attestationTypes": [
-                  "Payment"
-               ],
-               "url": "$(XRPVerifierRouterClientUrl)/Payment",
-               "apiKey": "$(XRPVerifierRouterClientApiKey)"
-            },
-            {
-               "attestationTypes": [
-                  "BalanceDecreasingTransaction"
-               ],
-               "url": "$(XRPVerifierRouterClientUrl)/BalanceDecreasingTransaction",
-               "apiKey": "$(XRPVerifierRouterClientApiKey)"
-            },
-            {
-               "attestationTypes": [
-                  "ConfirmedBlockHeightExists"
-               ],
-               "url": "$(XRPVerifierRouterClientUrl)/ConfirmedBlockHeightExists",
-               "apiKey": "$(XRPVerifierRouterClientApiKey)"
-            },
-            {
-               "attestationTypes": [
-                  "ReferencedPaymentNonexistence"
-               ],
-               "url": "$(XRPVerifierRouterClientUrl)/ReferencedPaymentNonexistence",
-               "apiKey": "$(XRPVerifierRouterClientApiKey)"
-            },
-            {
-               "attestationTypes": [
-                  "AddressValidity"
-               ],
-               "url": "$(XRPVerifierRouterClientUrl)/AddressValidity",
-               "apiKey": "$(XRPVerifierRouterClientApiKey)"
-            }
-         ]
-      },
-      {
-         "sourceId": "ETH",
-         "routes": [
-            {
-               "attestationTypes": [
-                  "EVMTransaction"
-               ],
-               "url": "$(ETHVerifierRouterClientUrl)/EVMTransaction",
-               "apiKey": "$(ETHVerifierRouterClientApiKey)"
-            }
-         ]
-      },
-      {
-         "sourceId": "FLR",
-         "routes": [
-            {
-               "attestationTypes": [
-                  "EVMTransaction"
-               ],
-               "url": "$(FLRVerifierRouterClientUrl)/EVMTransaction",
-               "apiKey": "$(FLRVerifierRouterClientApiKey)"
-            }
-         ]
-      }
-   ]
+  // See documentation of class `VerifierRouteConfig` in `src/verification/routing/configs/VerifierRouteConfig.ts`
+  "startRoundId": 150,
+  "verifierRoutes": [
+    {
+      "sourceId": "BTC",
+      "routes": [
+        {
+          "attestationTypes": ["Payment"],
+          "url": "$(BTCVerifierRouterClientUrl)/Payment",
+          "apiKey": "$(BTCVerifierRouterClientApiKey)"
+        },
+        {
+          "attestationTypes": ["BalanceDecreasingTransaction"],
+          "url": "$(BTCVerifierRouterClientUrl)/BalanceDecreasingTransaction",
+          "apiKey": "$(BTCVerifierRouterClientApiKey)"
+        },
+        {
+          "attestationTypes": ["ConfirmedBlockHeightExists"],
+          "url": "$(BTCVerifierRouterClientUrl)/ConfirmedBlockHeightExists",
+          "apiKey": "$(BTCVerifierRouterClientApiKey)"
+        },
+        {
+          "attestationTypes": ["ReferencedPaymentNonexistence"],
+          "url": "$(BTCVerifierRouterClientUrl)/ReferencedPaymentNonexistence",
+          "apiKey": "$(BTCVerifierRouterClientApiKey)"
+        },
+        {
+          "attestationTypes": ["AddressValidity"],
+          "url": "$(BTCVerifierRouterClientUrl)/AddressValidity",
+          "apiKey": "$(BTCVerifierRouterClientApiKey)"
+        }
+      ]
+    },
+    {
+      "sourceId": "DOGE",
+      "routes": [
+        {
+          "attestationTypes": ["Payment"],
+          "url": "$(DOGEVerifierRouterClientUrl)/Payment",
+          "apiKey": "$(DOGEVerifierRouterClientApiKey)"
+        },
+        {
+          "attestationTypes": ["BalanceDecreasingTransaction"],
+          "url": "$(DOGEVerifierRouterClientUrl)/BalanceDecreasingTransaction",
+          "apiKey": "$(DOGEVerifierRouterClientApiKey)"
+        },
+        {
+          "attestationTypes": ["ConfirmedBlockHeightExists"],
+          "url": "$(DOGEVerifierRouterClientUrl)/ConfirmedBlockHeightExists",
+          "apiKey": "$(DOGEVerifierRouterClientApiKey)"
+        },
+        {
+          "attestationTypes": ["ReferencedPaymentNonexistence"],
+          "url": "$(DOGEVerifierRouterClientUrl)/ReferencedPaymentNonexistence",
+          "apiKey": "$(DOGEVerifierRouterClientApiKey)"
+        },
+        {
+          "attestationTypes": ["AddressValidity"],
+          "url": "$(DOGEVerifierRouterClientUrl)/AddressValidity",
+          "apiKey": "$(DOGEVerifierRouterClientApiKey)"
+        }
+      ]
+    },
+    {
+      "sourceId": "XRP",
+      "routes": [
+        {
+          "attestationTypes": ["Payment"],
+          "url": "$(XRPVerifierRouterClientUrl)/Payment",
+          "apiKey": "$(XRPVerifierRouterClientApiKey)"
+        },
+        {
+          "attestationTypes": ["BalanceDecreasingTransaction"],
+          "url": "$(XRPVerifierRouterClientUrl)/BalanceDecreasingTransaction",
+          "apiKey": "$(XRPVerifierRouterClientApiKey)"
+        },
+        {
+          "attestationTypes": ["ConfirmedBlockHeightExists"],
+          "url": "$(XRPVerifierRouterClientUrl)/ConfirmedBlockHeightExists",
+          "apiKey": "$(XRPVerifierRouterClientApiKey)"
+        },
+        {
+          "attestationTypes": ["ReferencedPaymentNonexistence"],
+          "url": "$(XRPVerifierRouterClientUrl)/ReferencedPaymentNonexistence",
+          "apiKey": "$(XRPVerifierRouterClientApiKey)"
+        },
+        {
+          "attestationTypes": ["AddressValidity"],
+          "url": "$(XRPVerifierRouterClientUrl)/AddressValidity",
+          "apiKey": "$(XRPVerifierRouterClientApiKey)"
+        }
+      ]
+    },
+    {
+      "sourceId": "ETH",
+      "routes": [
+        {
+          "attestationTypes": ["EVMTransaction"],
+          "url": "$(ETHVerifierRouterClientUrl)/EVMTransaction",
+          "apiKey": "$(ETHVerifierRouterClientApiKey)"
+        }
+      ]
+    },
+    {
+      "sourceId": "FLR",
+      "routes": [
+        {
+          "attestationTypes": ["EVMTransaction"],
+          "url": "$(FLRVerifierRouterClientUrl)/EVMTransaction",
+          "apiKey": "$(FLRVerifierRouterClientApiKey)"
+        }
+      ]
+    },
+    {
+      "sourceId": "WEB",
+      "routes": [
+        {
+          "attestationTypes": ["MatchResult"],
+          "url": "$(MatchResultVerifierRouterClientUrl)/MatchResult",
+          "apiKey": "$(MatchResultRouterClientApiKey)"
+        }
+      ]
+    }
+  ]
 }

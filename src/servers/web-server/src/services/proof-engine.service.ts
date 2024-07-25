@@ -114,7 +114,11 @@ export class ProofEngineService {
       .select("attestation_request.requestBytes", "requestBytes")
       .addSelect("attestation_request.verificationStatus", "verificationStatus")
       .addSelect("attestation_request.attestationStatus", "attestationStatus")
-      .addSelect("attestation_request.exceptionError", "exceptionError");
+      .addSelect("attestation_request.exceptionError", "exceptionError")
+      .orderBy({
+        "attestation_request.blockNumber": "ASC",
+        "attestation_request.logIndex": "ASC",
+      });
 
     const result = await query.getRawMany();
 

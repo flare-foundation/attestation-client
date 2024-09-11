@@ -30,7 +30,7 @@
       "name": "XRP",
       // MCC create options
       "mccCreate": {
-         "url": "$(XRLURL)",
+         "url": "$(XRPURL)",
          "username": "",
          "password": "",
       },

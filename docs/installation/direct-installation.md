@@ -33,7 +33,7 @@ The installation installs several attestation suite services, which are run as `
         - Add key `Network` with value `coston2`
     - `credentials/chain-credentials.json`
         - `BTCURL` to `http://localhost:18332`
-        - `XRLURL` to `http://localhost:11234`
+        - `XRPURL` to `http://localhost:11234`
         - `DOGEURL` to `http://localhost:44555`
         - Make sure all but XRP passwords are the same.
     - `credentials/database-credentials.json`

@@ -1,0 +1,368 @@
+{
+  "name": "MatchResult",
+  "fullComment": " @custom:name MatchResult\n @custom:id 0x07\n @custom:supported WEB\n @author Kalmia\n @notice Returns the result for specified game UID.\n @custom:verification Result is returned from the oi-flare-proxy API.\n @custom:lut `0xffffffffffffffff` ($2^{64}-1$ in hex)",
+  "description": "Returns the result for specified game UID.",
+  "supported": [
+    "WEB"
+  ],
+  "verification": "Result is returned from the oi-flare-proxy API.\n ",
+  "lut": "`0xffffffffffffffff` ($2^{64}-1$ in hex)",
+  "proof": {
+    "name": "Proof",
+    "description": "Toplevel proof",
+    "above": "",
+    "below": "",
+    "fullComment": " @notice Toplevel proof\n @param merkleProof Merkle proof corresponding to the attestation response.\n @param data Attestation response.",
+    "params": [
+      {
+        "name": "merkleProof",
+        "type": "bytes32[]",
+        "typeSimple": "bytes32[]",
+        "comment": "Merkle proof corresponding to the attestation response."
+      },
+      {
+        "name": "data",
+        "type": "struct MatchResult.Response",
+        "typeSimple": "Response",
+        "comment": "Attestation response."
+      }
+    ]
+  },
+  "request": {
+    "name": "Request",
+    "description": "Toplevel request",
+    "above": "",
+    "below": "",
+    "fullComment": " @notice Toplevel request\n @param attestationType ID of the attestation type.\n @param sourceId ID of the data source.\n @param messageIntegrityCode `MessageIntegrityCode` that is derived from the expected response.\n @param requestBody Data defining the request. Type (struct) and interpretation is determined by the `attestationType`.",
+    "params": [
+      {
+        "name": "attestationType",
+        "type": "bytes32",
+        "typeSimple": "bytes32",
+        "comment": "ID of the attestation type."
+      },
+      {
+        "name": "sourceId",
+        "type": "bytes32",
+        "typeSimple": "bytes32",
+        "comment": "ID of the data source."
+      },
+      {
+        "name": "messageIntegrityCode",
+        "type": "bytes32",
+        "typeSimple": "bytes32",
+        "comment": "`MessageIntegrityCode` that is derived from the expected response."
+      },
+      {
+        "name": "requestBody",
+        "type": "struct MatchResult.RequestBody",
+        "typeSimple": "RequestBody",
+        "comment": "Data defining the request. Type (struct) and interpretation is determined by the `attestationType`."
+      }
+    ]
+  },
+  "response": {
+    "name": "Response",
+    "description": "Toplevel response",
+    "above": "",
+    "below": "",
+    "fullComment": " @notice Toplevel response\n @param attestationType Extracted from the request.\n @param sourceId Extracted from the request.\n @param votingRound The ID of the State Connector round in which the request was considered.\n @param lowestUsedTimestamp The lowest timestamp used to generate the response.\n @param requestBody Extracted from the request.\n @param responseBody Data defining the response. The verification rules for the construction of the response body and the type are defined per specific `attestationType`.",
+    "params": [
+      {
+        "name": "attestationType",
+        "type": "bytes32",
+        "typeSimple": "bytes32",
+        "comment": "Extracted from the request."
+      },
+      {
+        "name": "sourceId",
+        "type": "bytes32",
+        "typeSimple": "bytes32",
+        "comment": "Extracted from the request."
+      },
+      {
+        "name": "votingRound",
+        "type": "uint64",
+        "typeSimple": "uint64",
+        "comment": "The ID of the State Connector round in which the request was considered."
+      },
+      {
+        "name": "lowestUsedTimestamp",
+        "type": "uint64",
+        "typeSimple": "uint64",
+        "comment": "The lowest timestamp used to generate the response."
+      },
+      {
+        "name": "requestBody",
+        "type": "struct MatchResult.RequestBody",
+        "typeSimple": "RequestBody",
+        "comment": "Extracted from the request."
+      },
+      {
+        "name": "responseBody",
+        "type": "struct MatchResult.ResponseBody",
+        "typeSimple": "ResponseBody",
+        "comment": "Data defining the response. The verification rules for the construction of the response body and the type are defined per specific `attestationType`."
+      }
+    ]
+  },
+  "requestBody": {
+    "name": "RequestBody",
+    "description": "Request body for MatchResult attestation type",
+    "above": "",
+    "below": "",
+    "fullComment": " @notice Request body for MatchResult attestation type\n @param date date of a match (unix timestamp without hour - rounded down to day)\n @param sport id of a sport from\n       0 - Basketball,\n       1 - Basketball3x3,\n       2 - Badminton,\n       3 - BeachVolley,\n       4 - FieldHockey,\n       5 - Football,\n       6 - Handball,\n       7 - TableTennis,\n       8 - Tennis,\n       9 - Volleyball,\n       10 - WaterPolo\n @param gender 0 - male, 1 - female\n @param teams teams playing the game, divided with comma (example: England,Slovenia)",
+    "params": [
+      {
+        "name": "date",
+        "type": "uint256",
+        "typeSimple": "uint256",
+        "comment": "date of a match (unix timestamp without hour - rounded down to day)"
+      },
+      {
+        "name": "sport",
+        "type": "uint32",
+        "typeSimple": "uint32",
+        "comment": "id of a sport from"
+      },
+      {
+        "name": "gender",
+        "type": "uint8",
+        "typeSimple": "uint8",
+        "comment": "0 - male, 1 - female"
+      },
+      {
+        "name": "teams",
+        "type": "string",
+        "typeSimple": "string",
+        "comment": "teams playing the game, divided with comma (example: England,Slovenia)"
+      }
+    ]
+  },
+  "responseBody": {
+    "name": "ResponseBody",
+    "description": "Response body for MatchResult attestation type.",
+    "above": "",
+    "below": "",
+    "fullComment": " @notice Response body for MatchResult attestation type.\n @param timestamp Unix timestamp of the exact match beginning\n @param result Possible return values are 0 = no data, 1 = team 1 won, 2 = team 2 won, 3 = draw",
+    "params": [
+      {
+        "name": "timestamp",
+        "type": "uint256",
+        "typeSimple": "uint256",
+        "comment": "Unix timestamp of the exact match beginning"
+      },
+      {
+        "name": "result",
+        "type": "uint8",
+        "typeSimple": "uint8",
+        "comment": "Possible return values are 0 = no data, 1 = team 1 won, 2 = team 2 won, 3 = draw"
+      }
+    ]
+  },
+  "requestStructs": [],
+  "responseStructs": [],
+  "requestAbi": {
+    "components": [
+      {
+        "internalType": "bytes32",
+        "name": "attestationType",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "sourceId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "messageIntegrityCode",
+        "type": "bytes32"
+      },
+      {
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "date",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint32",
+            "name": "sport",
+            "type": "uint32"
+          },
+          {
+            "internalType": "uint8",
+            "name": "gender",
+            "type": "uint8"
+          },
+          {
+            "internalType": "string",
+            "name": "teams",
+            "type": "string"
+          }
+        ],
+        "internalType": "struct MatchResult.RequestBody",
+        "name": "requestBody",
+        "type": "tuple"
+      }
+    ],
+    "internalType": "struct MatchResult.Request",
+    "name": "_request",
+    "type": "tuple"
+  },
+  "responseAbi": {
+    "components": [
+      {
+        "internalType": "bytes32",
+        "name": "attestationType",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "sourceId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "uint64",
+        "name": "votingRound",
+        "type": "uint64"
+      },
+      {
+        "internalType": "uint64",
+        "name": "lowestUsedTimestamp",
+        "type": "uint64"
+      },
+      {
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "date",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint32",
+            "name": "sport",
+            "type": "uint32"
+          },
+          {
+            "internalType": "uint8",
+            "name": "gender",
+            "type": "uint8"
+          },
+          {
+            "internalType": "string",
+            "name": "teams",
+            "type": "string"
+          }
+        ],
+        "internalType": "struct MatchResult.RequestBody",
+        "name": "requestBody",
+        "type": "tuple"
+      },
+      {
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "timestamp",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint8",
+            "name": "result",
+            "type": "uint8"
+          }
+        ],
+        "internalType": "struct MatchResult.ResponseBody",
+        "name": "responseBody",
+        "type": "tuple"
+      }
+    ],
+    "internalType": "struct MatchResult.Response",
+    "name": "_response",
+    "type": "tuple"
+  },
+  "proofAbi": {
+    "components": [
+      {
+        "internalType": "bytes32[]",
+        "name": "merkleProof",
+        "type": "bytes32[]"
+      },
+      {
+        "components": [
+          {
+            "internalType": "bytes32",
+            "name": "attestationType",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "sourceId",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "uint64",
+            "name": "votingRound",
+            "type": "uint64"
+          },
+          {
+            "internalType": "uint64",
+            "name": "lowestUsedTimestamp",
+            "type": "uint64"
+          },
+          {
+            "components": [
+              {
+                "internalType": "uint256",
+                "name": "date",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint32",
+                "name": "sport",
+                "type": "uint32"
+              },
+              {
+                "internalType": "uint8",
+                "name": "gender",
+                "type": "uint8"
+              },
+              {
+                "internalType": "string",
+                "name": "teams",
+                "type": "string"
+              }
+            ],
+            "internalType": "struct MatchResult.RequestBody",
+            "name": "requestBody",
+            "type": "tuple"
+          },
+          {
+            "components": [
+              {
+                "internalType": "uint256",
+                "name": "timestamp",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint8",
+                "name": "result",
+                "type": "uint8"
+              }
+            ],
+            "internalType": "struct MatchResult.ResponseBody",
+            "name": "responseBody",
+            "type": "tuple"
+          }
+        ],
+        "internalType": "struct MatchResult.Response",
+        "name": "data",
+        "type": "tuple"
+      }
+    ],
+    "internalType": "struct MatchResult.Proof",
+    "name": "_proof",
+    "type": "tuple"
+  }
+}
